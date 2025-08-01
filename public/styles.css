@@ -1,0 +1,80 @@
+body {
+	margin: 0;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 10px 0;
+	background-color: #333;
+	width: 100%;
+	min-width: 528px;
+}
+
+li {
+	display: inline;
+}
+
+li a {
+	color: white;
+	text-align: center;
+	padding: 10px 16px;
+	text-decoration: none;
+}
+
+li a:hover {
+	background-color: #111;
+	cursor: pointer;
+}
+
+.active, .active:hover {
+	background-color: #04AA6D;
+}
+
+header {
+	text-align: center;
+	color: #111;
+	background-color: #999999;
+	height: auto;
+	padding: 1px;
+}
+
+.cal {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+}
+
+.cal-col {
+	width: 100%;
+	border-right: 1px #333 solid;
+}
+
+.cal-col:last-child {
+	border: none;
+}
+
+.cal-col label {
+	display: block;
+	width: 100%;
+	margin: 0 auto;
+	text-align: center;
+}
+
+.day {
+	display: flex;
+	flex-direcion: row;
+	flex-wrap: nowrap;
+	justify-content: center;
+}
+
+.period {
+	display: block;
+	width: 100%;
+	border-right: 1px #333 solid;
+}
+
+.period:last-child {
+	border: none;
+}
