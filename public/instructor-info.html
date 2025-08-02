@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles.css">	
+	<title>Instructor Info</title>
+</head>
+<body>
+	<h1 id="instructor-name">Loading...</h1>
+	<p id="instructor-details"></p>
+
+	<script>
+		async function loadInstructor() {
+			const params = new URLSearchParams(window.location.search);
+			const id = params.get('id');
+
+			if (!id) {
+				document.getElementById('instructor-name').textContent = 'Instrctor not found.';
+				return;
+			}
+
+			try {
+				const res = await fetch(`/api/instructors/${id}`);
+				if (!res.ok) throw new Error('Network error');
+
+				const instructor = await res.json();
+
+				document.getElementById('instructor-name').textContent = instructor.name;
+				document.getElementById('instructor-details').textContent = `Email: ${instructor.email}, Phone: ${instructor.phone}`;
+			} catch (err) {
+				console.error('Error loading instructor:', err);
+				document.getElementById('instructor-name').textContent = 'Error loading instructor.';
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', loadInstructor);
+	</script>
+</body>
+</html>

@@ -10,11 +10,15 @@
 	<div id="navbar"></div>
 	<header class="clearfix">
 		<h1>Instructors</h1>
-		<a class="new-btn">new</a>
+		<div id="new-btn" class="new-btn">new</div>
 	</header>
 	<input class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
+
+	<div id="instList"></div>
+
 	<div class="modal" id="newInst">
 		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
 			<h2>New Instructor</h2>
 			<form id="new-instructor-form">
 				<label>Name:
@@ -24,7 +28,7 @@
 					<input type="tel" name="phone" autocomplete="off" placeholder="Phone" required>
 				</label><br><br>
 				<label>Email:
-					<input type="email" name="email" autocomplete="off" placeholder="email" required>
+					<input type="email" name="email" autocomplete="off" placeholder="Email" required>
 				</label><br><br>
 				<label>RPT Status:
 					<input type="checkbox" name="rptStatus" >
@@ -69,11 +73,69 @@
 
 			if (res.ok) {
 				form.reset();
+				loadInstructors();
 			}
 		} catch (error) {
 			console.error('Request failed:', error);
 			message.textContent = 'Network error or server issue';
 		}
 	});
+
+	document.addEventListener('DOMContentLoaded', function () {
+	  	const modal = document.getElementById('newInst');
+		const closeBtn = document.getElementById('close-btn');
+		const openBtn = document.getElementById('new-btn');
+
+		closeBtn.addEventListener('click', function () {
+			modal.style.display = 'none';
+		});
+
+		openBtn.addEventListener('click', function () {
+			modal.style.display = 'flex';
+		});
+
+		modal.addEventListener('click', function (event) {
+			if (event.target === modal) {
+		  		modal.style.display = 'none';
+			}
+		});
+	});
+
+	async function loadInstructors() {
+		const instList = document.getElementById('instList');
+		instList.innerHTML = '';
+
+		try {
+			const response = await fetch('/api/getInstructors');
+			if (!response.ok) throw new Error('Network response was not ok');
+
+			const instructors = await response.json();
+
+			instructors.forEach(instructor => {
+				const entry = document.createElement('div');
+				entry.classList.add('row');
+
+				const name = document.createElement('span');
+				name.textContent = instructor.name;
+
+				const arrow = document.createElement('span')
+				arrow.innerHTML = `&#9654;`;
+				arrow.classList.add("arrow");
+
+				entry.appendChild(name);
+				entry.appendChild(arrow);
+
+				entry.addEventListener('click', () => {
+					window.location.href = `/instructor-info.html?id=${instructor.id}`;
+				});
+
+				instList.appendChild(entry);
+			});
+		} catch (err) {
+			console.error('Failed to load instructors:', err);
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', loadInstructors);
 </script>
 </html>

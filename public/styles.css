@@ -47,6 +47,15 @@ h1 {
 	margin: 0;
 }
 
+h2 {
+	clear: right;
+}
+
+button:hover {
+	cursor: pointer;
+}
+
+
 .cal {
 	display: flex;
 	flex-direction: row;
@@ -106,12 +115,27 @@ h1 {
 	text-decoration: underline;
 }
 
+.row {
+	padding: 7px 5%;
+	border: black solid 1px;
+	background-color: #EEEEEE;
+}
+
+.row:hover {
+	background-color: #E0E0E0;
+	cursor: pointer;
+}
+
+.arrow {
+	float: right;
+}
+
 .clearfix {
 	overflow: auto;
 }
 
 .modal {
-	display: block;
+	display: none;
 	position: fixed;
 	z-index: 1;
 	top: 0;
@@ -133,4 +157,17 @@ h1 {
 	border: black solid 1px;
 	border-radius: 20px;
 	padding: 20px;
+}
+
+.close-btn {
+	font-size: 2em;
+	display: inline-block;
+	height: auto;
+  	float: right;
+}
+
+.close-btn:hover {
+	  font-weight: bold;
+	  color: black;
+	  cursor: pointer;
 }
