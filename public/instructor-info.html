@@ -7,8 +7,17 @@
 	<title>Instructor Info</title>
 </head>
 <body>
-	<h1 id="instructor-name">Loading...</h1>
-	<p id="instructor-details"></p>
+	<header class="clearfix">
+		<h1>Instructor Profile</h1>
+		<div id="back-btn" class="back-btn"><a href="/instructors.html">&#9664; Instructors</a></div>
+	</header>
+	<h2 id="instructor-name" class="info-header">Loading...</h2>
+	<h3>Contact</h3>
+	<div id="instructor-details" class="row"></div>
+
+	<h3>Classes</h3>
+	<h3>More Info</h3>
+	<div id="more-info"></div>
 
 	<script>
 		async function loadInstructor() {
@@ -26,8 +35,36 @@
 
 				const instructor = await res.json();
 
-				document.getElementById('instructor-name').textContent = instructor.name;
-				document.getElementById('instructor-details').textContent = `Email: ${instructor.email}, Phone: ${instructor.phone}`;
+				const name = document.getElementById('instructor-name');
+				name.innerHTML = instructor.name;
+
+				if (instructor.rpt === true) {
+					name.innerHTML += ', RPT';
+				}
+
+				name.innerHTML += `<span class="edit-icon" title="Edit">&#9998;</span>`;
+				
+				const contact = document.getElementById('instructor-details')
+				contact.innerHTML = `<b>${instructor.name}</b>`;
+				if (instructor.rpt === true) {
+					contact.innerHTML += `<b>, RPT<b>`;
+				}
+				contact.innerHTML += `<br>${instructor.email}<br>${instructor.phone}`;
+
+				const arrow = document.createElement('span');
+				arrow.innerHTML = `edit &#9654;`;
+				arrow.classList.add("arrow");
+
+				contact.appendChild(arrow);
+
+				if (instructor.sponsored === true) {
+					const moreInfo = document.getElementById('more-info');
+					moreInfo.classList.add('row');
+					moreInfo.innerHTML = `<b>Sponsored Instructor<b><br>`;
+					const arrow2 = arrow.cloneNode(true);
+					moreInfo.appendChild(arrow2);
+				}
+
 			} catch (err) {
 				console.error('Error loading instructor:', err);
 				document.getElementById('instructor-name').textContent = 'Error loading instructor.';

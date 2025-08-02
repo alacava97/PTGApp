@@ -101,6 +101,8 @@
 		});
 	});
 
+	let allInstructors = [];
+
 	async function loadInstructors() {
 		const instList = document.getElementById('instList');
 		instList.innerHTML = '';
@@ -109,31 +111,56 @@
 			const response = await fetch('/api/getInstructors');
 			if (!response.ok) throw new Error('Network response was not ok');
 
-			const instructors = await response.json();
-
-			instructors.forEach(instructor => {
-				const entry = document.createElement('div');
-				entry.classList.add('row');
-
-				const name = document.createElement('span');
-				name.textContent = instructor.name;
-
-				const arrow = document.createElement('span')
-				arrow.innerHTML = `&#9654;`;
-				arrow.classList.add("arrow");
-
-				entry.appendChild(name);
-				entry.appendChild(arrow);
-
-				entry.addEventListener('click', () => {
-					window.location.href = `/instructor-info.html?id=${instructor.id}`;
-				});
-
-				instList.appendChild(entry);
-			});
+			allInstructors = await response.json();
+			displayInstructors(allInstructors);
 		} catch (err) {
 			console.error('Failed to load instructors:', err);
 		}
+	}
+
+	const searchBar = document.querySelector('.searchbar');
+	searchBar.addEventListener('input', () => {
+		const term = searchBar.value.toLowerCase();
+		const filtered = allInstructors.filter(inst => {
+			return (
+				inst.name?.toLowerCase().includes(term) ||
+				inst.phone?.toLowerCase().includes(term) ||
+				inst.email?.toLowerCase().includes(term) ||
+				(inst.rpt ? 'rpt' : '').includes(term) ||
+				(inst.sponsored ? 'sponsored': '').includes(term)
+			);
+		});
+		displayInstructors(filtered);
+	});
+
+	function displayInstructors(instructors) {
+		const instList = document.getElementById('instList');
+		instList.innerHTML = '';
+
+		instructors.forEach(instructor => {
+			const entry = document.createElement('div');
+			entry.classList.add('row');
+
+			const name = document.createElement('span');
+			if (instructor.rpt === true) {
+				name.textContent = instructor.name + ', RPT';
+			} else {
+				name.textContent = instructor.name;
+			};
+
+			const arrow = document.createElement('span')
+			arrow.innerHTML = `&#9654;`;
+			arrow.classList.add("arrow");
+
+			entry.appendChild(name);
+			entry.appendChild(arrow);
+
+			entry.addEventListener('click', () => {
+				window.location.href = `/instructor-info.html?id=${instructor.id}`;
+			});
+
+			instList.appendChild(entry);
+		});
 	}
 
 	document.addEventListener('DOMContentLoaded', loadInstructors);
