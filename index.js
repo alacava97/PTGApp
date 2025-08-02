@@ -19,7 +19,7 @@ const pool = new Pool({
 
 // Register
 app.post('/api/register', async (req, res) => {
-  const { name, email, password} = req.body;
+  const { name, email, password } = req.body;
   const hash = await bcrypt.hash(password, 10);
   try {
     const result = await pool.query(
@@ -71,6 +71,42 @@ function verifyToken(req, res, next) {
     next();
   });
 }
+
+//create
+async function createRecord({ table, data, returning = ['id'] }, client = pool) {
+  const columns = Object.keys(data);
+  const values = Object.values(data);
+  const placeholders = columns.map((_, i) => `$${i + 1}`);
+
+  const query = `
+    INSERT INTO ${table} (${columns.join(', ')})
+    VALUES (${placeholders.join(', ')})
+    RETURNING ${returning.join(' ')}
+  `;
+
+  const result = await client.query(query, values);
+  return result.rows[0];
+}
+
+// New Instructor
+app.post('/api/newInstructor', async (req, res) => {
+  try {
+    const instructor = await createRecord({
+      table: 'instructors',
+      data: req.body,
+      returning: ['id', 'name']
+    });
+
+    res.json({ message: 'Successfully created record for ' + instructor.name });
+  } catch (err) {
+    if (err.code === '23505') {
+      res.status(400).json({ error: 'Instructor already exists' });
+    } else {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  }
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);

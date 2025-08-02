@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles.css">
+	<title>Instructors</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header class="clearfix">
+		<h1>Instructors</h1>
+		<a class="new-btn">new</a>
+	</header>
+	<input class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
+	<div class="modal" id="newInst">
+		<div class="modal-content">
+			<h2>New Instructor</h2>
+			<form id="new-instructor-form">
+				<label>Name:
+					<input type="text" name="name" placeholder="Name" autocomplete="off" required>
+				</label><br><br>
+				<label>Phone:
+					<input type="tel" name="phone" autocomplete="off" placeholder="Phone" required>
+				</label><br><br>
+				<label>Email:
+					<input type="email" name="email" autocomplete="off" placeholder="email" required>
+				</label><br><br>
+				<label>RPT Status:
+					<input type="checkbox" name="rptStatus" >
+				</label><br><br>
+				<label>Sponsored:
+					<input type="checkbox" name="sponsored" >
+				</label><br><br>
+				<button type="submit">Create Record</button>
+			</form>
+
+			<div id="message"></div>
+
+		</div>
+	</div>
+</body>
+<script src="script.js"></script>
+<script>
+	const form = document.getElementById('new-instructor-form');
+	const message = document.getElementById('message');
+
+	form.addEventListener('submit', async (e) => {
+		e.preventDefault();
+
+		const formData = new FormData(form);
+		const data = {
+			name: formData.get('name'),
+			phone: formData.get('phone'),
+			email: formData.get('email'),
+			rpt: formData.get('rptStatus') || false,
+			sponsored: formData.get('sponsored') || false
+		};
+
+		try {
+			const res = await fetch('/api/newInstructor', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			});
+
+			const result = await res.json();
+			message.textContent = result.message || result.error || 'Unknown response';
+
+			if (res.ok) {
+				form.reset();
+			}
+		} catch (error) {
+			console.error('Request failed:', error);
+			message.textContent = 'Network error or server issue';
+		}
+	});
+</script>
+</html>
