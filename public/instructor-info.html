@@ -13,11 +13,13 @@
 	</header>
 	<h2 id="instructor-name" class="info-header">Loading...</h2>
 	<h3>Contact</h3>
-	<div id="instructor-details" class="row"></div>
+	<div id="instructor-details" class="row">No Contact Found</div>
 
 	<h3>Classes</h3>
+	<div id="classes" class="row">No Classes Found</div>
+
 	<h3>More Info</h3>
-	<div id="more-info"></div>
+	<div id="more-info" class="row">No Extra Info</div>
 
 	<script>
 		async function loadInstructor() {
@@ -44,7 +46,7 @@
 
 				name.innerHTML += `<span class="edit-icon" title="Edit">&#9998;</span>`;
 				
-				const contact = document.getElementById('instructor-details')
+				const contact = document.getElementById('instructor-details');
 				contact.innerHTML = `<b>${instructor.name}</b>`;
 				if (instructor.rpt === true) {
 					contact.innerHTML += `<b>, RPT<b>`;

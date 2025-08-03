@@ -88,33 +88,73 @@ async function createRecord({ table, data, returning = ['id'] }, client = pool) 
   return result.rows[0];
 }
 
-// New Instructor
-app.post('/api/newInstructor', async (req, res) => {
-  try {
-    const instructor = await createRecord({
-      table: 'instructors',
-      data: req.body,
-      returning: ['id', 'name']
-    });
+async function getAllowedFields(table, client = pool) {
+  const cleanTable = table.trim().toLowerCase();
 
-    res.json({ message: 'Successfully created record for ' + instructor.name });
+  const res = await client.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = $1
+  `, [cleanTable]);
+
+  return res.rows.map(r => r.column_name);
+}
+
+app.post('/api/create/:table', async (req, res) => {
+  const table = req.params.table;
+
+  let allowedFields;
+  try {
+    allowedFields = await getAllowedFields(table);
   } catch (err) {
-    if (err.code === '23505') {
-      res.status(400).json({ error: 'Instructor already exists' });
-    } else {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
+    return res.status(500).json({ error: 'Error loading table schema' });
+  }
+
+  if (!allowedFields.length) {
+    return res.status(400).json({ error: 'Invalid table name' });
+  }
+
+  const data = {};
+  for (const field of allowedFields) {
+    if (req.body[field] !== undefined ) {
+      data[field] = req.body[field];
     }
   }
+
+  if (Object.keys(data).length === 0) {
+    return res.status(400).json({ error: 'No valid fields provided' });
+  }
+
+  try {
+    const record = await createRecord({ table, data, returning: ['id'] });
+    res.json({ message: `Created record in ${table}`, id: record.id });
+  } catch (err) {
+    res.status(500).json({ error: 'Insert failed' });
+  } 
 });
 
-//Get Instructors
-app.get('/api/getInstructors', async (req, res) => {
+//read
+app.get('/api/read/:table', async (req, res) => {
+  const table = req.params.table;
+
+  let allowedFields;
   try {
-    const result = await pool.query('SELECT * FROM instructors ORDER BY id ASC');
+    allowedFields = await getAllowedFields(table);
+  } catch (err) {
+    return res.status(500).json({ error: 'Error loading table schema' });
+  }
+
+  if (!allowedFields.length) {
+    return res.status(400).json({ error: 'Invalid table name' });
+  }
+
+  const query = `SELECT * FROM ${table} ORDER BY id ASC`;
+
+  try {
+    const result = await pool.query(query);
     res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching instructors:', err);
+    console.error(`Error fetching data from ${table}:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -133,7 +173,6 @@ app.get('/api/instructors/:id', async (req, res) => {
     res.status(500).json({ error: 'Server error' });
   }
 });
-
 
 
 app.listen(process.env.PORT, () => {

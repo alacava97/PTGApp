@@ -179,6 +179,11 @@ a {
 	box-sizing: border-box;
 }
 
+.count {
+	padding: 8px 5%;
+	text-align: center;
+}
+
 .row {
 	position: relative;
 	padding: 7px 5%;

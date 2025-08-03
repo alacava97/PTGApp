@@ -4,12 +4,12 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
-	<title>Instructors</title>
+	<title>Classes</title>
 </head>
 <body>
 	<div id="navbar"></div>
 	<header class="clearfix">
-		<h1>Instructors</h1>
+		<h1>Classes</h1>
 		<div id="new-btn" class="new-btn">new</div>
 	</header>
 	<input class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
@@ -20,22 +20,23 @@
 	<div class="modal" id="newModal">
 		<div class="modal-content">
 			<div class="close-btn" id="close-btn">&times;</div>
-			<h2>New Instructor</h2>
-			<form id="new-instructor-form">
-				<label>Name:
-					<input type="text" name="name" placeholder="Name" autocomplete="off" required>
+			<h2>New Class</h2>
+			<form id="new-class-form">
+				<label>Title:
+					<input type="text" name="class_title" placeholder="Class Title" autocomplete="off" required>
 				</label><br><br>
-				<label>Phone:
-					<input type="tel" name="phone" autocomplete="off" placeholder="Phone">
+				<label>Instructor:
+					<select id="instDropdown" name="instructor" required>
+						<option value="" selected disabled>Select an instructor</option>
+					</select>
 				</label><br><br>
-				<label>Email:
-					<input type="email" name="email" autocomplete="off" placeholder="Email">
+				<label>Type:
+					<Select id="typeDropdown" name="type" required>
+						<option value="" selected disabled>Select a type</option>
+					</Select>
 				</label><br><br>
-				<label>RPT Status:
-					<input type="checkbox" name="rptStatus" >
-				</label><br><br>
-				<label>Sponsored:
-					<input type="checkbox" name="sponsored" >
+				<label>Level:
+					<input type="text" name="class_level">
 				</label><br><br>
 				<button type="submit">Create Record</button>
 			</form>
@@ -46,9 +47,9 @@
 	</div>
 </body>
 <script>
-	var form = document.getElementById('new-instructor-form');
+	var form = document.getElementById('new-class-form');
 	var message = document.getElementById('message');
-	var table = 'instructors';
+	var table = 'classes';
 	var all = [];
 </script>
 <script src="script.js"></script>
@@ -71,20 +72,16 @@
 		displayRecords(filtered);
 	});
 
-	function displayRecords(instructors) {
-		const instList = document.getElementById('list');
-		instList.innerHTML = '';
+	function displayRecords(records) {
+		const list = document.getElementById('list');
+		list.innerHTML = '';
 
-		instructors.forEach(instructor => {
+		records.forEach(record => {
 			const entry = document.createElement('div');
 			entry.classList.add('row');
 
 			const name = document.createElement('span');
-			if (instructor.rpt === true) {
-				name.textContent = instructor.name + ', RPT';
-			} else {
-				name.textContent = instructor.name;
-			};
+			name.textContent = record.name;
 
 			const arrow = document.createElement('span')
 			arrow.innerHTML = `&#9654;`;
@@ -94,16 +91,43 @@
 			entry.appendChild(arrow);
 
 			entry.addEventListener('click', () => {
-				window.location.href = `/instructor-info.html?id=${instructor.id}`;
+				window.location.href = `/instructor-info.html?id=${record.id}`;
 			});
 
-			instList.appendChild(entry);
+			list.appendChild(entry);
 		});
 		const count = document.getElementById('count');
-		const num = instructors.length;
+		const num = records.length;
 		count.innerHTML = `Found ${num} records.`;
 	}
 
 	document.addEventListener('DOMContentLoaded', loadRecords);
+	document.addEventListener('DOMContentLoaded', async () => {
+		const dropdown = document.getElementById('instDropdown');
+
+		try {
+			const response = await fetch('/api/read/instructors');
+			if (!response.ok) throw new Error('Failed to fetch instructors');
+
+			const instructors = await response.json();
+
+			instructors.forEach(inst => {
+				const option = document.createElement('option');
+				option.value = inst.id;
+				option.textContent = inst.name;
+				if (inst.rpt === true) {
+					option.textContent += ', RPT';
+				}
+				dropdown.appendChild(option);
+			});
+		} catch (error) {
+			console.error('Error loading instructors:', error);
+		}
+	});
+
+	document.addEventListener('DOMContentLoaded', () => {
+		const typeDD = document.getElementById('typeDropdown');
+		populateDropdown(typeDD, 'class_types', 'class_type');
+	});
 </script>
 </html>
