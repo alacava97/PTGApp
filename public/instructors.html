@@ -32,10 +32,13 @@
 					<input type="email" name="email" autocomplete="off" placeholder="Email">
 				</label><br><br>
 				<label>RPT Status:
-					<input type="checkbox" name="rptStatus" >
+					<input class="small-input" type="checkbox" name="rpt" >
 				</label><br><br>
 				<label>Sponsored:
-					<input type="checkbox" name="sponsored" >
+					<input class="small-input" id="sponsored" type="checkbox" name="sponsored">
+				</label>
+				<label id="sponsor"><br>Sponsor:
+					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor">
 				</label><br><br>
 				<button type="submit">Create Record</button>
 			</form>
@@ -51,7 +54,9 @@
 	var table = 'instructors';
 	var all = [];
 </script>
-<script src="script.js"></script>
+<script src="/script.js"></script>
+<script src="/form.js"></script>
+<script src="/modals.js"></script>
 <script>
 	const searchBar = document.querySelector('.searchbar');
 	searchBar.addEventListener('input', () => {
@@ -105,5 +110,16 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', loadRecords);
+
+	const sponsored = document.getElementById('sponsored');
+	const sponsor = document.getElementById('sponsor');
+
+	sponsored.addEventListener('change', () => {
+		if (sponsored.checked) {
+			sponsor.style.display = 'inline-block';
+		} else {
+			sponsor.style.display = 'none';
+		}
+	});
 </script>
 </html>

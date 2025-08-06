@@ -61,6 +61,12 @@ a {
 	color: #111;
 	text-decoration: none;
 }
+
+input, select {
+	margin-top: 5px;
+	width: 100%;
+}
+
 /* End base elements */
 
 /* Buttons */
@@ -123,7 +129,7 @@ a {
 
 .modal-content {
 	position: relative;
-	width: 200px;
+	width: 250px;
 	background-color: white;
 	margin: auto;
 	border: black solid 1px;
@@ -131,6 +137,14 @@ a {
 	padding: 20px;
 }
 /* End modals */
+
+/* Forms */
+
+.small-input {
+	width: auto;
+}
+
+/* End forms */
 
 .cal {
 	display: flex;
@@ -177,6 +191,7 @@ a {
 	padding: 8px 5%;
 	border-radius: 0;
 	box-sizing: border-box;
+	margin-top: 0;
 }
 
 .count {
@@ -224,4 +239,8 @@ a {
 
 .info-header:hover .edit-icon {
 	opacity: 1;
+}
+
+#sponsor {
+	display: none;
 }

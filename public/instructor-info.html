@@ -16,11 +16,32 @@
 	<div id="instructor-details" class="row">No Contact Found</div>
 
 	<h3>Classes</h3>
-	<div id="classes" class="row">No Classes Found</div>
+	<div id="classes"></div>
 
 	<h3>More Info</h3>
 	<div id="more-info" class="row">No Extra Info</div>
 
+	<div class="modal" id="contact-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Instructor Contact</h4>
+			<form id="edit-contact">
+				<label>Name
+					<input type="text" name="name"required>
+				</label><br><br>
+				<label>Email
+					<input type="email" name="email">
+				</label><br><br>
+				<label>Phone
+					<input type="tel" name="phone">
+				</label><br><br>
+				<label>RPT Status
+					<input class="small-input" type="checkbox" name="RPT">
+				</label>
+			</form>
+		</div>
+	</div>
+	<script src="/modals.js"></script>
 	<script>
 		async function loadInstructor() {
 			const params = new URLSearchParams(window.location.search);
@@ -51,7 +72,7 @@
 				if (instructor.rpt === true) {
 					contact.innerHTML += `<b>, RPT<b>`;
 				}
-				contact.innerHTML += `<br>${instructor.email}<br>${instructor.phone}`;
+				contact.innerHTML += `<br>${instructor.email || 'No email on record.'}<br>${instructor.phone || 'No phone on record.'}`;
 
 				const arrow = document.createElement('span');
 				arrow.innerHTML = `edit &#9654;`;
@@ -59,12 +80,33 @@
 
 				contact.appendChild(arrow);
 
+				const classes = document.getElementById('classes');
+				const instClasses = await getClasses(id);
+				if (instClasses.length === 0) {
+					const emptyRow = document.createElement('div');
+					emptyRow.classList.add('row');
+					emptyRow.textContent = 'No classes found';
+					classes.appendChild(emptyRow);
+				} else {
+					instClasses.forEach(entry => {
+						const classRow = document.createElement('div');
+						classRow.classList.add('row');
+						classRow.innerHTML = `<b>${entry.title}</b><br>${entry.type_name}, ${entry.level}`
+
+						const arrow2 = arrow.cloneNode(true);
+						classRow.appendChild(arrow2);
+
+						classes.appendChild(classRow);
+					})
+				}
+
+
 				if (instructor.sponsored === true) {
 					const moreInfo = document.getElementById('more-info');
 					moreInfo.classList.add('row');
-					moreInfo.innerHTML = `<b>Sponsored Instructor<b><br>`;
-					const arrow2 = arrow.cloneNode(true);
-					moreInfo.appendChild(arrow2);
+					moreInfo.innerHTML = `<b>Sponsored Instructor</b><br>${instructor.sponsor || 'No sponsor on record'}`;
+					const arrow3 = arrow.cloneNode(true);
+					moreInfo.appendChild(arrow3);
 				}
 
 			} catch (err) {
@@ -73,7 +115,45 @@
 			}
 		}
 
-		document.addEventListener('DOMContentLoaded', loadInstructor);
+		async function getClasses(instructor_id) {
+			try {
+				const res = await fetch(`/api/classByInst/${instructor_id}`);
+				if (!res.ok) throw new Error('Network error');
+
+				const classList = await res.json();
+
+				return classList;
+			} catch (err) {
+				console.error('Internal server error:', err);
+			}
+		}
+
+		async function populateModals(id) {
+			const editContact = document.getElementById('edit-contact');
+			try {
+				const res = await fetch(`/api/instructors/${id}`);
+				console.log(await res.json())
+			} catch (err) {
+				console.error('Internal server error:', err);
+			}
+		}
+
+		document.addEventListener('DOMContentLoaded', () => {
+			const params = new URLSearchParams(window.location.search);
+			const id = params.get('id');
+
+			populateModals(id);
+			loadInstructor();
+
+			const contact = document.getElementById('instructor-details');
+			const classes = document.getElementById('classes');
+			const moreInfo = document.getElementById('more-info');
+
+			contact.addEventListener('click', () => {
+				const contactModal = document.getElementById('contact-modal');
+				contactModal.style.display = "flex";
+			});
+		})
 	</script>
 </body>
 </html>

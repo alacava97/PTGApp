@@ -23,20 +23,26 @@
 			<h2>New Class</h2>
 			<form id="new-class-form">
 				<label>Title:
-					<input type="text" name="class_title" placeholder="Class Title" autocomplete="off" required>
+					<input type="text" name="title" placeholder="Class Title" autocomplete="off" required>
 				</label><br><br>
 				<label>Instructor:
-					<select id="instDropdown" name="instructor" required>
+					<select id="instDropdown" name="instructor_id" required>
 						<option value="" selected disabled>Select an instructor</option>
 					</select>
 				</label><br><br>
 				<label>Type:
-					<Select id="typeDropdown" name="type" required>
+					<Select id="typeDropdown" name="category" required>
 						<option value="" selected disabled>Select a type</option>
 					</Select>
 				</label><br><br>
 				<label>Level:
-					<input type="text" name="class_level">
+					<select name="level" required>
+						<option value="" selected disabled>Select a level</option>
+						<option value="everyone">Everyone</option>
+						<option value="beginner">Beginner</option>
+						<option value="intermediate">Intermediate</option>
+						<option value="advanced">Advanced</option>
+					</select>
 				</label><br><br>
 				<button type="submit">Create Record</button>
 			</form>
@@ -53,17 +59,17 @@
 	var all = [];
 </script>
 <script src="script.js"></script>
+<script src="form.js"></script>
 <script>
 	const searchBar = document.querySelector('.searchbar');
 	searchBar.addEventListener('input', () => {
 		const term = searchBar.value.toLowerCase();
-		const filtered = all.filter(inst => {
+		const filtered = all.filter(entry => {
 			return (
-				inst.name?.toLowerCase().includes(term) ||
-				inst.phone?.toLowerCase().includes(term) ||
-				inst.email?.toLowerCase().includes(term) ||
-				(inst.rpt ? 'rpt' : '').includes(term) ||
-				(inst.sponsored ? 'sponsored': '').includes(term)
+				entry.title?.toLowerCase().includes(term) ||
+				entry.level?.toLowerCase().includes(term) ||
+				entry.type_name?.toLowerCase().includes(term) ||
+				entry.instructor_name?.toLowerCase().includes(term)
 			);
 		});
 		const count = document.getElementById('count');
@@ -81,7 +87,7 @@
 			entry.classList.add('row');
 
 			const name = document.createElement('span');
-			name.textContent = record.name;
+			name.innerHTML = `<b>${record.title}</b><br>${record.instructor_name}`;
 
 			const arrow = document.createElement('span')
 			arrow.innerHTML = `&#9654;`;
@@ -91,7 +97,7 @@
 			entry.appendChild(arrow);
 
 			entry.addEventListener('click', () => {
-				window.location.href = `/instructor-info.html?id=${record.id}`;
+				window.location.href = `/class-info.html?id=${record.id}`;
 			});
 
 			list.appendChild(entry);
@@ -127,7 +133,7 @@
 
 	document.addEventListener('DOMContentLoaded', () => {
 		const typeDD = document.getElementById('typeDropdown');
-		populateDropdown(typeDD, 'class_types', 'class_type');
+		populateDropdown(typeDD, 'types', 'type');
 	});
 </script>
 </html>
