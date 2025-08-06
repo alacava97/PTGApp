@@ -36,8 +36,10 @@
 					<input type="tel" name="phone">
 				</label><br><br>
 				<label>RPT Status
-					<input class="small-input" type="checkbox" name="RPT">
-				</label>
+					<input class="small-input" type="checkbox" name="rpt">
+				</label><br><br>
+				<button type="submit">Update Record</button>
+				<div id="message"></div>
 			</form>
 		</div>
 	</div>
@@ -64,8 +66,6 @@
 				if (instructor.rpt === true) {
 					name.innerHTML += ', RPT';
 				}
-
-				name.innerHTML += `<span class="edit-icon" title="Edit">&#9998;</span>`;
 				
 				const contact = document.getElementById('instructor-details');
 				contact.innerHTML = `<b>${instructor.name}</b>`;
@@ -81,6 +81,8 @@
 				contact.appendChild(arrow);
 
 				const classes = document.getElementById('classes');
+				classes.innerHTML = '';
+
 				const instClasses = await getClasses(id);
 				if (instClasses.length === 0) {
 					const emptyRow = document.createElement('div');
@@ -132,7 +134,15 @@
 			const editContact = document.getElementById('edit-contact');
 			try {
 				const res = await fetch(`/api/instructors/${id}`);
-				console.log(await res.json())
+				const instData = await res.json();
+				const inputs = editContact.querySelectorAll('input');
+				inputs.forEach(input => {
+					if (input.type === 'checkbox') {
+						input.checked = !!instData[input.name];
+					} else {
+						input.value = instData[input.name];
+					}
+				});
 			} catch (err) {
 				console.error('Internal server error:', err);
 			}
@@ -153,7 +163,62 @@
 				const contactModal = document.getElementById('contact-modal');
 				contactModal.style.display = "flex";
 			});
-		})
+		});
+
+		async function updateRecord(table, id, data) {
+			try {
+			const res = await fetch(`/api/update/${table}/${id}`, {
+				method: 'PUT',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify(data)
+			});
+			if (!res.ok) throw new Error('Network response was not ok');
+			const result =  await res.json();
+			return result;
+			} catch (err) {
+				console.error('Internal server error:', err);
+				return { error: 'Request failed' };
+			}
+		}
+
+		const form = document.getElementById('edit-contact');
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
+
+			const params = new URLSearchParams(window.location.search);
+			const id = params.get('id');
+
+			const formData = new FormData(form);
+			const data = {};
+
+			for (let [key, value] of formData.entries()) {
+				if (value === 'on') {
+					data[key] = true;
+				} else if (value === '') {
+					data[key] = null;
+				} else {
+					data[key] = value;
+				}
+			}
+
+			form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+				if (!formData.has(checkbox.name)) {
+					data[checkbox.name] = false;
+				}
+			});
+
+			const result = await updateRecord('instructors', id, data);
+
+			const message = document.getElementById('message');
+			message.textContent = result.message || result.error || 'Unknown response';
+
+			await populateModals(id);
+			document.getElementById('contact-modal').style.display = "none";
+			await loadInstructor(id);
+
+		});
 	</script>
 </body>
 </html>

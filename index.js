@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const path = require('path');
+const router = express.Router();
 
 const app = express();
 app.use(cors());
@@ -237,6 +238,45 @@ app.get('/api/instructors/:id', async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.put('/api/update/:table/:id', async (req, res) => {
+  const { table, id } = req.params;
+  const updates = req.body;
+
+  try {
+    const allowedFields = await getAllowedFields(table);
+    if (allowedFields.length === 0) {
+      return res.status(400).json({ error: 'Invalid table name' });
+    }
+
+    const keys = Object.keys(updates).filter(k => allowedFields.includes(k));
+    if (keys.length === 0) {
+      return res.status(400).json({ error: 'No valid fields to update' });
+    }
+
+    const setClauses = keys.map((key, i) => `${key} = $${i + 1}`);
+    const values = keys.map(k => updates[k]);
+    values.push(id);
+
+    const query = `
+      UPDATE ${table}
+      SET ${setClauses.join(', ')}
+      WHERE id = $${values.length}
+      RETURNING *;
+    `;
+
+    const result = await pool.query(query, values);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json({ message: 'Entry updated', entry: result.rows[0] });
+  } catch (err) {
+    console.error('Error updating entry:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 });
 

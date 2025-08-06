@@ -4,10 +4,6 @@ document.addEventListener('DOMContentLoaded', function () {
 	const closeBtn = document.getElementById('close-btn');
 	const openBtn = document.getElementById('new-btn');
 
-	closeBtn.addEventListener('click', function () {
-		modal.style.display = 'none';
-	});
-
 	if (openBtn) {
 		openBtn.addEventListener('click', function () {
 			modal.style.display = 'flex';
@@ -20,5 +16,9 @@ document.addEventListener('DOMContentLoaded', function () {
 		  		el.style.display = 'none';
 			}
 		});
+
+		closeBtn.addEventListener('click', function () {
+			el.style.display = 'none';
+	});
 	})
 });
