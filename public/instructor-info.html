@@ -15,7 +15,7 @@
 	<h3>Contact</h3>
 	<div id="instructor-details" class="row">No Contact Found</div>
 
-	<h3>Classes</h3>
+	<div class="clearfix"><h3>Classes</h3><a class="add-record" href="/classes.html">add a class</a><div>
 	<div id="classes"></div>
 
 	<h3>More Info</h3>
@@ -43,182 +43,182 @@
 			</form>
 		</div>
 	</div>
-	<script src="/modals.js"></script>
-	<script>
-		async function loadInstructor() {
-			const params = new URLSearchParams(window.location.search);
-			const id = params.get('id');
 
-			if (!id) {
-				document.getElementById('instructor-name').textContent = 'Instrctor not found.';
-				return;
-			}
-
-			try {
-				const res = await fetch(`/api/instructors/${id}`);
-				if (!res.ok) throw new Error('Network error');
-
-				const instructor = await res.json();
-
-				const name = document.getElementById('instructor-name');
-				name.innerHTML = instructor.name;
-
-				if (instructor.rpt === true) {
-					name.innerHTML += ', RPT';
-				}
-				
-				const contact = document.getElementById('instructor-details');
-				contact.innerHTML = `<b>${instructor.name}</b>`;
-				if (instructor.rpt === true) {
-					contact.innerHTML += `<b>, RPT<b>`;
-				}
-				contact.innerHTML += `<br>${instructor.email || 'No email on record.'}<br>${instructor.phone || 'No phone on record.'}`;
-
-				const arrow = document.createElement('span');
-				arrow.innerHTML = `edit &#9654;`;
-				arrow.classList.add("arrow");
-
-				contact.appendChild(arrow);
-
-				const classes = document.getElementById('classes');
-				classes.innerHTML = '';
-
-				const instClasses = await getClasses(id);
-				if (instClasses.length === 0) {
-					const emptyRow = document.createElement('div');
-					emptyRow.classList.add('row');
-					emptyRow.textContent = 'No classes found';
-					classes.appendChild(emptyRow);
-				} else {
-					instClasses.forEach(entry => {
-						const classRow = document.createElement('div');
-						classRow.classList.add('row');
-						classRow.innerHTML = `<b>${entry.title}</b><br>${entry.type_name}, ${entry.level}`
-
-						const arrow2 = arrow.cloneNode(true);
-						classRow.appendChild(arrow2);
-
-						classes.appendChild(classRow);
-					})
-				}
-
-
-				if (instructor.sponsored === true) {
-					const moreInfo = document.getElementById('more-info');
-					moreInfo.classList.add('row');
-					moreInfo.innerHTML = `<b>Sponsored Instructor</b><br>${instructor.sponsor || 'No sponsor on record'}`;
-					const arrow3 = arrow.cloneNode(true);
-					moreInfo.appendChild(arrow3);
-				}
-
-			} catch (err) {
-				console.error('Error loading instructor:', err);
-				document.getElementById('instructor-name').textContent = 'Error loading instructor.';
-			}
-		}
-
-		async function getClasses(instructor_id) {
-			try {
-				const res = await fetch(`/api/classByInst/${instructor_id}`);
-				if (!res.ok) throw new Error('Network error');
-
-				const classList = await res.json();
-
-				return classList;
-			} catch (err) {
-				console.error('Internal server error:', err);
-			}
-		}
-
-		async function populateModals(id) {
-			const editContact = document.getElementById('edit-contact');
-			try {
-				const res = await fetch(`/api/instructors/${id}`);
-				const instData = await res.json();
-				const inputs = editContact.querySelectorAll('input');
-				inputs.forEach(input => {
-					if (input.type === 'checkbox') {
-						input.checked = !!instData[input.name];
-					} else {
-						input.value = instData[input.name];
-					}
-				});
-			} catch (err) {
-				console.error('Internal server error:', err);
-			}
-		}
-
-		document.addEventListener('DOMContentLoaded', () => {
-			const params = new URLSearchParams(window.location.search);
-			const id = params.get('id');
-
-			populateModals(id);
-			loadInstructor();
-
-			const contact = document.getElementById('instructor-details');
-			const classes = document.getElementById('classes');
-			const moreInfo = document.getElementById('more-info');
-
-			contact.addEventListener('click', () => {
-				const contactModal = document.getElementById('contact-modal');
-				contactModal.style.display = "flex";
-			});
-		});
-
-		async function updateRecord(table, id, data) {
-			try {
-			const res = await fetch(`/api/update/${table}/${id}`, {
-				method: 'PUT',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify(data)
-			});
-			if (!res.ok) throw new Error('Network response was not ok');
-			const result =  await res.json();
-			return result;
-			} catch (err) {
-				console.error('Internal server error:', err);
-				return { error: 'Request failed' };
-			}
-		}
-
-		const form = document.getElementById('edit-contact');
-		form.addEventListener('submit', async (e) => {
-			e.preventDefault();
-
-			const params = new URLSearchParams(window.location.search);
-			const id = params.get('id');
-
-			const formData = new FormData(form);
-			const data = {};
-
-			for (let [key, value] of formData.entries()) {
-				if (value === 'on') {
-					data[key] = true;
-				} else if (value === '') {
-					data[key] = null;
-				} else {
-					data[key] = value;
-				}
-			}
-
-			form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-				if (!formData.has(checkbox.name)) {
-					data[checkbox.name] = false;
-				}
-			});
-
-			const result = await updateRecord('instructors', id, data);
-
-			const message = document.getElementById('message');
-			message.textContent = result.message || result.error || 'Unknown response';
-
-			await populateModals(id);
-			document.getElementById('contact-modal').style.display = "none";
-			await loadInstructor(id);
-
-		});
-	</script>
+	<div class="modal" id="sponsor-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Instructor Sponsor</h4>
+			<form id="edit-sponsor">
+				<label>Sponsored
+					<input id="sponsored" class="small-input" type="checkbox" name="sponsored">
+				</label><br><br>
+				<label id="sponsor">Sponsor
+					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor"><br><br>
+				</label>
+				<button type="submit">Update Sponsor</button>
+			</form>
+		</div>
+	</div>
 </body>
+<script src="script.js"></script>
+<script>
+	async function loadInstructor() {
+		const params = new URLSearchParams(window.location.search);
+		const id = params.get('id');
+
+		if (!id) {
+			document.getElementById('instructor-name').textContent = 'Instrctor not found.';
+			return;
+		}
+
+		try {
+			const res = await fetch(`/api/instructors/${id}`);
+			if (!res.ok) throw new Error('Network error');
+
+			const instructor = await res.json();
+
+			const name = document.getElementById('instructor-name');
+			name.innerHTML = instructor.name;
+
+			if (instructor.rpt === true) {
+				name.innerHTML += ', RPT';
+			}
+			
+			const contact = document.getElementById('instructor-details');
+			contact.innerHTML = `<b>${instructor.name}</b>`;
+			if (instructor.rpt === true) {
+				contact.innerHTML += `<b>, RPT<b>`;
+			}
+			contact.innerHTML += `<br>${instructor.email || 'No email on record.'}<br>${instructor.phone || 'No phone on record.'}`;
+
+			const arrow = document.createElement('span');
+			arrow.innerHTML = `edit &#9654;`;
+			arrow.classList.add("arrow");
+
+			contact.appendChild(arrow);
+
+			const classes = document.getElementById('classes');
+			classes.innerHTML = '';
+
+			const instClasses = await getClasses(id);
+			if (instClasses.length === 0) {
+				const emptyRow = document.createElement('div');
+				emptyRow.classList.add('row');
+				emptyRow.textContent = 'No classes found';
+				classes.appendChild(emptyRow);
+				classes.addEventListener('click', () => {
+					window.location.href = '/classes.html';
+				});
+			} else {
+				instClasses.forEach(entry => {
+					const classRow = document.createElement('div');
+					classRow.classList.add('row');
+					classRow.innerHTML = `<b>${entry.title}</b><br>${entry.type_name}, ${entry.level}`
+
+					const arrow2 = arrow.cloneNode(true);
+					classRow.appendChild(arrow2);
+					classRow.addEventListener('click', () => {
+						window.location.href = `/class-info.html?id=${entry.id}`
+					})
+
+					classes.appendChild(classRow);
+				})
+			}
+
+			const moreInfo = document.getElementById('more-info');
+			if (instructor.sponsored === true) {
+				moreInfo.classList.add('row');
+				moreInfo.innerHTML = `<b>Sponsored Instructor</b><br>${instructor.sponsor || 'No sponsor on record'}`;
+				const arrow3 = arrow.cloneNode(true);
+				moreInfo.appendChild(arrow3);
+			} else {
+				moreInfo.innerHTML = 'No Extra Info';
+			}
+
+		} catch (err) {
+			console.error('Error loading instructor:', err);
+			document.getElementById('instructor-name').textContent = 'Error loading instructor.';
+		}
+	}
+
+	async function getClasses(instructor_id) {
+		try {
+			const res = await fetch(`/api/classByInst/${instructor_id}`);
+			if (!res.ok) throw new Error('Network error');
+
+			const classList = await res.json();
+
+			return classList;
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
+
+	document.addEventListener('DOMContentLoaded', async () => {
+		const params = new URLSearchParams(window.location.search);
+		const id = params.get('id');
+
+		await populateModals(id);
+		loadInstructor();
+		modalButtons();
+
+		const contact = document.getElementById('instructor-details');
+		const classes = document.getElementById('classes');
+		const moreInfo = document.getElementById('more-info');
+
+		contact.addEventListener('click', () => {
+			const contactModal = document.getElementById('contact-modal');
+			contactModal.style.display = "flex";
+		});
+
+		moreInfo.addEventListener('click', () => {
+			const sponsorModal = document.getElementById('sponsor-modal');
+			sponsorModal.style.display = "flex";
+		});
+
+		const forms = document.querySelectorAll('form');
+		forms.forEach(form => {
+			form.addEventListener('submit', (e) => submitUpdateForm(e, form));
+		});
+
+		const sponsored = document.getElementById('sponsored');
+		sponsorCheck();
+		sponsored.addEventListener('change', sponsorCheck);
+	});
+
+	async function submitUpdateForm(e, form) {
+		e.preventDefault();
+
+		const params = new URLSearchParams(window.location.search);
+		const id = params.get('id');
+
+		const formData = new FormData(form);
+		const data = {};
+
+		for (let [key, value] of formData.entries()) {
+			if (value === 'on') {
+				data[key] = true;
+			} else if (value === '') {
+				data[key] = null;
+			} else {
+				data[key] = value;
+			}
+		}
+
+		form.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+			if (!formData.has(checkbox.name)) {
+				data[checkbox.name] = false;
+			}
+		});
+
+		const result = await updateRecord('instructors', id, data);
+
+		const message = document.getElementById('message');
+		message.textContent = result.message || result.error || 'Unknown response';
+
+		await populateModals(id);
+		form.closest('.modal').style.display = "none";
+		await loadInstructor(id);
+	}
+</script>
 </html>

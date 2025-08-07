@@ -18,6 +18,43 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL
 });
 
+//functions
+function verifyToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.sendStatus(401);
+  const token = authHeader.split(' ')[1];
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+}
+
+async function createRecord({ table, data, returning = ['id'] }, client = pool) {
+  const columns = Object.keys(data);
+  const values = Object.values(data);
+  const placeholders = columns.map((_, i) => `$${i + 1}`);
+
+  const query = `
+    INSERT INTO ${table} (${columns.join(', ')})
+    VALUES (${placeholders.join(', ')})
+    RETURNING ${returning.join(', ')}
+  `;
+
+  const result = await client.query(query, values);
+  return result.rows[0];
+}
+
+async function getAllowedFields(table, client = pool) {
+  const res = await client.query(`
+    SELECT column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = $1
+  `, [table]);
+
+  return res.rows.map(r => r.column_name);
+}
+
 // Register
 app.post('/api/register', async (req, res) => {
   const { name, email, password } = req.body;
@@ -62,43 +99,7 @@ app.get('/api/profile', verifyToken, async (req, res) => {
   res.json(user.rows[0]);
 });
 
-function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.sendStatus(401);
-  const token = authHeader.split(' ')[1];
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-//create
-async function createRecord({ table, data, returning = ['id'] }, client = pool) {
-  const columns = Object.keys(data);
-  const values = Object.values(data);
-  const placeholders = columns.map((_, i) => `$${i + 1}`);
-
-  const query = `
-    INSERT INTO ${table} (${columns.join(', ')})
-    VALUES (${placeholders.join(', ')})
-    RETURNING ${returning.join(', ')}
-  `;
-
-  const result = await client.query(query, values);
-  return result.rows[0];
-}
-
-async function getAllowedFields(table, client = pool) {
-  const res = await client.query(`
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = $1
-  `, [table]);
-
-  return res.rows.map(r => r.column_name);
-}
-
+//create a row in a table
 app.post('/api/create/:table', async (req, res) => {
   const table = req.params.table;
 
@@ -137,11 +138,10 @@ app.post('/api/create/:table', async (req, res) => {
   } 
 });
 
-//read
+//read all data from a table
 app.get('/api/read/:table', async (req, res) => {
-  const { table, id } = req.params;
+  const table = req.params.table;
 
-  let allowedFields;
   try {
     allowedFields = await getAllowedFields(table);
   } catch (err) {
@@ -186,7 +186,6 @@ app.get('/api/read/:table', async (req, res) => {
 app.get('/api/classByInst/:id', async (req, res) => {
   const id = req.params.id;
 
-  let allowedFields;
   try {
     allowedFields = await getAllowedFields('classes');
   } catch (err) {
@@ -227,17 +226,32 @@ app.get('/api/classByInst/:id', async (req, res) => {
 });
 
 //Get single instructor
-app.get('/api/instructors/:id', async (req, res) => {
-  const id = req.params.id;
+app.get('/api/readEntry/:table/:id', async (req, res) => {
+  const { table, id } = req.params;
+
+  let allowedFields;
   try {
-    const result = await pool.query('SELECT * FROM instructors WHERE id = $1', [id]);
+    allowedFields = await getAllowedFields(table);
+  } catch (err) {
+    console.error(`Error loading table schema for "${table}":`, err);
+    return res.status(500).json({ error: 'Error loading table schema' });
+  }
+
+  if (!allowedFields.length) {
+    return res.status(400).json({ error: 'Invalid table name' });
+  }
+
+  try {
+    const result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
+
     if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Instructor not found' });
+      return res.status(404).json({ error: 'Entry not found' });
     }
+
     res.json(result.rows[0]);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
+    console.error(`Error querying table "${table}" with id ${id}:`, err);
+    res.status(500).json({ error: 'Database query failed' });
   }
 });
 

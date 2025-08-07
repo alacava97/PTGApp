@@ -12,7 +12,7 @@
 		<h1>Classes</h1>
 		<div id="new-btn" class="new-btn">new</div>
 	</header>
-	<input class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
 	<div id="count" class="count"></div>
 
 	<div id="list"></div>
@@ -52,30 +52,29 @@
 		</div>
 	</div>
 </body>
-<script>
-	var form = document.getElementById('new-class-form');
-	var message = document.getElementById('message');
-	var table = 'classes';
-	var all = [];
-</script>
 <script src="script.js"></script>
-<script src="form.js"></script>
 <script>
-	const searchBar = document.querySelector('.searchbar');
-	searchBar.addEventListener('input', () => {
-		const term = searchBar.value.toLowerCase();
-		const filtered = all.filter(entry => {
-			return (
-				entry.title?.toLowerCase().includes(term) ||
-				entry.level?.toLowerCase().includes(term) ||
-				entry.type_name?.toLowerCase().includes(term) ||
-				entry.instructor_name?.toLowerCase().includes(term)
-			);
-		});
-		const count = document.getElementById('count');
-		const num = filtered.length;
-		count.innerHTML = `Found ${num} records.`;
-		displayRecords(filtered);
+	document.addEventListener('DOMContentLoaded', async () => {
+		//populate table with class records
+		const classes = await read('classes');
+		displayRecords(classes);
+
+		//initialize searchbar
+		searchBar(classes);
+
+		//populate modal dropdowns
+		const instDropdown = document.getElementById('instDropdown');
+		populateDropdown(instDropdown, 'instructors', 'name');
+
+		const typeDD = document.getElementById('typeDropdown');
+		populateDropdown(typeDD, 'types', 'type');
+
+		//wire modal form submit button
+		const form = document.getElementById('new-class-form');
+		form.addEventListener('submit', (e) => create(e, 'classes'));
+
+		modalButtons();
+		openBtn('new-btn', 'newModal');
 	});
 
 	function displayRecords(records) {
@@ -105,35 +104,6 @@
 		const count = document.getElementById('count');
 		const num = records.length;
 		count.innerHTML = `Found ${num} records.`;
-	}
-
-	document.addEventListener('DOMContentLoaded', loadRecords);
-	document.addEventListener('DOMContentLoaded', async () => {
-		const dropdown = document.getElementById('instDropdown');
-
-		try {
-			const response = await fetch('/api/read/instructors');
-			if (!response.ok) throw new Error('Failed to fetch instructors');
-
-			const instructors = await response.json();
-
-			instructors.forEach(inst => {
-				const option = document.createElement('option');
-				option.value = inst.id;
-				option.textContent = inst.name;
-				if (inst.rpt === true) {
-					option.textContent += ', RPT';
-				}
-				dropdown.appendChild(option);
-			});
-		} catch (error) {
-			console.error('Error loading instructors:', error);
-		}
-	});
-
-	document.addEventListener('DOMContentLoaded', () => {
-		const typeDD = document.getElementById('typeDropdown');
-		populateDropdown(typeDD, 'types', 'type');
-	});
+	};
 </script>
 </html>

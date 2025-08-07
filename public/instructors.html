@@ -12,7 +12,7 @@
 		<h1>Instructors</h1>
 		<div id="new-btn" class="new-btn">new</div>
 	</header>
-	<input class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
 	<div id="count" class="count"></div>
 
 	<div id="list"></div>
@@ -22,22 +22,22 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h2>New Instructor</h2>
 			<form id="new-instructor-form">
-				<label>Name:
+				<label>Name
 					<input type="text" name="name" placeholder="Name" autocomplete="off" required>
 				</label><br><br>
-				<label>Phone:
+				<label>Phone
 					<input type="tel" name="phone" autocomplete="off" placeholder="Phone">
 				</label><br><br>
-				<label>Email:
+				<label>Email
 					<input type="email" name="email" autocomplete="off" placeholder="Email">
 				</label><br><br>
-				<label>RPT Status:
+				<label>RPT Status
 					<input class="small-input" type="checkbox" name="rpt" >
 				</label><br><br>
-				<label>Sponsored:
+				<label>Sponsored
 					<input class="small-input" id="sponsored" type="checkbox" name="sponsored">
 				</label>
-				<label id="sponsor"><br>Sponsor:
+				<label id="sponsor"><br>Sponsor
 					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor">
 				</label><br><br>
 				<button type="submit">Create Record</button>
@@ -48,34 +48,23 @@
 		</div>
 	</div>
 </body>
-<script>
-	var form = document.getElementById('new-instructor-form');
-	var message = document.getElementById('message');
-	var table = 'instructors';
-	var all = [];
-</script>
 <script src="/script.js"></script>
-<script src="/form.js"></script>
-<script src="/modals.js"></script>
 <script>
-	const searchBar = document.querySelector('.searchbar');
-	searchBar.addEventListener('input', () => {
-		const term = searchBar.value.toLowerCase();
-		const filtered = all.filter(inst => {
-			return (
-				inst.name?.toLowerCase().includes(term) ||
-				inst.phone?.toLowerCase().includes(term) ||
-				inst.email?.toLowerCase().includes(term) ||
-				(inst.rpt ? 'rpt' : '').includes(term) ||
-				(inst.sponsored ? 'sponsored': '').includes(term)
-			);
-		});
-		const count = document.getElementById('count');
-		const num = filtered.length;
-		count.innerHTML = `Found ${num} records.`;
-		displayRecords(filtered);
-	});
+	document.addEventListener('DOMContentLoaded', async () => {
+		//populate table with instructor records
+		const instructors = await read('instructors');
+		displayRecords(instructors);
 
+		//initialize searchbar
+		searchBar(instructors);
+
+		//wire modal form submit button
+		const form = document.getElementById('new-instructor-form');
+		form.addEventListener('submit', (e) => create(e, 'instructors'));
+
+		modalButtons();
+		openBtn('new-btn', 'newModal');
+	})
 	function displayRecords(instructors) {
 		const instList = document.getElementById('list');
 		instList.innerHTML = '';
@@ -108,8 +97,6 @@
 		const num = instructors.length;
 		count.innerHTML = `Found ${num} records.`;
 	}
-
-	document.addEventListener('DOMContentLoaded', loadRecords);
 
 	const sponsored = document.getElementById('sponsored');
 	const sponsor = document.getElementById('sponsor');

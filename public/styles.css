@@ -51,6 +51,7 @@ h2 {
 h3 {
 	margin: 15px 5% 5px;
 	font-weight: 400;
+	display: inline-block;
 }
 
 button:hover {
@@ -243,4 +244,15 @@ input, select {
 
 #sponsor {
 	display: none;
+}
+
+.add-record {
+	position: absolute;
+	right: 0;
+	margin: 1em;
+	text-decoration: underline;
+}
+
+.add-record:hover {
+	cursor: pointer;
 }
