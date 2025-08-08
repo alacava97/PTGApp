@@ -161,14 +161,12 @@ app.get('/api/read/:table', async (req, res) => {
     SELECT 
       classes.id,
       classes.title,
-      classes.type,
-      classes.level,
-      instructors.name AS instructor_name
-    FROM 
-      classes
-    JOIN 
-      instructors ON classes.instructor_id = instructors.id
-    ORDER BY classes.id ASC
+      COALESCE(string_agg(instructors.name, ', '), 'No instructors') AS instructor_name
+    FROM classes
+    LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
+    LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
+    GROUP BY classes.id
+    ORDER BY classes.id;
   `;
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
@@ -187,33 +185,37 @@ app.get('/api/classByInst/:id', async (req, res) => {
   const id = req.params.id;
 
   try {
-    allowedFields = await getAllowedFields('classes');
+    const allowedFields = await getAllowedFields('classes');
+    if (!allowedFields.length) {
+      return res.status(400).json({ error: 'Invalid table name' });
+    }
   } catch (err) {
     console.error(`Error loading table schema:`, err);
     return res.status(500).json({ error: 'Error loading table schema' });
   }
 
-  if (!allowedFields.length) {
-    return res.status(400).json({ error: 'Invalid table name' });
-  }
-
   const query = `
     SELECT 
-      classes.id,
+      classes.id AS class_id,
       classes.title,
       classes.level,
+      instructors.id AS instructor_id,
       instructors.name AS instructor_name,
       types.type AS type_name
     FROM 
-      classes
+      class_instructors
     JOIN 
-      instructors ON classes.instructor_id = instructors.id
-    JOIN
+      classes ON class_instructors.class_id = classes.id
+    JOIN 
+      instructors ON class_instructors.instructor_id = instructors.id
+    JOIN 
       types ON classes.type = types.id
-    WHERE
+    WHERE 
       instructors.id = $1
-    ORDER BY classes.id ASC
+    ORDER BY 
+      classes.id ASC
   `;
+
   const params = [id];
 
   try {
@@ -224,6 +226,7 @@ app.get('/api/classByInst/:id', async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 //Get single instructor
 app.get('/api/readEntry/:table/:id', async (req, res) => {

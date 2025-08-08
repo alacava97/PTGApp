@@ -120,13 +120,25 @@ async function populateDropdown(dropdown, table, toDisplay) {
 
 function searchBar(records) {
 	const searchBar = document.getElementById('searchbar');
+
 	searchBar.addEventListener('input', () => {
-		const term = searchBar.value.toLowerCase();
-		const filtered = records.filter(entry => {
-			return Object.values(entry).some(value => 
-				typeof value === 'string' && value.toLowerCase().includes(term)
+		const terms = searchBar.value.toLowerCase().split(',')
+			.map(term => term.trim())
+			.filter(term => term !== '');
+
+		let filtered;
+
+		if (terms.length === 0) {
+			filtered = records;
+		} else {
+			filtered = records.filter(entry => 
+				terms.some(term => 
+					Object.values(entry).some(value =>
+						typeof value === 'string' && value.toLowerCase().includes(term)
+					)
+				)
 			);
-		});
+		}
 
 		const count = document.getElementById('count');
 		count.innerHTML = `Found ${filtered.length} records.`;
@@ -166,7 +178,7 @@ function openBtn(btnId, modalId) {
 async function populateModals(id) {
 	const modals = document.querySelectorAll('.modal');
 	try {
-		const res = await fetch(`/api/instructors/${id}`);
+		const res = await fetch(`/api/readEntry/instructors/${id}`);
 		const instData = await res.json();
 		modals.forEach(modal => {
 			const inputs = modal.querySelectorAll('input');
@@ -186,8 +198,6 @@ async function populateModals(id) {
 function sponsorCheck() {
 	const sponsored = document.getElementById('sponsored');
 	const sponsor = document.getElementById('sponsor');
-
-	console.log('Checked:', sponsored.checked);
 	
 	if (sponsored.checked) {
 		sponsor.style.display = 'inline-block';

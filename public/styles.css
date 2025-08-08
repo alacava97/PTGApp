@@ -104,11 +104,30 @@ input, select {
 	  color: black;
 	  cursor: pointer;
 }
+
+.delete-btn {
+	flex-shrink: 0;
+	border-left: 1px black solid;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 51px;
+	aspect-ratio: 1 / 1;
+	background-color: #ffdddd;
+	cursor: pointer;
+	font-size: 32px;
+}
+
+.delete-btn:hover {
+	background-color: #ffbbbb;
+	font-weight: 900;
+}
 /* End Buttons */
 
 /* Nav bar */
 .active, .active:hover {
 	background-color: #04AA6D;
+	font-weight: 900;
 }
 /* End nav bar */
 
@@ -205,11 +224,26 @@ input, select {
 	padding: 7px 5%;
 	border: black solid 1px;
 	background-color: #EEEEEE;
+	overflow: hidden;
 }
 
-.row:hover {
+.row:hover, .class-row-content:hover {
 	background-color: #E0E0E0;
 	cursor: pointer;
+}
+
+.flex-row {
+    display: flex;
+    align-items: stretch;
+    background: #EEEEEE;
+    border: black solid 1px;
+}
+
+.class-row-content {
+    padding: 7px 5%;
+	box-sizing: border-box;
+	width: calc(100% - 52px);
+	overflow: hidden;
 }
 
 .arrow {
@@ -228,7 +262,6 @@ input, select {
 	margin: 20px auto;
 	text-align: center;
 	position: relative;
-	transform: translateX(12px);
 }
 
 .edit-icon {
