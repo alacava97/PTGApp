@@ -99,7 +99,6 @@ app.get('/api/profile', verifyToken, async (req, res) => {
   res.json(user.rows[0]);
 });
 
-//create a row in a table
 app.post('/api/create/:table', async (req, res) => {
   const table = req.params.table;
 
@@ -114,9 +113,11 @@ app.post('/api/create/:table', async (req, res) => {
     return res.status(400).json({ error: 'Invalid table name' });
   }
 
+  const instructorIds = req.body.instructor_ids || [];
+
   const data = {};
   for (const field of allowedFields) {
-    if (req.body[field] !== undefined ) {
+    if (req.body[field] !== undefined) {
       data[field] = req.body[field];
     }
   }
@@ -125,18 +126,39 @@ app.post('/api/create/:table', async (req, res) => {
     return res.status(400).json({ error: 'No valid fields provided' });
   }
 
+  const client = await pool.connect();
   try {
-    const record = await createRecord({ table, data, returning: ['id'] });
+    await client.query('BEGIN');
+
+    const record = await createRecord({ table, data, returning: ['id'] }, client);
+
+    if (table === 'classes' && Array.isArray(instructorIds) && instructorIds.length > 0) {
+      const insertPromises = instructorIds.map((instId) => {
+        return client.query(
+          'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
+          [record.id, instId]
+        );
+      });
+      await Promise.all(insertPromises);
+    }
+
+    await client.query('COMMIT');
     res.json({ message: `Created record in ${table}`, id: record.id });
   } catch (err) {
+    await client.query('ROLLBACK');
+
     if (err.code === '23505') {
       const errCol = err.constraint.split('_')[1];
-      return res.status(400).json({ error: `${errCol} already exists.`});
+      return res.status(400).json({ error: `${errCol} already exists.` });
     }
-    console.error('Error inserting instructor:', err);
+
+    console.error('Error inserting record:', err);
     res.status(500).json({ error: 'Internal server error' });
-  } 
+  } finally {
+    client.release();
+  }
 });
+
 
 //read all data from a table
 app.get('/api/read/:table', async (req, res) => {
@@ -161,11 +183,14 @@ app.get('/api/read/:table', async (req, res) => {
     SELECT 
       classes.id,
       classes.title,
+      classes.level,
+      types.type AS type,
       COALESCE(string_agg(instructors.name, ', '), 'No instructors') AS instructor_name
     FROM classes
     LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
     LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
-    GROUP BY classes.id
+    JOIN types ON types.id = classes.type
+    GROUP BY classes.id, classes.title, classes.level, types.type
     ORDER BY classes.id;
   `;
   } else {
@@ -212,6 +237,52 @@ app.get('/api/classByInst/:id', async (req, res) => {
       types ON classes.type = types.id
     WHERE 
       instructors.id = $1
+    ORDER BY 
+      classes.id ASC
+  `;
+
+  const params = [id];
+
+  try {
+    const result = await pool.query(query, params);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching data:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/instByClass/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const allowedFields = await getAllowedFields('classes');
+    if (!allowedFields.length) {
+      return res.status(400).json({ error: 'Invalid table name' });
+    }
+  } catch (err) {
+    console.error(`Error loading table schema:`, err);
+    return res.status(500).json({ error: 'Error loading table schema' });
+  }
+
+  const query = `
+    SELECT 
+      classes.id AS class_id,
+      classes.title,
+      classes.level,
+      instructors.id AS instructor_id,
+      instructors.name AS instructor_name,
+      types.type AS type_name
+    FROM 
+      class_instructors
+    JOIN 
+      classes ON class_instructors.class_id = classes.id
+    JOIN 
+      instructors ON class_instructors.instructor_id = instructors.id
+    JOIN 
+      types ON classes.type = types.id
+    WHERE 
+      classes.id = $1
     ORDER BY 
       classes.id ASC
   `;
@@ -294,6 +365,82 @@ app.put('/api/update/:table/:id', async (req, res) => {
   } catch (err) {
     console.error('Error updating entry:', err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/addInstructorClassByTitle', async (req, res) => {
+  const { instructor_id, class_title } = req.body;
+
+  if (!instructor_id || !class_title) {
+    return res.status(400).json({ error: 'Missing instructor_id or class_title' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO class_instructors (instructor_id, class_id)
+       SELECT $1, id FROM classes WHERE title = $2
+       RETURNING *`,
+      [instructor_id, class_title]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Class not found' });
+    }
+
+    res.json({ success: true, link: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.post('/api/addClassbyInstructorName', async (req, res) => {
+  const { class_id, instructor_name } = req.body;
+
+  if (!class_id || !instructor_name) {
+    return res.status(400).json({ error: 'Missing class_id or instructor_name' });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO class_instructors (class_id, instructor_id)
+       SELECT $1, id FROM instructors WHERE name = $2
+       RETURNING *`,
+      [class_id, instructor_name]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Instructor not found' });
+    }
+
+    res.json({ success: true, link: result.rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+app.delete('/api/deleteInstructorClass', async (req, res) => {
+  try {
+    const { class_id, instructor_id } = req.body;
+
+    if (!class_id || !instructor_id) {
+      return res.status(400).json({ error: 'Missing class_id or instructor_id' });
+    }
+
+    const result = await pool.query(
+      `DELETE FROM class_instructors WHERE class_id = $1 AND instructor_id = $2`,
+      [class_id, instructor_id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Link not found' });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
   }
 });
 

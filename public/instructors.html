@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Instructors</title>
 </head>
 <body>
@@ -60,7 +61,13 @@
 
 		//wire modal form submit button
 		const form = document.getElementById('new-instructor-form');
-		form.addEventListener('submit', (e) => create(e, 'instructors'));
+		form.addEventListener('submit', async (e) => {
+			handleFormSubmission(e, form, `/api/create/instructors`, 'POST', async () => {
+				const data = await read('instructors');
+				displayRecords(data);
+				sponsorCheck();
+			});
+		});
 
 		modalButtons();
 		openBtn('new-btn', 'newModal');

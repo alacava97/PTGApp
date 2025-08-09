@@ -1,6 +1,9 @@
 /* Base elements */
 body {
 	margin: 0;
+	color: #333333;
+	background-color: #F8F8F8;
+	font-family: 'Montserrat', sans-serif;
 }
 
 ul {
@@ -54,6 +57,10 @@ h3 {
 	display: inline-block;
 }
 
+button {
+	width: 100%;
+}
+
 button:hover {
 	cursor: pointer;
 }
@@ -66,6 +73,7 @@ a {
 input, select {
 	margin-top: 5px;
 	width: 100%;
+	box-sizing: border-box;
 }
 
 /* End base elements */
@@ -111,7 +119,7 @@ input, select {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	height: 51px;
+	height: 56px;
 	aspect-ratio: 1 / 1;
 	background-color: #ffdddd;
 	cursor: pointer;
@@ -158,13 +166,26 @@ input, select {
 }
 /* End modals */
 
-/* Forms */
+/* Forms/inputs */
 
 .small-input {
 	width: auto;
 }
 
-/* End forms */
+.searchbar {
+	width: 100%;
+	padding: 8px 5%;
+	border-radius: 0;
+	box-sizing: border-box;
+	margin-top: 0;
+}
+
+.count { /* searchbar count */
+	padding: 8px 5%;
+	text-align: center;
+}
+
+/* End forms/inputs */
 
 .cal {
 	display: flex;
@@ -206,29 +227,17 @@ input, select {
 	border: none;
 }
 
-.searchbar {
-	width: 100%;
-	padding: 8px 5%;
-	border-radius: 0;
-	box-sizing: border-box;
-	margin-top: 0;
-}
-
-.count {
-	padding: 8px 5%;
-	text-align: center;
-}
-
 .row {
 	position: relative;
 	padding: 7px 5%;
-	border: black solid 1px;
+	border: #CCCCCC solid 1px;
 	background-color: #EEEEEE;
 	overflow: hidden;
 }
 
-.row:hover, .class-row-content:hover {
+.row:hover, .flex-row:hover {
 	background-color: #E0E0E0;
+	border: #BBBBBB solid 1px;
 	cursor: pointer;
 }
 
@@ -236,14 +245,15 @@ input, select {
     display: flex;
     align-items: stretch;
     background: #EEEEEE;
-    border: black solid 1px;
+    border: #CCCCCC solid 1px;
+    white-space: nowrap;
 }
 
 .class-row-content {
     padding: 7px 5%;
 	box-sizing: border-box;
 	width: calc(100% - 52px);
-	overflow: hidden;
+	white-space: nowarp;
 }
 
 .arrow {
@@ -288,4 +298,29 @@ input, select {
 
 .add-record:hover {
 	cursor: pointer;
+}
+
+.drop-down-select {
+	background: white;
+	min-width: 0;
+	padding: 0;
+	margin: auto;
+}
+
+.dd-options {
+	display: block;
+	border-bottom: 1px solid #EEEEEE;
+	padding: 5px;
+}
+
+.dd-options:hover {
+	background-color: #EEEEEE;
+	border-top: 1px solid #DDDDDD;
+	border-bottom: 1px solid #DDDDDD;
+	cursor: pointer;
+}
+
+.flex-col {
+	display: flex;
+	flex-direction: column;
 }

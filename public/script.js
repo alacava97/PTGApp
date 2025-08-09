@@ -23,54 +23,6 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 });
 
-async function create(e, table) {
-	e.preventDefault();
-
-	const sponsor = document.getElementById('sponsor');
-	const message = document.getElementById('message');
-
-	const formData = new FormData(form);
-	const data = {};
-
-	for (let [key, value] of formData.entries()) {
-		if (value === 'on') {
-			data[key] = true;
-		} else if (value === '') {
-			data[key] = null;
-		} else {
-			data[key] = value;
-		}
-	}
-
-	form.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-		if (!formData.has(cb.name)) {
-			data[cb.name] = false;
-		}
-	});
-
-	try {
-		const res = await fetch(`/api/create/${table}`, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(data)
-		});
-
-		const result = await res.json();
-		message.textContent = result.message || result.error || 'Unknown response';
-
-		if (res.ok) {
-			form.reset();
-			if (sponsor) {
-				sponsor.style.display = 'none';
-			}
-			loadRecords(table);
-		}
-	} catch (error) {
-		console.error('Request failed:', error);
-		message.textContent = 'Network error or server issue';
-	}
-}
-
 async function read(table) {
 	try {
 		const response = await fetch(`/api/read/${table}`);
@@ -161,7 +113,7 @@ function modalButtons() {
 		const closeBtn = el.querySelector('.close-btn');
 		closeBtn.addEventListener('click', function () {
 			el.style.display = 'none';
-		})
+		});
 	});
 }
 
@@ -183,11 +135,15 @@ async function populateModals(id) {
 		modals.forEach(modal => {
 			const inputs = modal.querySelectorAll('input');
 			inputs.forEach(input => {
-				if (input.type === 'checkbox') {
-					input.checked = !!instData[input.name];
-				} else {
-					input.value = instData[input.name];
+				const value = instData[input.name];
+				if(value !== undefined) {
+					if (input.type === 'checkbox') {
+						input.checked = !!value;
+					} else {
+						input.value = value;
+					}
 				}
+
 			});
 		});
 	} catch (err) {
@@ -204,4 +160,243 @@ function sponsorCheck() {
 	} else {
 		sponsor.style.display = 'none';
 	}
+}
+
+function parseForm(form) {
+	const formData = new FormData(form);
+	const data = {};
+
+	form.querySelectorAll('input').forEach(input => {
+		if (input.type === 'checkbox') {
+			data[input.name] = input.checked;
+		} else {
+			data[input.name] = formData.get(input.name) || null;
+		}
+	});
+
+	form.querySelectorAll('select').forEach(select => {
+		if (select.multiple) {
+			data[select.name] = Array.from(select.selectedOptions).map(opt => opt.value);
+		} else {
+			data[select.name] = formData.get(select.name) || null;
+		}
+	});
+
+	form.querySelectorAll('textarea').forEach(textarea => {
+		data[textarea.name] = formData.get(textarea.name) || null;
+	});
+
+	return data;
+}
+
+async function loadInstructor(id = getInstructorId()) {
+	try {
+		const res = await fetch(`/api/readEntry/instructors/${id}`);
+		if (!res.ok) throw new Error('Network error');
+
+		const instructor = await res.json();
+
+		//set title
+		const name = document.getElementById('instructor-name');
+		name.textContent = instructor.name + (instructor.rpt ? ', RPT' : '');
+		
+		//contact section
+		const contact = document.getElementById('instructor-details');
+		contact.innerHTML = `
+			<b>${instructor.name}${instructor.rpt ? ', RPT' : ''}</b><br>
+			${instructor.email || 'No email on record.'}<br>
+			${instructor.phone || 'No phone on record.'}
+		`;
+
+		const arrow = document.createElement('span');
+		arrow.innerHTML = `edit ▶`;
+		arrow.classList.add("arrow");
+		contact.appendChild(arrow);
+
+		//Classes
+		const classes = await getClasses(id);
+		renderClassList(classes, id);
+
+		//sponsor section
+		const moreInfo = document.getElementById('more-info');
+		if (instructor.sponsored === true) {
+			moreInfo.classList.add('row');
+			moreInfo.innerHTML = `<b>Sponsored Instructor</b><br>${instructor.sponsor || 'No sponsor on record'}`;
+			const arrow3 = arrow.cloneNode(true);
+			moreInfo.appendChild(arrow3);
+		} else {
+			moreInfo.innerHTML = 'No Extra Info';
+		}
+
+	} catch (err) {
+		console.error('Error loading instructor:', err);
+		document.getElementById('instructor-name').textContent = 'Error loading instructor.';
+	}
+}
+
+function renderClassList(instClasses, instructorId) {
+	const classes = document.getElementById('classes');
+	classes.innerHTML = '';
+
+	instClasses.forEach(entry => {
+		const fullRow = document.createElement('div');
+		fullRow.classList.add('flex-row');
+
+		const classRow = document.createElement('span');
+		classRow.classList.add('class-row-content');
+		classRow.innerHTML = `<b>${entry.title}</b><br>${entry.type_name}, ${entry.level}`
+
+		classRow.addEventListener('click', () => {
+			window.location.href = `/class-info.html?id=${entry.class_id}`
+		});
+
+		const delBtn = document.createElement('div');
+		delBtn.classList.add('delete-btn');
+		delBtn.innerHTML = `&times;`
+
+		delBtn.addEventListener('click', () => {
+			const delModal = document.getElementById('delete-confirmation-modal')
+			delModal.style.display = 'flex';
+
+			const confDel = document.getElementById('delete-button');
+
+			const newConfDel = confDel.cloneNode(true);
+			confDel.parentNode.replaceChild(newConfDel, confDel);
+
+			const id = getInstructorId();
+			newConfDel.addEventListener('click', async () => {
+				deleteClassInstructorLink(entry.class_id, id);
+				loadInstructor(id);
+				delModal.style.display = "none";
+			});
+		});
+
+		fullRow.appendChild(classRow);
+		fullRow.appendChild(delBtn)
+		classes.appendChild(fullRow);
+	});
+
+	const addClass = document.createElement('div');
+	addClass.classList.add('row');
+	addClass.innerHTML = `<b>＋</b> Add class`
+	classes.appendChild(addClass);	
+	addClass.addEventListener('click', () => {
+		document.getElementById('class-modal').style.display = "flex";
+	});
+}
+
+async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubmit = () => {}) {
+	e.preventDefault();
+
+	const data = parseForm(form);
+	const message = document.getElementById('message');
+
+	try {
+		const res = await fetch(endpoint, {
+			method,
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(data)
+		});
+
+		const result = await res.json();
+		message.textContent = result.message || result.error || 'Unknown response';
+
+		if (res.ok) {
+			if (form.reset) form.reset();
+			const modal = form.closest('.modal');
+			if (modal) modal.style.display = "none";
+			await afterSubmit();
+		}
+	} catch (err) {
+		console.error('Form submission failed:', err);
+		message.textContent = 'Network error or server issue';
+	}
+}
+
+function createSearchableDropdown(inputId, resultsId, options) {
+	const input = document.getElementById(inputId);
+	const results = document.getElementById(resultsId);
+
+	if (!input || !results) {
+		console.error(`Input or results container not found for IDs: ${inputId}, ${resultsId}`);
+		return;
+	}
+
+	input.addEventListener('input', () => {
+		const searchTerm = input.value.toLowerCase();
+		results.innerHTML = '';
+
+		options
+			.filter(o => o.toLowerCase().includes(searchTerm))
+			.forEach(o => {
+				const li = document.createElement('li');
+				li.textContent = o;
+				li.classList.add('dd-options')
+				li.addEventListener('click', () => {
+					input.value = o;
+					results.innerHTML = '';
+				});
+				results.appendChild(li);
+			});
+	});
+}
+
+async function linkInstructorToClass(instructorId, classTitle) {
+	try {
+		const res = await fetch('/api/addInstructorClassByTitle', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ instructor_id: instructorId, class_title: classTitle })
+		});
+
+		if (!res.ok) {
+			const errData = await res.json();
+			throw new Error(errData.error || 'Failed to link instructor to class');
+		}
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+async function linkClasstoInstructor({ class_id, instructor_name }) {
+	try {
+		const res = await fetch('/api/addClassbyInstructorName', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({ class_id, instructor_name })
+		});
+
+		if (!res.ok) {
+			const errData = await res.json();
+			throw new Error(errData.error || 'Failed to link instructor to class');
+		}
+		return res.json();
+	} catch (err) {
+		console.error(err);
+	}
+}
+
+async function deleteClassInstructorLink(classId, instructorId) {
+  try {
+    const res = await fetch('/api/deleteInstructorClass', {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ class_id: classId, instructor_id: instructorId }),
+    });
+
+    if (!res.ok) {
+      const errorData = await res.json();
+      throw new Error(errorData.error || 'Failed to delete link');
+    }
+
+    console.log('Link deleted successfully');
+
+  } catch (err) {
+    console.error(err);
+    console.log('Error deleting link: ' + err.message);
+  }
+}
+
+function getId() {
+	return new URLSearchParams(window.location.search).get('id');
 }

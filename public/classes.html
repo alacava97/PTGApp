@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Classes</title>
 </head>
 <body>
@@ -12,7 +13,7 @@
 		<h1>Classes</h1>
 		<div id="new-btn" class="new-btn">new</div>
 	</header>
-	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by name, phone, email, etc.">
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by title, level, type, instructor, etc.">
 	<div id="count" class="count"></div>
 
 	<div id="list"></div>
@@ -26,12 +27,12 @@
 					<input type="text" name="title" placeholder="Class Title" autocomplete="off" required>
 				</label><br><br>
 				<label>Instructor:
-					<select id="instDropdown" name="instructor_id" required>
+					<select id="instDropdown" name="instructor_ids" required multiple>
 						<option value="" selected disabled>Select an instructor</option>
 					</select>
 				</label><br><br>
 				<label>Type:
-					<Select id="typeDropdown" name="category" required>
+					<Select id="typeDropdown" name="type" required>
 						<option value="" selected disabled>Select a type</option>
 					</Select>
 				</label><br><br>
@@ -71,7 +72,12 @@
 
 		//wire modal form submit button
 		const form = document.getElementById('new-class-form');
-		form.addEventListener('submit', (e) => create(e, 'classes'));
+		form.addEventListener('submit', async (e) => {
+			handleFormSubmission(e, form, `/api/create/classes`, 'POST', async () => {
+				const data = await read('classes');
+				displayRecords(data);
+			});
+		});
 
 		modalButtons();
 		openBtn('new-btn', 'newModal');

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Class Info</title>
+</head>
+<body>
+	<header class="clearfix">
+		<h1>Class Info</h1>
+		<div id="back-btn" class="back-btn"><a href="/classes.html">&#9664; Classes</a></div>
+	</header>
+	<h2 id="class-title" class="info-header">Loading...</h2>
+	<h3>Instructors</h3>
+	<div id="instructors">No Instructors Found</div>
+
+	<div class="modal" id="instructor-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Select an Instructor</h4>
+			<form id="instructor-class-form">
+			    <input name="instructor_name" type="text" id="searchable" placeholder="Search classes">
+				<ul id="results" class="drop-down-select"></ul><br>
+				<button type="submit">Add Instructor</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="delete-confirmation-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Remove instructor from class record?</h4>
+			<div>
+				<button id="delete-button" class="delete-button">Delete</button>
+			</div>
+		</div>
+	</div>
+</body>
+<script src="script.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+	    const id = getId();
+
+	    // Initial page load
+	    await populateModals(id);
+	    await loadClasses(id);
+	    modalButtons();
+
+	    // Build instructor dropdown
+	    const instructorData = await read('instructors');
+	    const instructors = instructorData.map(item => item.name);
+	    await createSearchableDropdown('searchable', 'results', instructors);
+
+	    // Attach submit handlers
+	    document.querySelectorAll('form').forEach(form => {
+	        form.addEventListener('submit', async (e) => {
+	            e.preventDefault();
+
+	            if (form.id === 'instructor-class-form') {
+	                // Link instructor to class
+	                const data = parseForm(form);
+	                try {
+	                    await linkClasstoInstructor({
+	                        class_id: id,
+	                        instructor_name: data.instructor_name
+	                    });
+	                    await loadClasses(id);
+	                    closeModal(form);
+	                    form.reset();
+	                } catch (err) {
+	                    console.error('Error linking instructor to class:', err);
+	                }
+	            } else {
+	                // Update other class data
+	                try {
+	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PUT', async () => {
+	                        await populateModals(id);
+	                        await loadClasses(id);
+	                    });
+	                    closeModal(form);
+	                    form.reset();
+	                } catch (err) {
+	                    console.error('Error updating class:', err);
+	                }
+	            }
+	        });
+	    });
+	});
+
+	// Utility: closes the modal containing a given form
+	function closeModal(form) {
+	    const modal = form.closest('.modal');
+	    if (modal) modal.style.display = 'none';
+	}
+
+	async function loadClasses(class_id) {
+		try {
+			const res = await fetch(`/api/readEntry/classes/${class_id}`)
+			if(!res.ok) throw new Error('Network error');
+
+			const classRecord = await res.json();
+
+			const title = document.getElementById('class-title');
+			title.innerHTML = `${classRecord.title}`
+
+			const classes = await getClasses(class_id);
+			renderInstructorList(classes, class_id);
+
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
+
+	function renderInstructorList(instClasses, classId) {
+		const instructors = document.getElementById('instructors');
+		instructors.innerHTML = '';
+
+		instClasses.forEach(entry => {
+			const fullRow = document.createElement('div');
+			fullRow.classList.add('flex-row');
+
+			const instRow = document.createElement('span');
+			instRow.classList.add('class-row-content');
+			instRow.innerHTML = `<b>${entry.instructor_name}</b>`
+
+			instRow.addEventListener('click', () => {
+				window.location.href = `/instructor-info.html?id=${entry.instructor_id}`
+			});
+
+			const delBtn = document.createElement('div');
+			delBtn.classList.add('delete-btn');
+			delBtn.innerHTML = `&times;`
+
+			delBtn.addEventListener('click', () => {
+				const delModal = document.getElementById('delete-confirmation-modal')
+				delModal.style.display = 'flex';
+
+				const confDel = document.getElementById('delete-button');
+
+				const newConfDel = confDel.cloneNode(true);
+				confDel.parentNode.replaceChild(newConfDel, confDel);
+
+				const id = getId();
+				newConfDel.addEventListener('click', async () => {
+					deleteClassInstructorLink(id, entry.instructor_id);
+					loadClasses(id);
+					delModal.style.display = "none";
+				});
+			});
+
+			fullRow.appendChild(instRow);
+			fullRow.appendChild(delBtn)
+			instructors.appendChild(fullRow);
+		});
+
+		const addInst = document.createElement('div');
+		addInst.classList.add('row');
+		addInst.innerHTML = `<b>＋</b> Add instructor`
+		instructors.appendChild(addInst);	
+		addInst.addEventListener('click', () => {
+			document.getElementById('instructor-modal').style.display = "flex";
+		});
+	}
+
+	async function getClasses(class_id) {
+		try {
+			const res = await fetch(`/api/instByClass/${class_id}`);
+			if (!res.ok) throw new Error('Network error');
+
+			const instructorList = await res.json();
+
+			return instructorList;
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
+
+</script>
+</html>
