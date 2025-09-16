@@ -75,7 +75,7 @@
 	            } else {
 	                // Update other class data
 	                try {
-	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PUT', async () => {
+	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', async () => {
 	                        await populateModals(id);
 	                        await loadClasses(id);
 	                    });

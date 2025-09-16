@@ -132,7 +132,7 @@
 					form.reset();
 				} else {
 					const id = getInstructorId();
-					handleFormSubmission(e, form, `/api/update/instructors/${id}`, 'PUT', async () => {
+					handleFormSubmission(e, form, `/api/update/instructors/${id}`, 'PATCH', async () => {
 						await populateModals(id);
 						await loadInstructor(id);
 					});

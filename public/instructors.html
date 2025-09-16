@@ -81,8 +81,8 @@
 			entry.classList.add('row');
 
 			const name = document.createElement('span');
-			if (instructor.rpt === true) {
-				name.textContent = instructor.name + ', RPT';
+			if (instructor.rpt) {
+				name.textContent = instructor.name + ', ' + instructor.rpt;
 			} else {
 				name.textContent = instructor.name;
 			};

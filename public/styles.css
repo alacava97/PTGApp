@@ -76,6 +76,10 @@ input, select {
 	box-sizing: border-box;
 }
 
+textarea {
+	resize: none;
+}
+
 /* End base elements */
 
 /* Buttons */
@@ -187,45 +191,68 @@ input, select {
 
 /* End forms/inputs */
 
-.cal {
-	display: flex;
-	flex-direction: row;
-	flex-wrap: nowrap;
-	justify-content: center;
+/* Schedule */
+.schedule *, .cal-day * {
+	background-color: #F8F8F8;
+	padding: 5px;
 }
 
-.cal-col {
+.schedule {
+	justify-content: space-between;
+	margin: 15px 5%;
+	background-color: #333;
+	padding: 1px;
+	width: auto;
+	overflow-x: scroll;
+	border: #333 solid 1px;
+	border-radius: 5px;
+}
+
+.grid {
+	display: grid;
+	gap: 1px;
+	grid-template-columns: max-content repeat(4, 1fr);
+}
+
+.cal-day {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
 	width: 100%;
+	box-sizing: border-box;
+	background-color: #333;
+	gap: 1px;
+	padding: 0;
 	border-right: 1px #333 solid;
+	border-left: 1px #333 solid;
 }
 
-.cal-col:last-child {
-	border: none;
-}
-
-.cal-col label {
-	display: block;
-	width: 100%;
-	margin: 0 auto;
+.day-label {
 	text-align: center;
-}
-
-.day {
-	display: flex;
-	flex-direcion: row;
-	flex-wrap: nowrap;
-	justify-content: center;
+	grid-column-start: 1;
+	grid-column-end: 6;
 }
 
 .period {
-	display: block;
-	width: 100%;
-	border-right: 1px #333 solid;
+	text-align: center;
 }
 
-.period:last-child {
-	border: none;
+.cal-col {
+	text-align: center;
+	vertical-align: bottom;
+	padding: 15px;
 }
+
+.room-period {
+	min-height: 75px;
+	min-width: 75px;
+	font-size: 10px;
+}
+
+.room-period:hover {
+	background-color: #EEEEEE;
+	cursor: pointer;
+}
+/* End Schedule */
 
 .row {
 	position: relative;

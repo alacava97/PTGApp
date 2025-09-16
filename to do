@@ -1,0 +1,46 @@
+-CSS
+	-Fix schedule event modal, looks messy and delete button should be red. Make edit button more obviously a link.
+
+- Make calendar items clickable
+	-Change - Changes day/period/room, logic to check for overlap
+	-Add a text area for free form notes
+		--Both of these could be done at once by making the whole thing a form and sending a PATCH request.
+
+-Schedule view
+	-floating day/period and room
+	-key for color/type
+	-Color block pdf printout
+
+-Classes
+	-Add class length field to class-info page
+
+-Options
+	-Class types
+	-Color/type - maybe part of color key?
+
+-Form for class submission
+	-Talk to Corie about fields
+
+-Page for inst team to approve/deny submissions
+	-List view
+	-Sorting
+
+-Form for class review
+	-URL slug carrying class ID
+
+-Generate QR codes to link to review form
+
+-Generate classroom labels as pdfs
+	-Select from list
+	-Select all button
+
+Far Future
+-Instructor login
+	-Include classes in instructor profiles so classes can be resubmitted each year
+	-Dashboard for class reviews can be viewed in real time
+
+-Responsive design for mobile
+
+-Attendee screen/login
+	-Favorite classes
+	-Build custom ittinerary

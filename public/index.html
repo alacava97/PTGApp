@@ -7,92 +7,297 @@
 	<title>PTG Convention Web App</title>
 </head>
 <body>
-<div id="navbar"></div>
-<header>
-	<h1>Schedule</h1>
-</header>
-<div class="cal">
-	<div class="cal-col">
-		<label>Wednesday</label>
-		<div class="day">
-			<div class="period">
-				<label>1</label>
-			</div>
-			<div class="period">
-				<label>2</label>
-			</div>
-			<div class="period">
-				<label>3</label>
-			</div>
-			<div class="period">
-				<label>4</label>
-			</div>
-			<div class="period">
-				<label>5</label>
+	<div id="navbar"></div>
+	<header>
+		<h1>Schedule</h1>
+	</header>
+	<div id="color-block" class="schedule grid">
+	</div>
+	<div class="modal" id="class-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Select a Class</h4>
+			<p id="period-info"></p>
+			<form id="schedule-form">
+			    <input name="title" type="text" id="searchable" placeholder="Search classes">
+				<ul id="results" class="drop-down-select"></ul><br>
+				<button type="submit">Add Class</button>
+			</form>
+		</div>
+	</div>
+	<div class="modal" id="event-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4 id="class-title"></h4>
+			<h5 id="inst"></h5>
+			<p id="class-info"></p>
+			<a id="class-edit">edit</a>
+			<form>
+				<textarea name="notes"></textarea>
+				<button type="submit">Update</button>
+			</form>
+			<button id="confirm-delete" class="delete-button">delete</button>
+		</div>
+	</div>
+	<div class="modal" id="delete-confirmation-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Remove event from calendar?</h4>
+			<div>
+				<button id="delete-button" class="delete-button">Delete</button>
 			</div>
 		</div>
 	</div>
-	<div class="cal-col">
-		<label>Thursday</label>
-		<div class="day">
-			<div class="period">
-				<label>1</label>
-			</div>
-			<div class="period">
-				<label>2</label>
-			</div>
-			<div class="period">
-				<label>3</label>
-			</div>
-			<div class="period">
-				<label>4</label>
-			</div>
-			<div class="period">
-				<label>5</label>
-			</div>
-		</div>
-	</div>
-	<div class="cal-col">
-		<label>Friday</label>
-		<div class="day">
-			<div class="period">
-				<label>1</label>
-			</div>
-			<div class="period">
-				<label>2</label>
-			</div>
-			<div class="period">
-				<label>3</label>
-			</div>
-			<div class="period">
-				<label>4</label>
-			</div>
-			<div class="period">
-				<label>5</label>
-			</div>
-		</div>
-	</div>
-	<div class="cal-col">
-		<label>Saturday</label>
-		<div class="day">
-			<div class="period">
-				<label>1</label>
-			</div>
-			<div class="period">
-				<label>2</label>
-			</div>
-			<div class="period">
-				<label>3</label>
-			</div>
-			<div class="period">
-				<label>4</label>
-			</div>
-			<div class="period">
-				<label>5</label>
-			</div>
-		</div>
-	</div>
-</div>
 </body>
 <script src="script.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		renderSchedule();
+		modalButtons();
+		setupScheduleForm();
+
+		const classData = await read('classes');
+		const titles = classData.map(item => item.title);
+		createSearchableDropdown('searchable', 'results', titles);
+	});
+
+	async function renderSchedule() {
+		//render headers
+		const calendar = document.getElementById('color-block');
+		calendar.innerHTML = '';
+
+		const roomCol = document.createElement('div');
+		roomCol.classList.add('cal-col');
+		calendar.appendChild(roomCol);
+
+		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		const periods = [1, 2, 3, 4, 5];
+		days.forEach(day => {
+			const calDay = document.createElement('div');
+			const dayLabel = document.createElement('div');
+			dayLabel.textContent = day;
+			dayLabel.classList.add('day-label');
+			calDay.appendChild(dayLabel);
+			calDay.classList.add('cal-day');
+
+			periods.forEach(period => {
+				const block = document.createElement('div');
+				block.textContent = period;
+				block.classList.add('period');
+				calDay.appendChild(block);
+			})
+			calendar.appendChild(calDay);
+		});
+
+		try {
+			const schedRes = await fetch(`/api/schedule`);
+			const schedule = await schedRes.json();
+			const roomRes = await fetch(`/api/read/rooms`);
+			const rooms = await roomRes.json();
+
+			for (const key in rooms) {
+				const room = document.createElement('div');
+				const roomName = rooms[key]['name'];
+				room.textContent = roomName
+				room.classList.add('cal-col');
+				calendar.appendChild(room);
+				days.forEach((day, index) => {
+				  	const roomDay = document.createElement('div');
+				  	roomDay.classList.add('cal-day');
+
+					const events = schedule.filter(e => e.day == (index + 3) && e.room == roomName);
+
+					// check for overlaps
+					const overlaps = checkOverlap(events);
+					if (overlaps.length > 0) {
+					  overlaps.forEach(o => {
+					    console.warn(`Overlap detected in room "${roomName}" on ${day}: "${o.eventA.title}" at period ${o.eventA.start_period} overlaps with "${o.eventB.title}" at period ${o.eventB.start_period}`);
+					  });
+					}
+
+				  // --- grid rendering with dummy cells ---
+					let p = 1;
+					while (p <= periods.length) {
+					  const periodEvent = events.find(ev => ev.start_period === p);
+
+					  if (periodEvent) {
+					    const eventDiv = document.createElement('div');
+					    eventDiv.classList.add('room-period');
+					    eventDiv.textContent = periodEvent.title;
+					    eventDiv.style.backgroundColor = periodEvent.color;
+
+					    const start = periodEvent.start_period;
+					    const end = start + periodEvent.length - 1; // compute end from length
+					    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
+					    eventDiv.id = periodEvent.schedule_id;
+
+					    eventDiv.addEventListener('click', () => {
+					      const eventModal = document.getElementById('event-modal');
+					      eventModal.style.display = 'flex';
+					      document.getElementById('class-title').textContent = periodEvent.title;
+					      document.getElementById('inst').textContent = periodEvent.instructors;
+					      if (start - end == 0) {
+					      	document.getElementById('class-info').textContent = `${day} - Period ${start} - ${roomName}`;
+					      } else {
+					      	document.getElementById('class-info').textContent = `${day} - Periods ${start}-${end} - ${roomName}`;
+					      }
+
+					      document.getElementById('class-edit').href = `/class-info.html?id=${periodEvent.class_id}`;
+
+					      const delButton = document.getElementById('confirm-delete');
+					      delButton.addEventListener('click', () => {
+					      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
+					      	deleteButton(periodEvent.schedule_id, renderSchedule);
+					      });
+					    });
+
+					    roomDay.appendChild(eventDiv);
+
+					    p = end + 1; // skip past this event
+					  } else {
+					    const dummy = document.createElement('div');
+					    dummy.classList.add('room-period', 'empty');
+					    dummy.textContent = p; 
+					    dummy.id = 0;
+					    const currentPeriod = p;
+					    const form = document.getElementById('schedule-form');
+
+					    dummy.addEventListener('click', async () => {
+					      document.getElementById('searchable').value = '';
+					      document.getElementById('results').innerHTML = '';
+					      document.getElementById('class-modal').style.display = 'flex';
+					      document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
+
+					      form.dataset.day = index + 3;
+					      form.dataset.period = currentPeriod;
+					      form.dataset.room = roomName;
+					    });
+
+					    roomDay.appendChild(dummy);
+					    p++;
+					  }
+					}
+				  calendar.appendChild(roomDay);
+				});
+			}
+		} catch (err) {
+			console.error('Error loading schedule:', err);
+		}
+	}
+
+	function setupScheduleForm() {
+	  const form = document.getElementById('schedule-form');
+	  if (!form) return; // guard
+
+	  form.addEventListener('submit', async (e) => {
+	    e.preventDefault();
+
+	    const day = parseInt(form.dataset.day);
+	    const start_period = parseInt(form.dataset.period);
+	    const room = form.dataset.room;
+	    const title = document.getElementById('searchable').value;
+
+	    try {
+	      // Fetch class info to get length
+	      const classRes = await fetch('/api/read/classes');
+	      const classes = await classRes.json();
+	      const selectedClass = classes.find(c => c.title === title);
+
+	      if (!selectedClass) {
+	        alert(`Class "${title}" not found`);
+	        return;
+	      }
+
+	      const length = selectedClass.length;
+	      const newEnd = start_period + length - 1;
+
+	      // Check period limit (cannot exceed 5)
+	      if (newEnd > 5) {
+	        alert(`Cannot schedule "${title}" after period 5`);
+	        return;
+	      }
+
+	      // Fetch current schedule
+	      const schedRes = await fetch('/api/schedule');
+	      const schedule = await schedRes.json();
+
+	      // Existing events in this room/day
+	      const roomEvents = schedule.filter(e => e.day === day && e.room === room);
+
+	      // Check for overlap
+	      const newEvent = { start_period, length, day, room, title };
+	      const allEvents = [...roomEvents, newEvent];
+
+	      const overlaps = checkOverlap(allEvents);
+
+	      const hasOverlap = overlaps.some(o =>
+	        o.eventA === newEvent || o.eventB === newEvent
+	      );
+
+	      if (hasOverlap) {
+			alert(`Cannot add "${title}" because it overlaps with "${overlap.title}" at period ${overlap.start_period}`);
+			return;
+	      }
+
+	      // No conflicts → submit to backend
+	      const res = await fetch('/api/addSchedule', {
+	        method: 'POST',
+	        headers: { 'Content-Type': 'application/json' },
+	        body: JSON.stringify({ title, day, start_period, room })
+	      });
+
+	      if (!res.ok) throw new Error(await res.text());
+
+	      alert('Class added!');
+	      document.getElementById('class-modal').style.display = 'none';
+
+	      // Refresh schedule display
+	      await renderSchedule();
+
+	      // Clear form
+	      form.dataset.day = '';
+	      form.dataset.period = '';
+	      form.dataset.room = '';
+	      document.getElementById('searchable').value = '';
+	      document.getElementById('results').innerHTML = '';
+
+	    } catch (err) {
+	      console.error('Error adding class:', err);
+	      alert('Failed to add class.');
+	    }
+	  });
+	}
+
+	function deleteButton(id, onSuccess) {
+		const button = document.getElementById('delete-button');
+		const freshButton = button.cloneNode(true);
+		button.parentNode.replaceChild(freshButton, button);
+
+		freshButton.addEventListener('click', async () => {
+			try {
+				const res = await fetch(`/api/delete/schedule/${id}`, { 
+						method: 'DELETE'
+					});
+
+				const data = await res.json();
+
+				if (!res.ok) {
+					alert(`Error: ${data.error}`);
+					return;
+				}
+
+				if (typeof onSuccess === "function") {
+					onSuccess();
+				}
+				alert('event deleted');
+				document.querySelectorAll('.modal').forEach(modal => {
+					modal.style.display = 'none';
+				})
+			} catch (err) {
+				console.error(err);
+				alert('Failed to delete entry');
+			}
+		})
+	}
+</script>
 </html>

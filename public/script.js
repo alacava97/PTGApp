@@ -196,14 +196,19 @@ async function loadInstructor(id = getInstructorId()) {
 
 		const instructor = await res.json();
 
+		var instTitle = instructor.name;
+		if (instructor.rpt) {
+			instTitle += ", " + instructor.rpt;
+		}
+
 		//set title
 		const name = document.getElementById('instructor-name');
-		name.textContent = instructor.name + (instructor.rpt ? ', RPT' : '');
+		name.textContent = instTitle;
 		
 		//contact section
 		const contact = document.getElementById('instructor-details');
 		contact.innerHTML = `
-			<b>${instructor.name}${instructor.rpt ? ', RPT' : ''}</b><br>
+			<b>${instTitle}</b><br>
 			${instructor.email || 'No email on record.'}<br>
 			${instructor.phone || 'No phone on record.'}
 		`;
@@ -400,3 +405,24 @@ async function deleteClassInstructorLink(classId, instructorId) {
 function getId() {
 	return new URLSearchParams(window.location.search).get('id');
 }
+
+function checkOverlap(events) {
+  const overlaps = [];
+
+  for (let i = 0; i < events.length; i++) {
+    for (let j = i + 1; j < events.length; j++) {
+      const a = events[i];
+      const b = events[j];
+
+      const aEnd = a.start_period + a.length - 1;
+      const bEnd = b.start_period + b.length - 1;
+
+      if (a.start_period <= bEnd && b.start_period <= aEnd) {
+        overlaps.push({ eventA: a, eventB: b });
+      }
+    }
+  }
+
+  return overlaps;
+}
+
