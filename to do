@@ -1,11 +1,3 @@
--CSS
-	-Fix schedule event modal, looks messy and delete button should be red. Make edit button more obviously a link.
-
-- Make calendar items clickable
-	-Change - Changes day/period/room, logic to check for overlap
-	-Add a text area for free form notes
-		--Both of these could be done at once by making the whole thing a form and sending a PATCH request.
-
 -Schedule view
 	-floating day/period and room
 	-key for color/type
@@ -17,6 +9,8 @@
 -Options
 	-Class types
 	-Color/type - maybe part of color key?
+	-Room names for convention
+	-"new year" setting to get things started
 
 -Form for class submission
 	-Talk to Corie about fields
