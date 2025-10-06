@@ -5,6 +5,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { Pool } = require('pg');
 const path = require('path');
+const puppeteer = require('puppeteer');
 const router = express.Router();
 
 const app = express();
@@ -553,6 +554,40 @@ app.delete('/api/delete/:table/:id', async (req, res) => {
   }
 });
 
+//generate pdf of page
+app.post('/api/export-pdf', async (req, res) => {
+  const { html } = req.body;
+  if (!html) return res.status(400).send('No HTML provided');
+
+  const browser = await puppeteer.launch({ headless: true });
+  const page = await browser.newPage();
+
+  const content = `
+    <html>
+      <head>
+        <link rel="stylesheet" href="http://localhost:3000/styles.css">
+      </head>
+      <body>
+      ${html}
+      </body>
+    </html>
+  `;
+
+  await page.setContent(content, { waitUntil: 'networkidle0' });
+
+  const pdfBuffer = await page.pdf({
+    height: '1800px',
+    width: '2810px',
+    printBackground: true,
+    margin: { top: 20, right: 20, bottom: 20, left: 20},
+  });
+
+  await browser.close();
+
+  res.setHeader('Content-Type', 'application/pdf');
+  res.setHeader('Content-Disposition', 'attachment; filename="element.pdf"');
+  res.send(pdfBuffer);
+});
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);

@@ -169,7 +169,7 @@ textarea {
 .modal {
 	display: none;
 	position: fixed;
-	z-index: 1;
+	z-index: 2;
 	top: 0;
 	left: 0;
 	width: 100%;
@@ -226,7 +226,7 @@ textarea {
 	background-color: #333;
 	padding: 1px;
 	width: auto;
-	overflow-x: scroll;
+	overflow: scroll;
 	border: #333 solid 1px;
 	border-radius: 5px;
 }
@@ -238,6 +238,9 @@ textarea {
 }
 
 .cal-day {
+	position: sticky;
+	top: 0;
+
 	display: grid;
 	grid-template-columns: repeat(5, 1fr);
 	width: 100%;
@@ -297,12 +300,13 @@ textarea {
     background: #EEEEEE;
     border: #CCCCCC solid 1px;
     white-space: nowrap;
+    flex-wrap: wrap;
 }
 
 .class-row-content {
     padding: 7px 5%;
 	box-sizing: border-box;
-	width: calc(100% - 52px);
+	width: calc(100% - 58px);
 	white-space: nowarp;
 }
 
@@ -373,4 +377,85 @@ textarea {
 .flex-col {
 	display: flex;
 	flex-direction: column;
+}
+
+.square {
+	aspect-ratio: 1/1;
+}
+
+.key {
+	width: auto;
+	margin: auto 5%;
+	display: flex;
+	position: sticky;
+	top: 0;
+	background-color: #dcdddc;
+	z-index: 1;
+}
+
+.key-item {
+	width: 25px;
+	min-width: 2vw;
+	aspect-ratio: 1/1;
+	margin: 5px;
+	border: none;
+	box-sizing: border-box;
+	background-color: transparent;
+	padding: 0;
+}
+
+.key-item:hover {
+	cursor: pointer;
+}
+
+.tooltip {
+	position: relative;
+	display; inline-block;
+}
+
+.tooltip .tooltiptext {
+	visibility: hidden;
+	width: 120px;
+	background-color: #555;
+	color: #fff;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+
+	position: absolute;
+	z-index: 1;
+	top: 150%;
+	left: 50%;
+	margin-left: -60px;
+
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+	opacity: 1;
+}
+
+.color-select {
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	margin: 0;
+}
+
+.flex-grow {
+	flex-grow: 1;
+}
+
+#print-schedule {
+	float: right;
+	text-align: right;
+	font-size: 32px;
+	padding: 2px 5px;
+	cursor: pointer;
+}
+
+#print-schedule:hover {
+	background-color: #BEBEBE;
 }

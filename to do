@@ -1,14 +1,15 @@
+-CSS
+	-Better responsive design
+
 -Schedule view
 	-floating day/period and room
-	-key for color/type
-	-Color block pdf printout
+	-print class type key
 
 -Classes
 	-Add class length field to class-info page
 
 -Options
 	-Class types
-	-Color/type - maybe part of color key?
 	-Room names for convention
 	-"new year" setting to get things started
 

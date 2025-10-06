@@ -426,3 +426,25 @@ function checkOverlap(events) {
   return overlaps;
 }
 
+async function downloadElementAsPDF(elementId) {
+	const element = document.getElementById(elementId);
+	if (!element) return alert('Element not found');
+
+	const html = element.outerHTML;
+
+	const res = await fetch('/api/export-pdf', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ html })
+	});
+
+	const blob = await res.blob();
+	const url = URL.createObjectURL(blob);
+
+	const a = document.createElement('a');
+	a.href = url;
+	a.download = 'element.pdf';
+	a.click();
+	a.remove();
+}
+
