@@ -1,20 +1,16 @@
--CSS
-	-Better responsive design
-
--Schedule view
-	-floating day/period and room
-	-print class type key
-
--Classes
-	-Add class length field to class-info page
+-Schedule
+	-Tooltip for class blocks?
+	-Color key labels
+	-Loading icon for printer
 
 -Options
-	-Class types
 	-Room names for convention
 	-"new year" setting to get things started
+	-Save convention rooms year to year
 
 -Form for class submission
 	-Talk to Corie about fields
+	-Class needs
 
 -Page for inst team to approve/deny submissions
 	-List view
@@ -33,8 +29,9 @@ Far Future
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year
 	-Dashboard for class reviews can be viewed in real time
+	-Electronic consent to teach
 
--Responsive design for mobile
+-Responsive design for mobile and other devices in general
 
 -Attendee screen/login
 	-Favorite classes

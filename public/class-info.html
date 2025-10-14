@@ -28,12 +28,92 @@
 		</div>
 	</div>
 
+	<h3>Length</h3>
+	<div id="length" class="row flex-row"></div>
+
+	<h3>Type</h3>
+	<div id="type" class="row flex-row">No Type Found</div>
+
+	<h3>Level</h3>
+	<div id="level" class="row flex-row">No Level Found</div>
+
+	<br><br>
+
+	<button id="delete-class" class="delete-row">Delete Class</button>
+
 	<div class="modal" id="delete-confirmation-modal">
 		<div class="modal-content">
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Remove instructor from class record?</h4>
 			<div>
 				<button id="delete-button" class="delete-button">Delete</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal" id="type-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Update Type</h4>
+			<form id="type-form">
+				<label for="type-select"></label>
+				<select name="type" id="type-select"></select>
+				<br><br>
+				<button type="submit" id="submit-type">Submit</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="level-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Update Level</h4>
+			<form id="level-form">
+				<label for="level-select"></label>
+				<select name="level" id="level-select">
+					<option value="everyone">Everyone</option>
+					<option value="beginner">Beginner</option>
+					<option value="intermediate">Intermediate</option>
+					<option value="advanced">Advanced</option>
+				</select>
+				<br><br>
+				<button type="submit" id="submit-level">Submit</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="length-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Update Class Length</h4>
+			<form id="length-form">
+				<label for="length-input"></label>
+				<input type="number" min="1" max="5" id="length-input" name="length">
+				<br><br>
+				<button type="submit" id="submit-length">Submit</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="title-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Update Class Title</h4>
+			<form id="title-form">
+				<label for="title-input"></label>
+				<input type="text" id="title-input" name="title">
+				<br><br>
+				<button type="submit" id="submit-title">Submit</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="delete-class-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Permanently delete class record?</h4>
+			<div>
+				<button id="delete-class-button" class="delete-button">Delete</button>
 			</div>
 		</div>
 	</div>
@@ -51,6 +131,19 @@
 	    const instructorData = await read('instructors');
 	    const instructors = instructorData.map(item => item.name);
 	    await createSearchableDropdown('searchable', 'results', instructors);
+
+	    const typeDD = document.getElementById('type-select');
+	    await populateDropdown(typeDD, 'types', 'type');
+
+	    const delClass = document.getElementById('delete-class');
+	    delClass.addEventListener('click', () => {
+	    	document.getElementById('delete-class-modal').style.display = 'flex';
+	    });
+
+	    document.getElementById('delete-class-button').addEventListener('click', async () => {
+    		await deleteEntry('classes', id);
+    		window.location.href = "/classes.html"
+	    })
 
 	    // Attach submit handlers
 	    document.querySelectorAll('form').forEach(form => {
@@ -75,7 +168,6 @@
 	                // Update other class data
 	                try {
 	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', async () => {
-	                        await populateModals(id);
 	                        await loadClasses(id);
 	                    });
 	                    closeModal(form);
@@ -102,7 +194,11 @@
 			const classRecord = await res.json();
 
 			const title = document.getElementById('class-title');
-			title.innerHTML = `${classRecord.title}`
+			title.innerHTML = `${classRecord.title} ✎`
+			title.addEventListener('click', () => {
+				document.getElementById('title-modal').style.display = "flex";
+				document.getElementById('title-input').value = classRecord.title;
+			});
 
 			const classes = await getClasses(class_id);
 			renderInstructorList(classes, class_id);
@@ -154,12 +250,45 @@
 			instructors.appendChild(fullRow);
 		});
 
+		//add instructor button
 		const addInst = document.createElement('div');
 		addInst.classList.add('row');
 		addInst.innerHTML = `<b>＋</b> Add instructor`
 		instructors.appendChild(addInst);	
 		addInst.addEventListener('click', () => {
 			document.getElementById('instructor-modal').style.display = "flex";
+		});
+
+		//change class length
+		const classLength = document.getElementById('length');
+		classLength.textContent = `${instClasses[0].length} ${instClasses[0].length == 1 ? 'period' : 'periods'}`;
+		classLength.style.fontWeight = 'bold';
+		classLength.addEventListener('click', () => {
+			document.getElementById('length-modal').style.display = 'flex';
+			document.getElementById('length-input').value = instClasses[0].length;
+		});
+
+		//change class type
+		const classType = document.getElementById('type');
+		if (instClasses[0].type_name) {
+			classType.textContent = instClasses[0].type_name;
+			classType.style.fontWeight = 'bold';
+		};
+		classType.addEventListener('click', () => {
+			document.getElementById('type-modal').style.display = "flex";
+			document.getElementById('type-select').value = instClasses[0].type_id;
+		});
+
+		//change class level
+		const classLevel = document.getElementById('level');
+		const level = instClasses[0].level.toString();
+		if (level) {
+			classLevel.textContent = level.slice(0, 1).toUpperCase() + level.slice(1);
+			classLevel.style.fontWeight = 'bold';
+		};
+		classLevel.addEventListener('click', () => {
+			document.getElementById('level-modal').style.display = "flex";
+			document.getElementById('level-select').value = instClasses[0].level;
 		});
 	}
 

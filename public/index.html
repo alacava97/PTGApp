@@ -5,6 +5,7 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>PTG Convention Web App</title>
 </head>
 <body>
@@ -99,7 +100,7 @@
 		calendar.innerHTML = '';
 
 		const roomCol = document.createElement('div');
-		roomCol.classList.add('cal-col');
+		roomCol.classList.add('cal-col', 'blank');
 		calendar.appendChild(roomCol);
 
 		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -110,7 +111,7 @@
 			dayLabel.textContent = day;
 			dayLabel.classList.add('day-label');
 			calDay.appendChild(dayLabel);
-			calDay.classList.add('cal-day');
+			calDay.classList.add('cal-day', 'day-period');
 
 			periods.forEach(period => {
 				const block = document.createElement('div');
@@ -400,8 +401,26 @@
 			const printBtn = document.createElement('div');
 			printBtn.classList.add("fa", "fa-print");
 			printBtn.id = "print-schedule";
-			printBtn.addEventListener('click', async () => {
-				downloadElementAsPDF("color-block");
+			printBtn.addEventListener('click', () => {
+				const types = data
+				const colorBlock = document.getElementById('color-block');
+				const blockWKey = colorBlock.cloneNode(true);
+				const toPrint = document.createElement('div');
+
+				const colorKey = document.createElement('div');
+				colorKey.classList.add('flex-row', 'print-key-container');
+				types.forEach(type => {
+					const key = document.createElement('div');
+					key.textContent = type.type;
+					key.style.backgroundColor = type.color;
+					key.classList.add('print-key');
+					colorKey.appendChild(key);
+				});
+
+				toPrint.appendChild(colorKey);
+				toPrint.appendChild(blockWKey);
+
+				downloadElementAsPDF(toPrint);
 			});
 
 			key.appendChild(printBtn);

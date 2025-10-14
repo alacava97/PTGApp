@@ -132,18 +132,31 @@ app.post('/api/create/:table', async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    const record = await createRecord({ table, data, returning: ['id'] }, client);
+    let record;
 
-    if (table === 'classes' && Array.isArray(instructorIds) && instructorIds.length > 0) {
-      const insertPromises = instructorIds.map((instId) => {
-        return client.query(
-          'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
-          [record.id, instId]
-        );
-      });
-      await Promise.all(insertPromises);
+    if (table === 'types') {
+      const { rows } = await client.query(
+        `INSERT INTO types (type, position)
+         VALUES ($1, (SELECT COALESCE(MAX(position),0)+1 FROM types))
+         RETURNING id, position`,
+        [data.type]
+      );
+      record = rows[0];
+
+    } else {
+      record = await createRecord({ table, data, returning: ['id'] }, client);
+  
+      if (table === 'classes' && Array.isArray(instructorIds) && instructorIds.length > 0) {
+        const insertPromises = instructorIds.map((instId) => {
+          return client.query(
+            'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
+            [record.id, instId]
+          );
+        });
+        await Promise.all(insertPromises);
+      }
     }
-
+    
     await client.query('COMMIT');
     res.json({ message: `Created record in ${table}`, id: record.id });
   } catch (err) {
@@ -268,7 +281,18 @@ app.get('/api/read/:table', async (req, res) => {
       classes.level,
       classes.length,
       types.type AS type,
-      COALESCE(string_agg(instructors.name, ', '), 'No instructors') AS instructor_name
+      COALESCE(
+      string_agg(
+      instructors.name ||
+      CASE
+        WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
+      THEN ', ' || instructors.rpt
+      ELSE ''
+      END,
+      ', '
+    ),
+    'No instructors'
+    )AS instructor_name
     FROM classes
     LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
     LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
@@ -276,6 +300,8 @@ app.get('/api/read/:table', async (req, res) => {
     GROUP BY classes.id, classes.title, classes.level, types.type
     ORDER BY classes.id;
   `;
+  } else if (table === 'types') {
+    query = `SELECT * FROM types ORDER BY position ASC`;
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
   }
@@ -353,9 +379,17 @@ app.get('/api/instByClass/:id', async (req, res) => {
       classes.id AS class_id,
       classes.title,
       classes.level,
+      classes.length,
       instructors.id AS instructor_id,
-      instructors.name AS instructor_name,
-      types.type AS type_name
+    instructors.name ||
+    CASE
+      WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
+    THEN ', ' || instructors.rpt
+    ELSE ''
+    END
+    AS instructor_name,
+      types.type AS type_name,
+      types.id AS type_id
     FROM 
       class_instructors
     JOIN 
@@ -530,7 +564,7 @@ app.delete('/api/delete/:table/:id', async (req, res) => {
 
   try {
 
-    const allowedTables = ['schedule', 'classes', 'instructors'];
+    const allowedTables = ['schedule', 'classes', 'instructors', 'types'];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: 'Invalid table name' });
     }
@@ -576,7 +610,7 @@ app.post('/api/export-pdf', async (req, res) => {
   await page.setContent(content, { waitUntil: 'networkidle0' });
 
   const pdfBuffer = await page.pdf({
-    height: '1800px',
+    height: '2000px',
     width: '2810px',
     printBackground: true,
     margin: { top: 20, right: 20, bottom: 20, left: 20},
@@ -587,6 +621,33 @@ app.post('/api/export-pdf', async (req, res) => {
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', 'attachment; filename="element.pdf"');
   res.send(pdfBuffer);
+});
+
+app.patch('/api/update-order', async (req, res) => {
+  const { order } = req.body;
+  if (!order) return res.status(400).send('Missing order data');
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    for (const item of order) {
+      await client.query(
+        'UPDATE types SET position = $1 WHERE id = $2',
+        [item.position, item.id]
+      );
+    }
+
+    await client.query('COMMIT');
+    res.send('Order updated');
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error(err);
+    res.status(500).send('Database error');
+  } finally {
+    client.release();
+  }
 });
 
 app.listen(process.env.PORT, () => {

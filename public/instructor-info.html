@@ -22,6 +22,10 @@
 	<h3>More Info</h3>
 	<div id="more-info" class="row">No Extra Info</div>
 
+	<br><br>
+
+	<button id="delete-inst" class="delete-row">Delete Instructor</button>
+
 	<div class="modal" id="contact-modal">
 		<div class="modal-content">
 			<div class="close-btn" id="close-btn">&times;</div>
@@ -82,6 +86,29 @@
 			</form>
 		</div>
 	</div>
+
+	<div class="modal" id="name-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Update Instructor Name</h4>
+			<form id="name-form">
+				<label for="name-input"></label>
+				<input type="text" id="name-input" name="name">
+				<br><br>
+				<button type="submit" id="submit-name">Submit</button>
+			</form>
+		</div>
+	</div>
+
+	<div class="modal" id="delete-inst-modal">
+		<div class="modal-content">
+			<div class="close-btn" id="close-btn">&times;</div>
+			<h4>Permanently delete instructor record?</h4>
+			<div>
+				<button id="delete-inst-button" class="delete-button">Delete</button>
+			</div>
+		</div>
+	</div>
 </body>
 <script src="script.js"></script>
 <script>
@@ -119,6 +146,16 @@
 		moreInfo.addEventListener('click', () => {
 			document.getElementById('sponsor-modal').style.display = "flex";
 		});
+
+	    const delClass = document.getElementById('delete-inst');
+	    delClass.addEventListener('click', () => {
+	    	document.getElementById('delete-inst-modal').style.display = 'flex';
+	    });
+
+	    document.getElementById('delete-inst-button').addEventListener('click', async () => {
+    		await deleteEntry('instructors', id);
+    		window.location.href = "/instructors.html"
+	    })
 
 		document.querySelectorAll('form').forEach(form => {
 			form.addEventListener('submit', async (e) => {

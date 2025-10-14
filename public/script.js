@@ -197,13 +197,18 @@ async function loadInstructor(id = getInstructorId()) {
 		const instructor = await res.json();
 
 		var instTitle = instructor.name;
-		if (instructor.rpt) {
-			instTitle += ", " + instructor.rpt;
+		if (instructor.rpt == true) {
+			instTitle += ", RPT";
 		}
+
+		instTitle += "✎";
 
 		//set title
 		const name = document.getElementById('instructor-name');
 		name.textContent = instTitle;
+		name.addEventListener('click', () => {
+			document.getElementById('name-modal').style.display = "flex";
+		})
 		
 		//contact section
 		const contact = document.getElementById('instructor-details');
@@ -304,7 +309,9 @@ async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubm
 		});
 
 		const result = await res.json();
-		message.textContent = result.message || result.error || 'Unknown response';
+		if (message) {
+			message.textContent = result.message || result.error || 'Unknown response';
+		}
 
 		if (res.ok) {
 			if (form.reset) form.reset();
@@ -426,10 +433,7 @@ function checkOverlap(events) {
   return overlaps;
 }
 
-async function downloadElementAsPDF(elementId) {
-	const element = document.getElementById(elementId);
-	if (!element) return alert('Element not found');
-
+async function downloadElementAsPDF(element) {
 	const html = element.outerHTML;
 
 	const res = await fetch('/api/export-pdf', {
@@ -448,3 +452,27 @@ async function downloadElementAsPDF(elementId) {
 	a.remove();
 }
 
+async function deleteEntry(table, id) {
+	try {
+		const res = await fetch(`/api/delete/${table}/${id}`, {
+			method: 'DELETE',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if(!res.ok) throw new Error('Network error');
+
+		if (res.status === 204) {
+			console.log('Deleted successfully (No Content)');
+			return;
+		}
+
+		const data = await res.json();
+		console.log('Deleted successfully:', data);
+		return data;
+	} catch (err) {
+		console.log('Error deleting:', err);
+		throw error;
+	}
+}

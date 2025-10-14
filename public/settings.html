@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>PTG Convention Web App</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header>
+		<h1>Settings</h1>
+	</header>
+	<div class="flex-row-2">
+		<div>
+			<h2>Class Types</h2>
+			<ul id="class-type-list" class="transparent type-ul"></ul>
+			<button id="add-type" class="add-btn">+ Add Type</button>
+		</div>
+		<h2>Room Names</h2>
+	</div>
+</body>
+<script src="script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		try {
+			const types = await read('types');
+			const typeList = document.getElementById('class-type-list');
+
+			types.forEach(type => {
+				const li = document.createElement('li');
+				li.classList.add('type-list');
+				li.setAttribute('data-id', type.id);
+
+				const span = document.createElement('span');
+				span.textContent = type.type;
+				li.appendChild(span);
+
+				typeList.appendChild(li);
+			});
+		} catch (err) {
+			console.error('err');
+		}
+
+		const list = document.getElementById('class-type-list');
+		new Sortable(list, {
+			animation: 150,
+			ghostClass: 'dragging',
+			onEnd: async () => {
+				const newOrder = [...list.children].map((li, index) => ({
+					id: li.dataset.id,
+					position: index + 1
+				}));
+
+				try {
+					await fetch('/api/update-order', {
+						method: 'PATCH',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({ order: newOrder })
+					});
+
+				} catch (err) {
+					console.error('Failed to update order:', err);
+				}
+			}
+		})
+
+		list.addEventListener('click', (e) => {
+		    const li = e.target.closest('span');
+		    if (!li) return;
+
+		    const oldText = li.textContent;
+		    const id = li.closest('li').dataset.id;
+
+		    // Create input box
+		    const input = document.createElement('input');
+		    input.type = 'text';
+		    input.value = oldText;
+		    input.classList.add('inline-edit');
+		    li.textContent = '';
+		    li.appendChild(input);
+		    input.focus();
+  
+		    const save = async () => {
+		      const newText = input.value.trim();
+		      if (newText === oldText || newText === '') {
+		        li.textContent = oldText;
+		        return;
+		      }
+
+		      try {
+		        const res = await fetch(`/api/update/types/${id}`, {
+		          method: 'PATCH',
+		          headers: { 'Content-Type': 'application/json' },
+		          body: JSON.stringify({ id, type: newText })
+		        });
+  
+		        if (!res.ok) throw new Error('Failed to save');
+		        li.textContent = newText;
+		      } catch (err) {
+		        console.error('Update failed:', err);
+		        li.textContent = oldText;
+		      }
+		    };
+
+		    input.addEventListener('blur', save);
+		    input.addEventListener('keydown', (ev) => {
+		      if (ev.key === 'Enter') {
+		        input.blur();
+		      } else if (ev.key === 'Escape') {
+		        li.textContent = oldText;
+		      }
+		    });
+		});
+
+		const addBtn = document.getElementById('add-type');
+
+		async function addTypeToList(e, input, li) {
+			const value = input.value.trim();
+		      if (!value) return;
+
+		      try {
+		        // save new type to DB
+		        const res = await fetch('/api/create/types', {
+		          method: 'POST',
+		          headers: { 'Content-Type': 'application/json' },
+		          body: JSON.stringify({ type: value })
+		        });
+		        const data = await res.json();
+
+		        // update li
+		        li.innerHTML = `<span>${value}</span>`;
+		        li.dataset.id = data.id;
+		        li.classList.remove('new-item');
+		        attachDeleteButton(li);
+
+		      } catch (err) {
+		        console.error('Add failed:', err);
+		        li.remove(); // clean up failed add
+		      }
+		}
+
+		// --- Add new item ---
+		addBtn.addEventListener('click', async () => {
+		  const li = document.createElement('li');
+		  li.className = 'type-list new-item';
+		  li.dataset.new = 'true';
+
+		  const input = document.createElement('input');
+		  input.type = 'text';
+		  input.placeholder = 'New type...';
+		  input.classList.add('inline-edit');
+		  li.appendChild(input);
+
+		  list.appendChild(li);
+		  input.focus();
+
+		  input.addEventListener('keydown', async (e) => {
+		    if (e.key === 'Enter') {
+		      addTypeToList(e, input, li);
+		    } else if (e.key === 'Escape') {
+		      li.remove(); // cancel new
+		    }
+		  });
+
+		  input.addEventListener('blur', async (e) => {
+		  	if (input.value === "") {
+		  		li.remove();
+		  	} else {
+		  		addTypeToList(e, input, li);
+		  	}
+		  });
+		});
+
+		// --- Delete handling ---
+		function attachDeleteButton(li) {
+		  const del = document.createElement('button');
+		  del.textContent = '×';
+		  del.className = 'delete-btn2';
+		  li.appendChild(del);
+
+		  del.addEventListener('click', async (e) => {
+		    e.stopPropagation();
+		    const id = li.dataset.id;
+		    if (!confirm('Delete this type?')) return;
+
+		    try {
+		      const res = await fetch(`/api/delete/types/${id}`, { method: 'DELETE' });
+		      if (!res.ok) throw new Error('Failed to delete');
+		      li.remove();
+		    } catch (err) {
+		      console.error('Delete failed:', err);
+		    }
+		  });
+		}
+
+		// Run once initially for existing lis
+		document.querySelectorAll('#class-type-list li').forEach(attachDeleteButton);
+
+	});
+</script>

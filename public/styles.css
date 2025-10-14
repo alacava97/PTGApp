@@ -1,12 +1,13 @@
 /* Base elements */
 body {
 	margin: 0;
+	margin-bottom: 45px;
 	color: #333333;
 	background-color: #F8F8F8;
 	font-family: 'Montserrat', sans-serif;
 }
 
-ul {
+.nav-ul {
 	list-style-type: none;
 	margin: 0;
 	padding: 10px 5%;
@@ -156,6 +157,17 @@ textarea {
 .delete-button:hover {
 	background-color: #B22222;
 }
+
+.delete-row {
+	padding: 7px 5%;
+	text-align: center;
+	background-color: #ffdddd;
+	border: 1px solid #CCCCCC;
+}
+
+.delete-row:hover {
+	background-color: #ffbbbb;
+}
 /* End Buttons */
 
 /* Nav bar */
@@ -221,11 +233,13 @@ textarea {
 }
 
 .schedule {
+	position: fixed;
 	justify-content: space-between;
-	margin: 15px 5%;
+	margin: 0 5%;
 	background-color: #333;
 	padding: 1px;
-	width: auto;
+	width: -webkit-fill-available;
+	height: -webkit-fill-available;
 	overflow: scroll;
 	border: #333 solid 1px;
 	border-radius: 5px;
@@ -266,6 +280,10 @@ textarea {
 	text-align: center;
 	vertical-align: bottom;
 	padding: 15px;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	border-right: 1px solid black;
 }
 
 .room-period {
@@ -277,6 +295,21 @@ textarea {
 .room-period:hover {
 	background-color: #EEEEEE;
 	cursor: pointer;
+}
+
+.day-period {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	border-bottom: 1px solid black;
+}
+
+.blank {
+	z-index: 3;
+	position: sticky;
+	top:0;
+	left:0;
+	border-bottom: 1px solid black;
 }
 /* End Schedule */
 
@@ -301,6 +334,12 @@ textarea {
     border: #CCCCCC solid 1px;
     white-space: nowrap;
     flex-wrap: wrap;
+}
+
+.flex-row-2 {
+	display: flex;
+	flex-direction: row;
+	justify-content: space-around;
 }
 
 .class-row-content {
@@ -328,15 +367,11 @@ textarea {
 	position: relative;
 }
 
-.edit-icon {
-	margin-left: 8px;
+.info-header:hover {
+	text-decoration: underline;
 	cursor: pointer;
-	opacity: 0;
-	transition: opacity 0.2s ease;
 }
 
-.info-header:hover .edit-icon {
-	opacity: 1;
 }
 
 #sponsor {
@@ -459,3 +494,101 @@ textarea {
 #print-schedule:hover {
 	background-color: #BEBEBE;
 }
+
+.print-key {
+	aspect-ratio: 1/1;
+	width: 140px;
+	white-space: normal;
+	border: 1px solid black;
+	margin: 0 5px;
+	padding: 5px;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+.print-key-container {
+	margin: 25px 5%;
+	justify-content: space-between;
+}
+
+.transparent {
+	background-color: transparent;
+}
+
+.type-ul {
+	padding: 0;
+}
+
+.dragging {
+	opacity: 0.6;
+	background: #f0f0f0;
+}
+
+.inline-edit {
+  width: 100%;
+  border: none;
+  font: inherit;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+}
+
+.inline-edit:focus {
+  outline: 2px solid #007bff;
+  background-color: white;
+}
+
+#class-type-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.type-list {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  margin-bottom: 6px;
+  transition: background 0.2s;
+}
+
+.type-list:hover {
+  background: #f7f7f7;
+}
+
+.delete-btn2 {
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+  width: 25px;
+  padding-right: 5%;
+}
+
+.type-list:hover .delete-btn2 {
+  visibility: visible;
+}
+
+.add-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-btn:hover {
+  background: #0056b3;
+}
+
