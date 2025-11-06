@@ -151,7 +151,7 @@
 				  // --- grid rendering with dummy cells ---
 					let p = 1;
 					while (p <= periods.length) {
-					  const periodEvent = events.find(ev => ev.start_period === p);
+					  const periodEvent = events.find(ev => ev.start_period == p);
 
 					  if (periodEvent) {
 					    const eventDiv = document.createElement('div');
@@ -243,7 +243,7 @@
 	      // Fetch class info to get length
 	      const classRes = await fetch('/api/read/classes');
 	      const classes = await classRes.json();
-	      const selectedClass = classes.find(c => c.title === title);
+	      const selectedClass = classes.find(c => c.title == title);
 
 	      if (!selectedClass) {
 	        alert(`Class "${title}" not found`);
@@ -264,7 +264,7 @@
 	      const schedule = await schedRes.json();
 
 	      // Existing events in this room/day
-	      const roomEvents = schedule.filter(e => e.day === day && e.room === room);
+	      const roomEvents = schedule.filter(e => e.day == day && e.room == room);
 
 	      // Check for overlap
 	      const newEvent = { start_period, length, day, room, title };
@@ -273,7 +273,7 @@
 	      const overlaps = checkOverlap(allEvents);
 
 	      const hasOverlap = overlaps.some(o =>
-	        o.eventA === newEvent || o.eventB === newEvent
+	        o.eventA == newEvent || o.eventB == newEvent
 	      );
 
 	      if (hasOverlap) {
@@ -328,7 +328,7 @@
 					return;
 				}
 
-				if (typeof onSuccess === "function") {
+				if (typeof onSuccess == "function") {
 					onSuccess();
 				}
 				alert('event deleted');
