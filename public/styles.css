@@ -63,10 +63,6 @@ h4 {
 	clear: right;
 }
 
-button {
-	width: 100%;
-}
-
 button:hover {
 	cursor: pointer;
 }
@@ -167,6 +163,35 @@ textarea {
 
 .delete-row:hover {
 	background-color: #ffbbbb;
+}
+
+.add-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-btn:hover {
+  background: #0056b3;
+}
+
+
+.delete-btn2 {
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+  width: 25px;
+  padding-right: 5%;
 }
 /* End Buttons */
 
@@ -313,6 +338,71 @@ textarea {
 }
 /* End Schedule */
 
+/* print */
+#print-schedule {
+	position: relative;
+	float: right;
+	text-align: right;
+	font-size: 32px;
+	padding: 2px 5px;
+	cursor: pointer;
+	box-sizing: border-box;
+	background-color: transparent;
+	border: none;
+}
+
+#print-schedule:hover {
+	background-color: #BEBEBE;
+}
+
+.print-key {
+	aspect-ratio: 1/1;
+	width: 140px;
+	white-space: normal;
+	border: 1px solid black;
+	margin: 0 5px;
+	padding: 5px;
+	font-size: 24px;
+	font-weight: bold;
+}
+
+.print-key-container {
+	margin: 25px 5%;
+	justify-content: space-between;
+}
+/* end print */
+
+/* tooltips */
+.tooltip {
+	position: relative;
+	display; inline-block;
+}
+
+.tooltip .tooltiptext {
+	visibility: hidden;
+	width: 120px;
+	background-color: #555;
+	color: #fff;
+	text-align: center;
+	padding: 5px;
+	border-radius: 6px;
+
+	position: absolute;
+	z-index: 1;
+	top: 150%;
+	left: 50%;
+	margin-left: -60px;
+
+	opacity: 0;
+	transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+	visibility: visible;
+	opacity: 1;
+}
+/* end tooltips */
+
 .row {
 	position: relative;
 	padding: 7px 5%;
@@ -370,8 +460,6 @@ textarea {
 .info-header:hover {
 	text-decoration: underline;
 	cursor: pointer;
-}
-
 }
 
 #sponsor {
@@ -443,35 +531,6 @@ textarea {
 	cursor: pointer;
 }
 
-.tooltip {
-	position: relative;
-	display; inline-block;
-}
-
-.tooltip .tooltiptext {
-	visibility: hidden;
-	width: 120px;
-	background-color: #555;
-	color: #fff;
-	text-align: center;
-	padding: 5px;
-	border-radius: 6px;
-
-	position: absolute;
-	z-index: 1;
-	top: 150%;
-	left: 50%;
-	margin-left: -60px;
-
-	opacity: 0;
-	transition: opacity 0.3s;
-}
-
-.tooltip:hover .tooltiptext {
-	visibility: visible;
-	opacity: 1;
-}
-
 .color-select {
 	border: none;
 	padding: 0;
@@ -481,34 +540,6 @@ textarea {
 
 .flex-grow {
 	flex-grow: 1;
-}
-
-#print-schedule {
-	float: right;
-	text-align: right;
-	font-size: 32px;
-	padding: 2px 5px;
-	cursor: pointer;
-}
-
-#print-schedule:hover {
-	background-color: #BEBEBE;
-}
-
-.print-key {
-	aspect-ratio: 1/1;
-	width: 140px;
-	white-space: normal;
-	border: 1px solid black;
-	margin: 0 5px;
-	padding: 5px;
-	font-size: 24px;
-	font-weight: bold;
-}
-
-.print-key-container {
-	margin: 25px 5%;
-	justify-content: space-between;
 }
 
 .transparent {
@@ -560,35 +591,25 @@ textarea {
   background: #f7f7f7;
 }
 
-.delete-btn2 {
-  border: none;
-  background: transparent;
-  color: #888;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  visibility: hidden;
-  width: 25px;
-  padding-right: 5%;
-}
-
 .type-list:hover .delete-btn2 {
   visibility: visible;
 }
 
-.add-btn {
-  margin-top: 10px;
-  width: 100%;
-  padding: 8px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
+.loading {
+	display: none;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid #ffffff;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: rgba(0, 0, 0, 0.5);
 }
 
-.add-btn:hover {
-  background: #0056b3;
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
-

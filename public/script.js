@@ -25,7 +25,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function read(table) {
 	try {
-		const response = await fetch(`/api/read/${table}`);
+		const response = await fetch(`/api/read/${table}`, {
+			credentials: 'include'
+		});
 		if (!response.ok) throw new Error('Network response was not ok');
 
 		const all = await response.json();
@@ -475,4 +477,12 @@ async function deleteEntry(table, id) {
 		console.log('Error deleting:', err);
 		throw error;
 	}
+}
+
+function addTooltip(el, text) {
+	el.classList.add('tooltip');
+	const tooltip = document.createElement('span');
+	tooltip.textContent = text;
+	tooltip.classList.add('tooltiptext');
+	el.appendChild(tooltip);
 }

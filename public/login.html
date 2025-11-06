@@ -1,28 +1,54 @@
-<form id="loginForm" autocomplete="off">
-  <input type="email" id="user_email" placeholder="Email" autocomplete="off" required />
-  <input type="password" id="user_password" placeholder="Password" required />
-  <button type="submit">Login</button>
-</form>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+  <title>Login</title>
+</head>
+<body>
+  <form id="loginForm" autocomplete="off">
+    <input type="email" name="email" placeholder="Email" required />
+    <input type="password" name="password" placeholder="Password" required />
+    <button type="submit">Login</button>
+  </form>
 
-<script>
-  document.getElementById('loginForm').addEventListener('submit', async e => {
-    e.preventDefault();
-    const email = document.getElementById('user_email').value;
-    const password = document.getElementById('user_password').value;
+  <script>
+    const form = document.getElementById('loginForm');
 
-    const res = await fetch('http://localhost:3000/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
+    form.addEventListener('submit', async e => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const data = {
+        email: formData.get('email'),
+        password: formData.get('password')
+      };
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+          credentials: 'include'
+        });
+
+        const result = await res.json();
+        console.log('Login response:', result);
+
+        if (res.ok && result.success) {
+          window.location.href = '/index.html';
+        } else {
+
+          alert(res.error || 'Login failed');
+        }
+      } catch (err) {
+        console.error('Login request failed:', err);
+        alert('Server error');
+      }
     });
-
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem('token', data.token);
-      alert('Login successful!');
-      // Redirect or load the app
-    } else {
-      alert(data.error || 'Login failed');
-    }
-  });
-</script>
+  </script>
+</body>
+</html>

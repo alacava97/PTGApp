@@ -1,112 +1,62 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const { Pool } = require('pg');
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
-const puppeteer = require('puppeteer');
-const router = express.Router();
+
+const pool = require('./db/pool');
+const { requireLogin } = require('./middleware/requireLogin');
+
+const authRoutes = require('./routes/auth');
+const { getAllowedFields } = require('./utils/dbHelper');
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true
+}));
+
 app.use(express.json());
+
+app.use(
+  session({
+    store: new pgSession({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true,
+    }),
+    secret: process.env.SESSION_SECRET || 'supersecretkey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 2,
+      secure: false,
+      sameSite: 'lax',
+    },
+  })
+);
+
+app.use('/api/auth', authRoutes);
+app.use('/login.html', express.static(path.join(__dirname, 'public', 'login.html')));
+app.use('/register.html', express.static(path.join(__dirname, 'public', 'register.html')));
+
+app.use(requireLogin);
+
 app.use(express.static(path.join(__dirname, 'public')));
 
-console.log('starting...')
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
-
-//functions
-function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) return res.sendStatus(401);
-  const token = authHeader.split(' ')[1];
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-    if (err) return res.sendStatus(403);
-    req.user = user;
-    next();
-  });
-}
-
-async function createRecord({ table, data, returning = ['id'] }, client = pool) {
-  const columns = Object.keys(data);
-  const values = Object.values(data);
-  const placeholders = columns.map((_, i) => `$${i + 1}`);
-
-  const query = `
-    INSERT INTO ${table} (${columns.join(', ')})
-    VALUES (${placeholders.join(', ')})
-    RETURNING ${returning.join(', ')}
-  `;
-
-  const result = await client.query(query, values);
-  return result.rows[0];
-}
-
-async function getAllowedFields(table, client = pool) {
-  const res = await client.query(`
-    SELECT column_name
-    FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = $1
-  `, [table]);
-
-  return res.rows.map(r => r.column_name);
-}
-
-// Register
-app.post('/api/register', async (req, res) => {
-  const { name, email, password } = req.body;
-  const hash = await bcrypt.hash(password, 10);
-  try {
-    const result = await pool.query(
-      'INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, $4) RETURNING id, name, email, role',
-      [name, email, hash, 'user']
-    );
-    res.json({ message: 'Account created successfully!' });
-  } catch (err) {
-    if (err.code === '23505') {
-      res.status(400).json({ error: 'Email already exists' });
-    } else {
-      console.error(err);
-      res.status(500).json({ error: 'Server error' });
-    }
-  }
-});
-
-// Login
-app.post('/api/login', async (req, res) => {
-  const { email, password } = req.body;
-  const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
-  const user = result.rows[0];
-  if (!user) return res.status(401).json({ error: 'Invalid credentials' });
-
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.status(401).json({ error: 'Invalid credentials' });
-
-  const token = jwt.sign(
-    { id: user.id, role: user.role, name: user.name },
-    process.env.JWT_SECRET,
-    { expiresIn: '1h' }
-  );
-  res.json({ token });
-});
-
-// Protected test route
-app.get('/api/profile', verifyToken, async (req, res) => {
-  const user = await pool.query('SELECT id, name, email, role FROM users WHERE id = $1', [req.user.id]);
-  res.json(user.rows[0]);
+app.use((err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ error: 'Server error' });
 });
 
 //create
-app.post('/api/create/:table', async (req, res) => {
+app.post('/api/create/:table', requireLogin, async (req, res) => {
   const table = req.params.table;
 
   let allowedFields;
   try {
-    allowedFields = await getAllowedFields(table);
+    allowedFields = await getAllowedFields(table, pool);
   } catch (err) {
     return res.status(500).json({ error: 'Error loading table schema' });
   }
@@ -174,7 +124,7 @@ app.post('/api/create/:table', async (req, res) => {
   }
 });
 
-app.post('/api/addSchedule', async (req, res) => {
+app.post('/api/addSchedule', requireLogin, async (req, res) => {
   const { title, day, start_period, end_period, room } = req.body;
   try {
     const classResult = await pool.query(
@@ -201,7 +151,7 @@ app.post('/api/addSchedule', async (req, res) => {
   }
 });
 
-app.post('/api/addInstructorClassByTitle', async (req, res) => {
+app.post('/api/addInstructorClassByTitle', requireLogin, async (req, res) => {
   const { instructor_id, class_title } = req.body;
 
   if (!instructor_id || !class_title) {
@@ -227,7 +177,7 @@ app.post('/api/addInstructorClassByTitle', async (req, res) => {
   }
 });
 
-app.post('/api/addClassbyInstructorName', async (req, res) => {
+app.post('/api/addClassbyInstructorName', requireLogin, async (req, res) => {
   const { class_id, instructor_name } = req.body;
 
   if (!class_id || !instructor_name) {
@@ -256,11 +206,11 @@ app.post('/api/addClassbyInstructorName', async (req, res) => {
 //end create
 
 //read
-app.get('/api/read/:table', async (req, res) => {
+app.get('/api/read/:table', requireLogin, async (req, res) => {
   const table = req.params.table;
 
   try {
-    allowedFields = await getAllowedFields(table);
+    allowedFields = await getAllowedFields(table, pool);
   } catch (err) {
     console.error(`Error loading table schema ${table}:`, err);
     return res.status(500).json({ error: 'Error loading table schema' });
@@ -315,11 +265,11 @@ app.get('/api/read/:table', async (req, res) => {
   }
 });
 
-app.get('/api/classByInst/:id', async (req, res) => {
+app.get('/api/classByInst/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const allowedFields = await getAllowedFields('classes');
+    const allowedFields = await getAllowedFields('classes', pool);
     if (!allowedFields.length) {
       return res.status(400).json({ error: 'Invalid table name' });
     }
@@ -361,11 +311,11 @@ app.get('/api/classByInst/:id', async (req, res) => {
   }
 });
 
-app.get('/api/instByClass/:id', async (req, res) => {
+app.get('/api/instByClass/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const allowedFields = await getAllowedFields('classes');
+    const allowedFields = await getAllowedFields('classes', pool);
     if (!allowedFields.length) {
       return res.status(400).json({ error: 'Invalid table name' });
     }
@@ -415,12 +365,12 @@ app.get('/api/instByClass/:id', async (req, res) => {
   }
 });
 
-app.get('/api/readEntry/:table/:id', async (req, res) => {
+app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
 
   let allowedFields;
   try {
-    allowedFields = await getAllowedFields(table);
+    allowedFields = await getAllowedFields(table, pool);
   } catch (err) {
     console.error(`Error loading table schema for "${table}":`, err);
     return res.status(500).json({ error: 'Error loading table schema' });
@@ -444,7 +394,7 @@ app.get('/api/readEntry/:table/:id', async (req, res) => {
   }
 });
 
-app.get('/api/schedule', async (req, res) => {
+app.get('/api/schedule', requireLogin, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
@@ -455,6 +405,7 @@ app.get('/api/schedule', async (req, res) => {
         schedule.class_id,
         classes.title,
         classes.length,
+        types.type,
         types.color,
         COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors
       FROM
@@ -474,7 +425,8 @@ app.get('/api/schedule', async (req, res) => {
           schedule.room,
           classes.title,
           classes.length,
-          types.color
+          types.color,
+          types.type
       ORDER BY
         schedule.id ASC
     `);
@@ -493,12 +445,12 @@ app.get('/api/schedule', async (req, res) => {
 //end read
 
 //update
-app.patch('/api/update/:table/:id', async (req, res) => {
+app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const updates = req.body;
 
   try {
-    const allowedFields = await getAllowedFields(table);
+    const allowedFields = await getAllowedFields(table, pool);
     if (allowedFields.length === 0) {
       return res.status(400).json({ error: 'Invalid table name' });
     }
@@ -535,7 +487,7 @@ app.patch('/api/update/:table/:id', async (req, res) => {
 //end update
 
 //delete
-app.delete('/api/deleteInstructorClass', async (req, res) => {
+app.delete('/api/deleteInstructorClass', requireLogin, async (req, res) => {
   try {
     const { class_id, instructor_id } = req.body;
 
@@ -559,7 +511,7 @@ app.delete('/api/deleteInstructorClass', async (req, res) => {
   }
 });
 
-app.delete('/api/delete/:table/:id', async (req, res) => {
+app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
 
   try {
@@ -589,7 +541,7 @@ app.delete('/api/delete/:table/:id', async (req, res) => {
 });
 
 //generate pdf of page
-app.post('/api/export-pdf', async (req, res) => {
+app.post('/api/export-pdf', requireLogin, async (req, res) => {
   const { html } = req.body;
   if (!html) return res.status(400).send('No HTML provided');
 
@@ -623,7 +575,7 @@ app.post('/api/export-pdf', async (req, res) => {
   res.send(pdfBuffer);
 });
 
-app.patch('/api/update-order', async (req, res) => {
+app.patch('/api/update-order', requireLogin, async (req, res) => {
   const { order } = req.body;
   if (!order) return res.status(400).send('Missing order data');
 
@@ -649,6 +601,9 @@ app.patch('/api/update-order', async (req, res) => {
     client.release();
   }
 });
+
+app.use((req, res) => res.status(404).json({ error: 'Not found' }));
+
 
 app.listen(process.env.PORT, () => {
   console.log(`Server running on port ${process.env.PORT}`);

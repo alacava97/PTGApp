@@ -1,10 +1,7 @@
--Schedule
-	-Tooltip for class blocks?
-	-Color key labels
-	-Loading icon for printer
+-DB
+	-Update schedule table to use room ids, update SQL in index.js to compensate
 
 -Options
-	-Room names for convention
 	-"new year" setting to get things started
 	-Save convention rooms year to year
 
@@ -30,9 +27,11 @@ Far Future
 	-Include classes in instructor profiles so classes can be resubmitted each year
 	-Dashboard for class reviews can be viewed in real time
 	-Electronic consent to teach
-
--Responsive design for mobile and other devices in general
+-CSS
+	-Responsive design for mobile and other devices in general
+	-Refine schedule page UI
 
 -Attendee screen/login
 	-Favorite classes
 	-Build custom ittinerary
+	-Comments/reviews

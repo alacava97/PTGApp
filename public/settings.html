@@ -19,186 +19,193 @@
 			<ul id="class-type-list" class="transparent type-ul"></ul>
 			<button id="add-type" class="add-btn">+ Add Type</button>
 		</div>
-		<h2>Room Names</h2>
+		<div>
+			<h2>Rooms</h2>
+			<ul id="room-list" class="transparent type-ul"></ul>
+			<button id="add-room" class="add-btn">+ Add Type</button>
+		</div>
 	</div>
 </body>
 <script src="script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		try {
-			const types = await read('types');
-			const typeList = document.getElementById('class-type-list');
+	document.addEventListener('DOMContentLoaded', () => {
+	  setupEditableSortableList({
+	    table: 'types',
+	    listId: 'class-type-list',
+	    addButtonId: 'add-type',
+	    displayKey: 'type',
+	  });
 
-			types.forEach(type => {
-				const li = document.createElement('li');
-				li.classList.add('type-list');
-				li.setAttribute('data-id', type.id);
-
-				const span = document.createElement('span');
-				span.textContent = type.type;
-				li.appendChild(span);
-
-				typeList.appendChild(li);
-			});
-		} catch (err) {
-			console.error('err');
-		}
-
-		const list = document.getElementById('class-type-list');
-		new Sortable(list, {
-			animation: 150,
-			ghostClass: 'dragging',
-			onEnd: async () => {
-				const newOrder = [...list.children].map((li, index) => ({
-					id: li.dataset.id,
-					position: index + 1
-				}));
-
-				try {
-					await fetch('/api/update-order', {
-						method: 'PATCH',
-						headers: { 'Content-Type': 'application/json' },
-						body: JSON.stringify({ order: newOrder })
-					});
-
-				} catch (err) {
-					console.error('Failed to update order:', err);
-				}
-			}
-		})
-
-		list.addEventListener('click', (e) => {
-		    const li = e.target.closest('span');
-		    if (!li) return;
-
-		    const oldText = li.textContent;
-		    const id = li.closest('li').dataset.id;
-
-		    // Create input box
-		    const input = document.createElement('input');
-		    input.type = 'text';
-		    input.value = oldText;
-		    input.classList.add('inline-edit');
-		    li.textContent = '';
-		    li.appendChild(input);
-		    input.focus();
-  
-		    const save = async () => {
-		      const newText = input.value.trim();
-		      if (newText === oldText || newText === '') {
-		        li.textContent = oldText;
-		        return;
-		      }
-
-		      try {
-		        const res = await fetch(`/api/update/types/${id}`, {
-		          method: 'PATCH',
-		          headers: { 'Content-Type': 'application/json' },
-		          body: JSON.stringify({ id, type: newText })
-		        });
-  
-		        if (!res.ok) throw new Error('Failed to save');
-		        li.textContent = newText;
-		      } catch (err) {
-		        console.error('Update failed:', err);
-		        li.textContent = oldText;
-		      }
-		    };
-
-		    input.addEventListener('blur', save);
-		    input.addEventListener('keydown', (ev) => {
-		      if (ev.key === 'Enter') {
-		        input.blur();
-		      } else if (ev.key === 'Escape') {
-		        li.textContent = oldText;
-		      }
-		    });
-		});
-
-		const addBtn = document.getElementById('add-type');
-
-		async function addTypeToList(e, input, li) {
-			const value = input.value.trim();
-		      if (!value) return;
-
-		      try {
-		        // save new type to DB
-		        const res = await fetch('/api/create/types', {
-		          method: 'POST',
-		          headers: { 'Content-Type': 'application/json' },
-		          body: JSON.stringify({ type: value })
-		        });
-		        const data = await res.json();
-
-		        // update li
-		        li.innerHTML = `<span>${value}</span>`;
-		        li.dataset.id = data.id;
-		        li.classList.remove('new-item');
-		        attachDeleteButton(li);
-
-		      } catch (err) {
-		        console.error('Add failed:', err);
-		        li.remove(); // clean up failed add
-		      }
-		}
-
-		// --- Add new item ---
-		addBtn.addEventListener('click', async () => {
-		  const li = document.createElement('li');
-		  li.className = 'type-list new-item';
-		  li.dataset.new = 'true';
-
-		  const input = document.createElement('input');
-		  input.type = 'text';
-		  input.placeholder = 'New type...';
-		  input.classList.add('inline-edit');
-		  li.appendChild(input);
-
-		  list.appendChild(li);
-		  input.focus();
-
-		  input.addEventListener('keydown', async (e) => {
-		    if (e.key === 'Enter') {
-		      addTypeToList(e, input, li);
-		    } else if (e.key === 'Escape') {
-		      li.remove(); // cancel new
-		    }
-		  });
-
-		  input.addEventListener('blur', async (e) => {
-		  	if (input.value === "") {
-		  		li.remove();
-		  	} else {
-		  		addTypeToList(e, input, li);
-		  	}
-		  });
-		});
-
-		// --- Delete handling ---
-		function attachDeleteButton(li) {
-		  const del = document.createElement('button');
-		  del.textContent = '×';
-		  del.className = 'delete-btn2';
-		  li.appendChild(del);
-
-		  del.addEventListener('click', async (e) => {
-		    e.stopPropagation();
-		    const id = li.dataset.id;
-		    if (!confirm('Delete this type?')) return;
-
-		    try {
-		      const res = await fetch(`/api/delete/types/${id}`, { method: 'DELETE' });
-		      if (!res.ok) throw new Error('Failed to delete');
-		      li.remove();
-		    } catch (err) {
-		      console.error('Delete failed:', err);
-		    }
-		  });
-		}
-
-		// Run once initially for existing lis
-		document.querySelectorAll('#class-type-list li').forEach(attachDeleteButton);
-
+	  setupEditableSortableList({
+	  	table: 'rooms',
+	  	listId: 'room-list',
+	  	addButtonId: 'add-room',
+	  	displayKey: 'name',
+	  });
 	});
+
+	/**
+	 * Reusable list handler for editable, sortable database-driven lists.
+	 * 
+	 * @param {Object} config
+	 * @param {string} config.table - Table name for API routes
+	 * @param {string} config.listId - ID of UL/OL element
+	 * @param {string} config.addButtonId - ID of "Add" button
+	 * @param {string} config.displayKey - Property name to display as text
+	 */
+	function setupEditableSortableList({ table, listId, addButtonId, displayKey }) {
+	  const list = document.getElementById(listId);
+	  const addBtn = document.getElementById(addButtonId);
+
+	  if (!list) {
+	    console.error(`List element #${listId} not found`);
+	    return;
+	  }
+
+	  // --- Fetch + Render Existing Items ---
+	  (async () => {
+	    try {
+	      const items = await read(table);
+	      items.forEach(item => renderListItem(item));
+	    } catch (err) {
+	      console.error(`Failed to load ${table}:`, err);
+	    }
+	  })();
+
+	  // --- Initialize Drag Sorting ---
+	  new Sortable(list, {
+	    animation: 150,
+	    ghostClass: 'dragging',
+	    onEnd: async () => {
+	      const newOrder = [...list.children].map((li, index) => ({
+	        id: li.dataset.id,
+	        position: index + 1
+	      }));
+
+	      try {
+	        await fetch('/api/update-order', {
+	          method: 'PATCH',
+	          headers: { 'Content-Type': 'application/json' },
+	          body: JSON.stringify({ order: newOrder, table })
+	        });
+	      } catch (err) {
+	        console.error('Failed to update order:', err);
+	      }
+	    }
+	  });
+
+	  // --- Add New Item ---
+	  addBtn?.addEventListener('click', () => {
+	    const li = document.createElement('li');
+	    li.className = 'type-list new-item';
+	    const input = document.createElement('input');
+	    input.type = 'text';
+	    input.placeholder = `New ${displayKey}...`;
+	    input.classList.add('inline-edit');
+	    li.appendChild(input);
+	    list.appendChild(li);
+	    input.focus();
+
+	    const finalizeAdd = async () => {
+	      const value = input.value.trim();
+	      if (!value) return li.remove();
+	      try {
+	        const res = await fetch(`/api/create/${table}`, {
+	          method: 'POST',
+	          headers: { 'Content-Type': 'application/json' },
+	          body: JSON.stringify({ [displayKey]: value })
+	        });
+	        const data = await res.json();
+	        li.remove();
+	        renderListItem(data);
+	      } catch (err) {
+	        console.error(`Add ${displayKey} failed:`, err);
+	        li.remove();
+	      }
+	    };
+
+	    input.addEventListener('keydown', e => {
+	      if (e.key === 'Enter') finalizeAdd();
+	      if (e.key === 'Escape') li.remove();
+	    });
+	    input.addEventListener('blur', finalizeAdd);
+	  });
+
+	  // --- Helper: Render a Single Item ---
+	  function renderListItem(item) {
+	    const li = document.createElement('li');
+	    li.classList.add('type-list');
+	    li.dataset.id = item.id;
+
+	    const span = document.createElement('span');
+	    span.textContent = item[displayKey];
+	    li.appendChild(span);
+	    attachInlineEdit(span, li);
+	    attachDeleteButton(li);
+
+	    list.appendChild(li);
+	  }
+
+	  // --- Helper: Inline Edit ---
+	  function attachInlineEdit(span, li) {
+	    span.addEventListener('click', () => {
+	      const oldText = span.textContent;
+	      const input = document.createElement('input');
+	      input.type = 'text';
+	      input.value = oldText;
+	      input.classList.add('inline-edit');
+	      span.textContent = '';
+	      span.appendChild(input);
+	      input.focus();
+
+	      const save = async () => {
+	        const newText = input.value.trim();
+	        if (newText === oldText || !newText) return (span.textContent = oldText);
+
+	        try {
+	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
+	            method: 'PATCH',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify({ [displayKey]: newText })
+	          });
+	          if (!res.ok) throw new Error('Update failed');
+	          span.textContent = newText;
+	        } catch (err) {
+	          console.error(`Failed to update ${displayKey}:`, err);
+	          span.textContent = oldText;
+	        }
+	      };
+
+	      input.addEventListener('blur', save);
+	      input.addEventListener('keydown', e => {
+	        if (e.key === 'Enter') input.blur();
+	        if (e.key === 'Escape') span.textContent = oldText;
+	      });
+	    });
+	  }
+
+	  // --- Helper: Delete Button ---
+	  function attachDeleteButton(li) {
+	    const del = document.createElement('button');
+	    del.textContent = '×';
+	    del.className = 'delete-btn2';
+	    li.appendChild(del);
+
+	    del.addEventListener('click', async e => {
+	      e.stopPropagation();
+	      const id = li.dataset.id;
+	      if (!confirm(`Delete this ${displayKey}?`)) return;
+
+	      try {
+	        const res = await fetch(`/api/delete/${table}/${id}`, { method: 'DELETE' });
+	        if (!res.ok) throw new Error('Delete failed');
+	        li.remove();
+	      } catch (err) {
+	        console.error(`Delete ${displayKey} failed:`, err);
+	      }
+	    });
+	  }
+	}
+
 </script>
