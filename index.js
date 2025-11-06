@@ -14,7 +14,7 @@ const { getAllowedFields } = require('./utils/dbHelper');
 const app = express();
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: true,
   credentials: true
 }));
 
@@ -31,7 +31,7 @@ app.use(
     saveUninitialized: false,
     cookie: {
       maxAge: 1000 * 60 * 60 * 2,
-      secure: false,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     },
   })
