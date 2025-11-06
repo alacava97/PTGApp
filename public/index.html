@@ -160,7 +160,7 @@
 					    eventDiv.style.backgroundColor = periodEvent.color;
 
 					    const start = periodEvent.start_period;
-					    const end = start + Number(periodEvent.length - 1); // compute end from length
+					    const end = start + Number(periodEvent.length) - 1; // compute end from length
 					    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
 					    eventDiv.id = periodEvent.schedule_id;
 
