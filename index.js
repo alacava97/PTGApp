@@ -37,6 +37,8 @@ app.use(
   })
 );
 
+app.set('trust proxy', 1);
+
 app.use('/api/auth', authRoutes);
 app.use('/login.html', express.static(path.join(__dirname, 'public', 'login.html')));
 app.use('/register.html', express.static(path.join(__dirname, 'public', 'register.html')));
