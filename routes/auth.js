@@ -1,6 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const pool = require('../db/pool');
+const nodemailer = require('nodemailer');
 
 const router = express.Router();
 
@@ -102,7 +103,30 @@ router.post('/password', async (req, res) => {
       return res.status(401).json({ error: `No account with email ${email}` });
     }
 
-    
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+      }
+    });
+
+    const mailOptions = {
+      from: '"PTG Institute Team" alacava97@gmail.com',
+      to: email,
+      subject: 'PTG Institute Password Reset',
+      html: "<p>A request has been made to reset your PTG Institute password.<br><a>Follow this link to reset your password</a>.<br><br>If you didn't make this request, please contact a system administrator</p>"
+    }
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.error('Error sending mail:', error);
+      }
+      console.log('Email sent:', info.response);
+    });
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
 })
 
