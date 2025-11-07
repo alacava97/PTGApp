@@ -91,20 +91,14 @@ router.post('/register', async (req, res) => {
 
 router.post('/password', async (req, res) => {
   try {
-    console.log('starting password reset');
-
     const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required.' });
     }
 
-    console.log('confirmed valid email');
-
     const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
-
-    console.log('confimred email exists in database');
 
     const genericResponse = { message: 'If an account with that email exists, a reset link has been sent.' };
 
@@ -113,8 +107,6 @@ router.post('/password', async (req, res) => {
     const token = crypto.randomBytes(32).toString('hex');
     await pool.query('UPDATE users SET reset_token = $1, reset_expires = NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
 
-    console.log('created reset token in db');
-
     const transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
@@ -122,8 +114,6 @@ router.post('/password', async (req, res) => {
         pass: process.env.EMAIL_PASS
       }
     });
-
-    console.log('created transporter var')
 
     const resetLink = ``;
 
@@ -138,22 +128,17 @@ router.post('/password', async (req, res) => {
       `
     }
 
-    console.log('created mailOptions');
-
-    transporter.sendMail(mailOptions, (error, info) => {
+    await transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
-        return console.error('Error sending mail:', error);
+        console.error('Error sending mail:', error);
         return res.status(500).json({ message: 'Failed to send reset email.' });
       }
       console.log('Email sent:', info.response);
       return res.json(genericResponse);
     });
-
-    console.log(res);
-
   } catch (err) {
     console.error('Error:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    return res.status(500).json({ error: 'Internal server error' });
   }
 });
 
