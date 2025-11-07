@@ -128,18 +128,14 @@ router.post('/password', async (req, res) => {
       `
     }
 
-    await transporter.sendMail(mailOptions);
-    console.log('Reset email sent to', email);
-    return res.json(genericResponse);
-
-    // await transporter.sendMail(mailOptions, (error, info) => {
-    //   if (error) {
-    //     console.error('Error sending mail:', error);
-    //     return res.status(500).json({ message: 'Failed to send reset email.' });
-    //   }
-    //   console.log('Email sent:', info.response);
-    //   return res.json(genericResponse);
-    // });
+    await transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error('Error sending mail:', error);
+        return res.status(500).json({ message: 'Failed to send reset email.' });
+      }
+      console.log('Email sent:', info.response);
+      return res.json(genericResponse);
+    });
   } catch (err) {
     console.error('Error:', err);
     return res.status(500).json({ error: 'Internal server error' });
