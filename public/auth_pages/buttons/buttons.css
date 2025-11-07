@@ -21,3 +21,28 @@
 .back-button:hover {
 	text-decoration: underline;
 }
+
+.close-btn {
+	font-size: 2em;
+	display: inline-block;
+	height: auto;
+  	float: right;
+}
+
+.close-btn:hover {
+	  font-weight: bold;
+	  color: black;
+	  cursor: pointer;
+}
+
+.delete-row {
+	width: 100%;
+	padding: 7px 5%;
+	text-align: center;
+	background-color: #ffdddd;
+	border: 1px solid #CCCCCC;
+}
+
+.delete-row:hover {
+	filter: brightness(0.9);
+}

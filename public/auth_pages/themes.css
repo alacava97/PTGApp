@@ -10,7 +10,40 @@ input {
 	font-family: 'Montserrat', sans-serif;
 }
 
+form > input, form > select, form > textarea{
+	width: 80%;
+	height: 25px;
+	margin-bottom: 10px;
+	border: 1px solid black;
+	border-radius: 3px;
+	box-sizing: border-box;
+}
+
+form > input {
+	padding: 5px;
+}
+
+form input:last-of-type {
+	margin-bottom: 15px;
+}
+
+h2 {
+	clear: right;
+	text-align: center;
+}
+
+h4 {
+	text-wrap: nowrap;
+	clear: right;
+	text-align: center;
+}
+
 .green {
 	background-color: #04AA6D;
+	color: white;
+}
+
+.red {
+	background-color: red;
 	color: white;
 }

@@ -4,6 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="auth_pages/buttons/buttons.css">
+	<link rel="stylesheet" href="modal.css">
+	<link rel="stylesheet" href="auth_pages/themes.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Instructor Info</title>
 </head>
@@ -31,19 +34,16 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Instructor Contact</h4>
 			<form id="edit-contact">
-				<label>Name
-					<input type="text" name="name"required>
+				<input type="text" name="name"required class="modal-center" placeholder="Instructor name">
+				<br><br>
+				<input type="email" name="email" class="modal-center" placeholder="Email">
+				<br><br>
+				<input type="tel" name="phone" class="modal-center" placeholder="Phone">
+				<br><br>
+				<label class="modal-center">RPT Status
+					<input class="small-input" type="checkbox" name="rpt" class="modal-center">
 				</label><br><br>
-				<label>Email
-					<input type="email" name="email">
-				</label><br><br>
-				<label>Phone
-					<input type="tel" name="phone">
-				</label><br><br>
-				<label>RPT Status
-					<input class="small-input" type="checkbox" name="rpt">
-				</label><br><br>
-				<button type="submit">Update Record</button>
+				<button type="submit" class="button modal-center">Update Record</button>
 				<div id="message"></div>
 			</form>
 		</div>
@@ -54,7 +54,7 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Remove class from instructor record?</h4>
 			<div>
-				<button id="delete-button" class="delete-button">Delete</button>
+				<button id="delete-button" class="button red modal-center">Delete</button>
 			</div>
 		</div>
 	</div>
@@ -64,9 +64,9 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Select a Class</h4>
 			<form id="instructor-class-form">
-			    <input name="title" type="text" id="searchable" placeholder="Search classes">
+			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
 				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit">Add Class</button>
+				<button type="submit" class="button modal-center">Add Class</button>
 			</form>
 		</div>
 	</div>
@@ -76,13 +76,11 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Instructor Sponsor</h4>
 			<form id="edit-sponsor">
-				<label>Sponsored
-					<input id="sponsored" class="small-input" type="checkbox" name="sponsored">
+				<label class="modal-center">Sponsored
+					<input id="sponsored" class="small-input" type="checkbox" name="sponsored" class="modal-center">
 				</label><br><br>
-				<label id="sponsor">Sponsor
-					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor"><br><br>
-				</label>
-				<button type="submit">Update Sponsor</button>
+				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center"><br><br>
+				<button type="submit" class="button modal-center">Update Sponsor</button>
 			</form>
 		</div>
 	</div>
@@ -93,9 +91,9 @@
 			<h4>Update Instructor Name</h4>
 			<form id="name-form">
 				<label for="name-input"></label>
-				<input type="text" id="name-input" name="name">
+				<input type="text" id="name-input" name="name" class="modal-center" placeholder="Instructor name">
 				<br><br>
-				<button type="submit" id="submit-name">Submit</button>
+				<button type="submit" id="submit-name" class="button modal-center">Submit</button>
 			</form>
 		</div>
 	</div>
@@ -105,7 +103,7 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Permanently delete instructor record?</h4>
 			<div>
-				<button id="delete-inst-button" class="delete-button">Delete</button>
+				<button id="delete-inst-button" class="button red modal-center">Delete</button>
 			</div>
 		</div>
 	</div>

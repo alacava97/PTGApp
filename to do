@@ -1,7 +1,5 @@
 -Login
-	-Add a register button
-	-Add a "forgot password" button
-	-CSS for register page
+	-Password reset emailing
 
 -Refactoring
 	-use classes and organize code for:

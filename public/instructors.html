@@ -4,6 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="auth_pages/buttons/buttons.css">
+	<link rel="stylesheet" href="modal.css">
+	<link rel="stylesheet" href="auth_pages/themes.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Instructors</title>
 </head>
@@ -23,25 +26,22 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h2>New Instructor</h2>
 			<form id="new-instructor-form">
-				<label>Name
-					<input type="text" name="name" placeholder="Name" autocomplete="off" required>
+				<input type="text" name="name" placeholder="Name" autocomplete="off" required class="modal-center">
+				<br><br>
+					<input type="tel" name="phone" autocomplete="off" placeholder="Phone" class="modal-center">
+				<br><br>
+					<input type="email" name="email" autocomplete="off" placeholder="Email" class="modal-center">
+				<br><br>
+				<label class="modal-center">RPT Status
+					<input class="small-input" type="checkbox" name="rpt" class="modal-center">
 				</label><br><br>
-				<label>Phone
-					<input type="tel" name="phone" autocomplete="off" placeholder="Phone">
-				</label><br><br>
-				<label>Email
-					<input type="email" name="email" autocomplete="off" placeholder="Email">
-				</label><br><br>
-				<label>RPT Status
-					<input class="small-input" type="checkbox" name="rpt" >
-				</label><br><br>
-				<label>Sponsored
-					<input class="small-input" id="sponsored" type="checkbox" name="sponsored">
+				<label class="modal-center">Sponsored
+					<input class="small-input" id="sponsored" type="checkbox" name="sponsored" class="modal-center">
 				</label>
-				<label id="sponsor"><br>Sponsor
-					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor">
+				<label id="sponsor" class="modal-center"><br>Sponsor
+					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center">
 				</label><br><br>
-				<button type="submit">Create Record</button>
+				<button type="submit" class="button modal-center">Create Record</button>
 			</form>
 
 			<div id="message"></div>

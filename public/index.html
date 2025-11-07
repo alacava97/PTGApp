@@ -4,6 +4,9 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="styles.css">
+	<link rel="stylesheet" href="auth_pages/buttons/buttons.css">
+	<link rel="stylesheet" href="modal.css">
+	<link rel="stylesheet" href="auth_pages/themes.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>PTG Convention Web App</title>
@@ -22,9 +25,9 @@
 			<h4>Select a Class</h4>
 			<p id="period-info"></p>
 			<form id="schedule-form">
-			    <input name="title" type="text" id="searchable" placeholder="Search classes">
+			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
 				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit">Add Class</button>
+				<button type="submit" class="button modal-center">Add Class</button>
 			</form>
 		</div>
 	</div>
@@ -36,14 +39,14 @@
 			<p id="class-info"></p>
 			<form id="update-sched">
 				<label for="day">Day</label>
-				<select id="day" name="day">
+				<select id="day" name="day" class="modal-center">
 					<option value="3" selected>Wednesday</option>
 					<option value="4">Thursday</option>
 					<option value="5">Friday</option>
 					<option value="6">Saturday</option>
 				</select><br><br>
 				<label for="start_period">Period</label>
-				<select id="start_period" name="start_period">
+				<select id="start_period" name="start_period" class="modal-center">
 					<option value="1">Period 1</option>
 					<option value="2">Period 2</option>
 					<option value="3">Period 3</option>
@@ -51,12 +54,12 @@
 					<option value="5">Period 5</option>
 				</select><br><br>
 				<label for="room">Room</label>
-				<select name="room" id="room-select"></select><br><br>
+				<select name="room" id="room-select" class="modal-center"></select><br><br>
 				<label for="notes">Notes</label>
-				<textarea name="notes" placeholder="notes" id="notes"></textarea><br>
-				<button type="submit" id="edit-sched">Update</button>
+				<textarea name="notes" placeholder="notes" id="notes" class="modal-center"></textarea><br>
+				<button type="submit" id="edit-sched" class="button modal-center">Update</button>
 			</form><br>
-			<button id="confirm-delete" class="delete-button">Delete</button>
+			<button id="confirm-delete" class="button red modal-center">Delete</button>
 		</div>
 		<div id="message"></div>
 	</div>
@@ -65,7 +68,7 @@
 			<div class="close-btn" id="close-btn">&times;</div>
 			<h4>Remove event from calendar?</h4>
 			<div>
-				<button id="delete-button" class="delete-button">Delete</button>
+				<button id="delete-button" class="button red modal-center">Delete</button>
 			</div>
 		</div>
 	</div>

@@ -17,17 +17,3 @@
 h1 {
 	margin-top: 45px;
 }
-
-form > input {
-	width: 80%;
-	height: 25px;
-	margin-bottom: 10px;
-	border: 1px solid black;
-	border-radius: 3px;
-	padding: 5px;
-	box-sizing: border-box;
-}
-
-form input:last-of-type {
-	margin-bottom: 15px;
-}
