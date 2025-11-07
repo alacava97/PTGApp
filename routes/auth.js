@@ -123,6 +123,8 @@ router.post('/password', async (req, res) => {
       }
     });
 
+    console.log('created transporter var')
+
     const resetLink = ``;
 
     const mailOptions = {
@@ -136,14 +138,18 @@ router.post('/password', async (req, res) => {
       `
     }
 
+    console.log('created mailOptions');
+
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         return console.error('Error sending mail:', error);
         return res.status(500).json({ message: 'Failed to send reset email.' });
       }
       console.log('Email sent:', info.response);
-      res.json(genericResponse);
+      return res.json(genericResponse);
     });
+
+    console.log(res);
 
   } catch (err) {
     console.error('Error:', err);
