@@ -1,3 +1,14 @@
+-Login
+	-Add a register button
+	-Add a "forgot password" button
+	-CSS for login page
+	-CSS for register page
+
+-Refactoring
+	-use classes and organize code for:
+		-Info rows in classes/instructors
+		-Buttons
+
 -DB
 	-Update schedule table to use room ids, update SQL in index.js to compensate
 

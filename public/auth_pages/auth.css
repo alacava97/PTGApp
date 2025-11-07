@@ -1,0 +1,29 @@
+.login-window {
+	max-width: 250px;
+	width: 30%;
+	border: 1px solid black;
+	border-radius: 5px;
+	padding: 45px 15px;
+	text-align: center;
+	background-color: #eeeeee;
+}
+
+.login-flex {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	height: 100vh;
+}
+
+form > input {
+	width: 80%;
+	height: 25px;
+	margin-bottom: 10px;
+	border: 1px solid black;
+	border-radius: 3px;
+	padding: 5px;
+}
+
+form input:last-of-type {
+	margin-bottom: 15px;
+}
