@@ -96,12 +96,15 @@ router.post('/password', async (req, res) => {
       return res.status(400).json({ error: 'Email is required.' });
     }
 
-    const result = await pool.query('SELECT email FROM users WHERE email = $1', [email]);
+    const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    if (!user) {
-      return res.status(401).json({ error: `No account with email ${email}` });
-    }
+    const genericResponse = { message: 'If an account with that email exists, a reset link has been sent.' };
+
+    if (!user) return res.json(genericResponse);
+
+    const token = crypto.randomBytes(32).toString('hex');
+    await pool.query('UPDATE users SET reset_token = $1, reset_expires =NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -111,23 +114,32 @@ router.post('/password', async (req, res) => {
       }
     });
 
+    const resetLink = ``;
+
     const mailOptions = {
-      from: '"PTG Institute Team" alacava97@gmail.com',
+      from: '"PTG Institute Team" <alacava97@gmail.com>',
       to: email,
       subject: 'PTG Institute Password Reset',
-      html: "<p>A request has been made to reset your PTG Institute password.<br><a>Follow this link to reset your password</a>.<br><br>If you didn't make this request, please contact a system administrator</p>"
+      html: `
+        <p>A request has been made to reset your PTG Institute password.</p>
+        <p><a href="${resetLink}">Click here to reset your password</a></p>
+        <p>If you didn't make this request, please contact a system administrator.</p>
+      `
     }
 
     transporter.sendMail(mailOptions, (error, info) => {
       if (error) {
         return console.error('Error sending mail:', error);
+        return res.status(500).json({ message: 'Failed to send reset email.' });
       }
       console.log('Email sent:', info.response);
+      res.json(genericResponse);
     });
+
   } catch (err) {
     console.error('Error:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
-})
+});
 
 module.exports = router;
