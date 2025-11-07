@@ -40,8 +40,7 @@ app.use(
 app.set('trust proxy', 1);
 
 app.use('/api/auth', authRoutes);
-app.use('/auth/login.html', express.static(path.join(__dirname, 'public', 'auth', 'login.html')));
-app.use('/auth/register.html', express.static(path.join(__dirname, 'public', 'auth', 'register.html')));
+app.use('/auth', express.static(path.join(__dirname, 'public', 'auth')));
 
 app.use(requireLogin);
 
