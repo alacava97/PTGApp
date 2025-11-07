@@ -91,21 +91,29 @@ router.post('/register', async (req, res) => {
 
 router.post('/password', async (req, res) => {
   try {
+    console.log('starting password reset');
+
     const { email } = req.body;
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required.' });
     }
 
+    console.log('confirmed valid email');
+
     const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
+
+    console.log('confimred email exists in database');
 
     const genericResponse = { message: 'If an account with that email exists, a reset link has been sent.' };
 
     if (!user) return res.json(genericResponse);
 
     const token = crypto.randomBytes(32).toString('hex');
-    await pool.query('UPDATE users SET reset_token = $1, reset_expires =NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
+    await pool.query('UPDATE users SET reset_token = $1, reset_expires = NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
+
+    console.log('created reset token in db');
 
     const transporter = nodemailer.createTransport({
       service: 'gmail',
