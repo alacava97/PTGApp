@@ -1,13 +1,23 @@
 .button {
 	width: 80%;
 	height: 25px;
-	background-color: #04AA6D;
-	color: white;
 	border: 1px black solid;
 	border-radius: 3px;
+	margin-bottom: 15px;
+	font-family: 'Montserrat', sans-serif;
 }
 
 .button:hover {
 	text-decoration: underline;
 	fond-weight: bold;
+	filter: brightness(0.9);
+}
+
+.back-button {
+	float: left;
+	float: top;
+}
+
+.back-button:hover {
+	text-decoration: underline;
 }

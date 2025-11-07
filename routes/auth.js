@@ -87,4 +87,23 @@ router.post('/register', async (req, res) => {
   }
 });
 
+router.post('/password', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required.' });
+    }
+
+    const result = await pool.query('SELECT email FROM users WHERE email = $1', [email]);
+    const user = result.rows[0];
+
+    if (!user) {
+      return res.status(401).json({ error: `No account with email ${email}` });
+    }
+
+    
+  }
+})
+
 module.exports = router;

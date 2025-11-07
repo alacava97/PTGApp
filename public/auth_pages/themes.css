@@ -1,0 +1,16 @@
+body {
+	margin: 0;
+	margin-bottom: 45px;
+	color: #333333;
+	background-color: #F8F8F8;
+	font-family: 'Montserrat', sans-serif;
+}
+
+input {
+	font-family: 'Montserrat', sans-serif;
+}
+
+.green {
+	background-color: #04AA6D;
+	color: white;
+}
