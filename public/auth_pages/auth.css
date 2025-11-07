@@ -22,6 +22,7 @@ form > input {
 	border: 1px solid black;
 	border-radius: 3px;
 	padding: 5px;
+	box-sizing: border-box;
 }
 
 form input:last-of-type {
