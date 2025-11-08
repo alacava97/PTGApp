@@ -446,7 +446,7 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
 
 app.get('/api/getRooms/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id;
 
     const result = await pool.query(`
       SELECT * 

@@ -72,8 +72,6 @@
 	    console.error(`List element #${listId} not found`);
 	    return;
 	  }
-
-	  console.log(data);
 	  data.forEach(item => renderListItem(item));
 
 	  // --- Initialize Drag Sorting ---
@@ -232,6 +230,7 @@
 	async function getRooms() {
 		const locationId = document.getElementById('year-select').value;
 		const rooms = await apiGetCall('getRooms', locationId);
+		console.log(rooms);
 		return rooms;
 	}
 
