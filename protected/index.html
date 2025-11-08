@@ -270,7 +270,7 @@
 	      const roomEvents = schedule.filter(e => e.day == day && e.room == room);
 
 	      // Check for overlap
-	      const newEvent = { Number(start_period), Number(length), Number(day), room, title };
+	      const newEvent = { start_period, length, day, room, title };
 	      const allEvents = [...roomEvents, newEvent];
 
 	      const overlaps = checkOverlap(allEvents);
