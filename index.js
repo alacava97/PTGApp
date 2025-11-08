@@ -457,7 +457,7 @@ app.get('/api/getRooms/:id', async (req, res) => {
     console.error(`Error getting rooms:`, err);
     res.status(500).json({ error: 'Database query failed' });
   }
-}
+});
 
 //end read
 
