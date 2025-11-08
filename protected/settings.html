@@ -33,7 +33,7 @@
 <script src="public/js/script.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-	document.addEventListener('DOMContentLoaded', () => {
+	document.addEventListener('DOMContentLoaded', async () => {
 		populateYearDropdown();
 		const types = await read('types');
 		const rooms = getRooms();
