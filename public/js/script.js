@@ -33,7 +33,7 @@ async function read(table) {
 		const all = await response.json();
 		return all;
 	} catch (err) {
-		console.error('Failed to load instructors:', err);
+		console.error('Failed to load data:', err);
 	}
 }
 
@@ -53,6 +53,19 @@ async function updateRecord(table, id, data) {
 		console.error('Internal server error:', err);
 		return { error: 'Request failed' };
 	}
+}
+
+async function apiGetCall(route, param1) {
+		try {
+			const res = await fetch(`/api/${{route}}/${param1}`, {
+				credentials: 'include'
+			});
+			if (!response.ok) throw new Error('Network response was not ok');
+
+			return await res.json();
+		} catch (err) {
+			console.error('Failed to get:', err);
+		}
 }
 
 async function populateDropdown(dropdown, table, toDisplay) {

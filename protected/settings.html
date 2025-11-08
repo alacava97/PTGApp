@@ -35,15 +35,20 @@
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
 		populateYearDropdown();
+		const types = await read('types');
+		const rooms = getRooms();
+
 	  setupEditableSortableList({
-	    table: 'types',
+	  	table: 'types',
+	    data: types,
 	    listId: 'class-type-list',
 	    addButtonId: 'add-type',
 	    displayKey: 'type',
 	  });
 
 	  setupEditableSortableList({
-	  	table: 'rooms',
+	  	table: rooms,
+	  	data: rooms,
 	  	listId: 'room-list',
 	  	addButtonId: 'add-room',
 	  	displayKey: 'name',
@@ -54,12 +59,12 @@
 	 * Reusable list handler for editable, sortable database-driven lists.
 	 * 
 	 * @param {Object} config
-	 * @param {string} config.table - Table name for API routes
+	 * @param {string} config.data - Table name for API routes
 	 * @param {string} config.listId - ID of UL/OL element
 	 * @param {string} config.addButtonId - ID of "Add" button
 	 * @param {string} config.displayKey - Property name to display as text
 	 */
-	function setupEditableSortableList({ table, listId, addButtonId, displayKey }) {
+	function setupEditableSortableList({ table, data, listId, addButtonId, displayKey }) {
 	  const list = document.getElementById(listId);
 	  const addBtn = document.getElementById(addButtonId);
 
@@ -68,15 +73,7 @@
 	    return;
 	  }
 
-	  // --- Fetch + Render Existing Items ---
-	  (async () => {
-	    try {
-	      const items = await read(table);
-	      items.forEach(item => renderListItem(item));
-	    } catch (err) {
-	      console.error(`Failed to load ${table}:`, err);
-	    }
-	  })();
+	  data.forEach(item => renderListItem(item));
 
 	  // --- Initialize Drag Sorting ---
 	  new Sortable(list, {
@@ -167,12 +164,18 @@
 	      const save = async () => {
 	        const newText = input.value.trim();
 	        if (newText === oldText || !newText) return (span.textContent = oldText);
-
+	        if (table == 'rooms') {
+	        	const loc_id = document.getElementById('year-select').value;
+		        const updateData = { [displayKey]: newText, location_id: loc_id };
+	        } else {
+	        	const updateData = { [displayKey]: newText };
+	        }
+	        const updateData = { [displayKey]: newText }
 	        try {
 	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
 	            method: 'PATCH',
 	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ [displayKey]: newText })
+	            body: JSON.stringify(updateData)
 	          });
 	          if (!res.ok) throw new Error('Update failed');
 	          span.textContent = newText;
@@ -223,6 +226,12 @@
 			option.value = convention.location_id;
 			dd.appendChild(option);
 		});
+	}
+
+	async function getRooms() {
+		const locationId = document.getElementById('year-select').value;
+		const rooms = await apiGetCall('getRooms', locationId);
+		return rooms;
 	}
 
 </script>

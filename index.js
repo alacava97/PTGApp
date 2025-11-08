@@ -444,6 +444,18 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
   }
 });
 
+app.get('/api/getRooms/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT * 
+      FROM rooms 
+      WHERE location_id = $1
+    `, [id])
+  }
+}
+
 //end read
 
 //update
