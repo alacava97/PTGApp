@@ -549,9 +549,19 @@ textarea {
     100% { transform: rotate(360deg); }
 }
 
-#year-select {
+.year-select {
 	  width: 100%;
     height: 25px;
     border: 1px solid #ddd;
     border-radius: 6px;
+}
+
+.schedule-year-select {
+		width: 12%;
+    height: 25px;
+    margin: auto 15px;
+}
+
+.right-text {
+	text-align: right;
 }

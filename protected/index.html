@@ -395,11 +395,12 @@
 			});
 
 			const spacer = document.createElement('span');
-			spacer.classList.add('flex-grow');
+			spacer.classList.add('flex-grow', 'right-text');
+			spacer.textContent = "Select Convention";
 			key.appendChild(spacer);
 
 			const yearDd = document.createElement('select');
-			yearDd.classList.add('year-select');
+			yearDd.classList.add('year-select', 'schedule-year-select');
 			populateYearDropdown(yearDd);
 			key.appendChild(yearDd);
 
