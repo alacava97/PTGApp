@@ -1,12 +1,8 @@
 -Login
 	-Password reset emailing
 
--Refactoring
-	-use classes and organize code for:
-		-Make ui more optomistic
-
--Options
-	-"new year" setting to get things started
+-Refactor schedule
+	-Wire up con select dropdown
 
 -Form for class submission
 	-Talk to Corie about fields
