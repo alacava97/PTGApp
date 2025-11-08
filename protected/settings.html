@@ -216,7 +216,7 @@
 	async function populateYearDropdown() {
 		const conventions = read('conventions');
 		const dd = document.getElementById('year-select');
-		conventions.forEach(convention => {
+		conventions[0].forEach(convention => {
 			const option = document.createElement('option');
 			option.textContent = convention.name;
 			option.value = convention.location_id;
