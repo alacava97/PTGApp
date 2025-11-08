@@ -436,8 +436,8 @@ function checkOverlap(events) {
       const a = events[i];
       const b = events[j];
 
-      const aEnd = a.start_period + a.length - 1;
-      const bEnd = b.start_period + b.length - 1;
+      const aEnd = Number(a.start_period) + Number(a.length) - 1;
+      const bEnd = Number(b.start_period) + Number(b.length) - 1;
 
       if (a.start_period <= bEnd && b.start_period <= aEnd) {
         overlaps.push({ eventA: a, eventB: b });
