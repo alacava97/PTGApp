@@ -470,6 +470,7 @@ textarea {
 	padding: 0;
 	cursor: pointer;
 	margin: 0;
+	width: 25px;
 }
 
 .flex-grow {

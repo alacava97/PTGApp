@@ -13,6 +13,8 @@ const { getAllowedFields } = require('./utils/dbHelper');
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(cors({
   origin: true,
   credentials: true
@@ -37,14 +39,11 @@ app.use(
   })
 );
 
-app.set('trust proxy', 1);
-
 app.use('/auth', authRoutes);
-app.use('/auth_pages', express.static(path.join(__dirname, 'public', 'auth_pages')));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.use(requireLogin);
-
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'protected')));
 
 app.use((err, req, res, next) => {
   console.error(err);

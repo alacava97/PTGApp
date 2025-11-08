@@ -23,7 +23,7 @@ form > input {
 	padding: 5px;
 }
 
-form input:last-of-type {
+form > input:last-of-type {
 	margin-bottom: 15px;
 }
 
