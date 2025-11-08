@@ -4,14 +4,13 @@
 -Refactoring
 	-use classes and organize code for:
 		-Info rows in classes/instructors
-		-Buttons
+		-Make ui more optomistic
 
 -DB
 	-Update schedule table to use room ids, update SQL in index.js to compensate
 
 -Options
 	-"new year" setting to get things started
-	-Save convention rooms year to year
 
 -Form for class submission
 	-Talk to Corie about fields
