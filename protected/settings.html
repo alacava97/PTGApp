@@ -4,7 +4,6 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="public/styles/styles.css">
-	<link rel="stylesheet" href="public/styles/auth.css">
 	<link rel="stylesheet" href="public/styles/buttons.css">
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
@@ -25,6 +24,7 @@
 		</div>
 		<div>
 			<h2>Rooms</h2>
+			<select id="year-select"></select>
 			<ul id="room-list" class="transparent type-ul"></ul>
 			<button id="add-room" class="add-btn">+ Add Type</button>
 		</div>
@@ -34,6 +34,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', () => {
+		populateYearDropdown();
 	  setupEditableSortableList({
 	    table: 'types',
 	    listId: 'class-type-list',
@@ -210,6 +211,17 @@
 	      }
 	    });
 	  }
+	}
+
+	async function populateYearDropdown() {
+		const conventions = read('conventions');
+		const dd = document.getElementById('year-select');
+		conventions.forEach(convention => {
+			const option = document.createElement('option');
+			option.textContent = convention.name;
+			option.value = convention.location_id;
+			dd.appendChild(option);
+		});
 	}
 
 </script>
