@@ -36,7 +36,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		populateYearDropdown();
 		const types = await read('types');
-		const rooms = getRooms();
+		const rooms = await getRooms();
 
 	  setupEditableSortableList({
 	  	table: 'types',
