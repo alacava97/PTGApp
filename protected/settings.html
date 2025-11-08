@@ -72,6 +72,8 @@
 	    console.error(`List element #${listId} not found`);
 	    return;
 	  }
+	  list.innerHTML = '';
+
 	  data.forEach(item => renderListItem(item));
 
 	  // --- Initialize Drag Sorting ---
@@ -227,7 +229,9 @@
 
 		dd.addEventListener('blur', async () => {
 			const newRooms = await getRooms();
-			document.getElementById('room-list').innerHTML = 'Loading Rooms...';
+			const list = document.getElementById('room-list').
+			list.innerHTML = '';
+			list.innerHTML = 'Loading Rooms...';
 			setupEditableSortableList({
 				table: 'rooms',
 				data: newRooms,
