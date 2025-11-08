@@ -4,7 +4,7 @@ function requireLogin(req, res, next) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    return res.redirect('/auth_pages/login.html');
+    return res.redirect('/login.html');
   }
 
   next();
