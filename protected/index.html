@@ -398,6 +398,11 @@
 			spacer.classList.add('flex-grow');
 			key.appendChild(spacer);
 
+			const yearDd = document.createElement('select');
+			yearDd.classList.add('year-select');
+			populateYearDropdown(yearDd);
+			key.appendChild(yearDd);
+
 			const printBtn = document.createElement('button');
 			printBtn.classList.add("fa", "fa-print");
 			printBtn.id = "print-schedule";

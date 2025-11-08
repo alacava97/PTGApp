@@ -24,7 +24,7 @@
 		</div>
 		<div>
 			<h2>Rooms</h2>
-			<span>Select Convention</span><select id="year-select"></select>
+			<span>Select Convention</span><select id="year-select" class="year-select"></select>
 			<ul id="room-list" class="transparent type-ul"></ul>
 			<button id="add-room" class="add-btn">+ Add Room</button>
 		</div>
@@ -34,7 +34,21 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		await populateYearDropdown();
+		const yearDd = document.getElementById('year-select')
+		await populateYearDropdown(yearDd);
+		yearDd.addEventListener('blur', async () => {
+			const newRooms = await getRooms();
+			const list = document.getElementById('room-list');
+			list.innerHTML = '';
+			list.innerHTML = 'Loading Rooms...';
+			setupEditableSortableList({
+				table: 'rooms',
+				data: newRooms,
+				listId: 'room-list',
+				addButtonId: 'add-room',
+				displayKey: 'name',
+			});
+		});
 		const types = await read('types');
 		const rooms = await getRooms();
 
@@ -215,31 +229,6 @@
 	      }
 	    });
 	  }
-	}
-
-	async function populateYearDropdown() {
-		const conventions = await read('conventions');
-		const dd = document.getElementById('year-select');
-		conventions.forEach(convention => {
-			const option = document.createElement('option');
-			option.textContent = convention.name;
-			option.value = convention.location_id;
-			dd.appendChild(option);
-		});
-
-		dd.addEventListener('blur', async () => {
-			const newRooms = await getRooms();
-			const list = document.getElementById('room-list');
-			list.innerHTML = '';
-			list.innerHTML = 'Loading Rooms...';
-			setupEditableSortableList({
-				table: 'rooms',
-				data: newRooms,
-				listId: 'room-list',
-				addButtonId: 'add-room',
-				displayKey: 'name',
-			});
-		})
 	}
 
 	async function getRooms() {

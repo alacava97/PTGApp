@@ -499,3 +499,14 @@ function addTooltip(el, text) {
 	tooltip.classList.add('tooltiptext');
 	el.appendChild(tooltip);
 }
+
+
+async function populateYearDropdown(dd) {
+	const conventions = await read('conventions');
+	conventions.forEach(convention => {
+		const option = document.createElement('option');
+		option.textContent = convention.name;
+		option.value = convention.location_id;
+		dd.appendChild(option);
+	});
+}
