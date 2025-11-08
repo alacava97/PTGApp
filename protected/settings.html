@@ -229,7 +229,7 @@
 
 		dd.addEventListener('blur', async () => {
 			const newRooms = await getRooms();
-			const list = document.getElementById('room-list').
+			const list = document.getElementById('room-list');
 			list.innerHTML = '';
 			list.innerHTML = 'Loading Rooms...';
 			setupEditableSortableList({
