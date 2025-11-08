@@ -57,10 +57,10 @@ async function updateRecord(table, id, data) {
 
 async function apiGetCall(route, param1) {
 		try {
-			const res = await fetch(`/api/${{route}}/${param1}`, {
+			const res = await fetch(`/api/${route}/${param1}`, {
 				credentials: 'include'
 			});
-			if (!response.ok) throw new Error('Network response was not ok');
+			if (!res.ok) throw new Error('Network response was not ok');
 
 			return await res.json();
 		} catch (err) {
