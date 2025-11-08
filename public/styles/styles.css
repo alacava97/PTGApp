@@ -548,3 +548,10 @@ textarea {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+#year-select {
+	  width: 100%;
+    height: 25px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+}

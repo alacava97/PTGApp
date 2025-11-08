@@ -24,7 +24,7 @@
 		</div>
 		<div>
 			<h2>Rooms</h2>
-			<select id="year-select"></select>
+			<span>Select Convention</span><select id="year-select"></select>
 			<ul id="room-list" class="transparent type-ul"></ul>
 			<button id="add-room" class="add-btn">+ Add Type</button>
 		</div>
@@ -226,8 +226,8 @@
 		});
 
 		dd.addEventListener('blur', async () => {
-			document.getElementById('room-list').innerHTML = '';
 			const newRooms = await getRooms();
+			document.getElementById('room-list').innerHTML = 'Loading Rooms...';
 			setupEditableSortableList({
 				table: 'rooms',
 				data: newRooms,
@@ -241,7 +241,6 @@
 	async function getRooms() {
 		const locationId = document.getElementById('year-select').value;
 		const rooms = await apiGetCall('getRooms', locationId);
-		console.log(rooms);
 		return rooms;
 	}
 
