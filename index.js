@@ -401,12 +401,12 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
         schedule.id AS schedule_id,
         schedule.day,
         schedule.start_period,
-        schedule.room,
         schedule.class_id,
         classes.title,
         classes.length,
         types.type,
         types.color,
+        rooms.name as room,
         COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors
       FROM
         schedule
@@ -414,6 +414,8 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
         classes ON classes.id = schedule.class_id
       JOIN
         types ON types.id = classes.type
+      JOIN
+        rooms ON rooms.id = schedule.room_id
       LEFT JOIN
         class_instructors ON classes.id = class_instructors.class_id
       LEFT JOIN
@@ -422,11 +424,11 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
           schedule.id,
           schedule.day,
           schedule.start_period,
-          schedule.room,
           classes.title,
           classes.length,
           types.color,
-          types.type
+          types.type,
+          room
       ORDER BY
         schedule.id ASC
     `);
