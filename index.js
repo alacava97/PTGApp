@@ -458,7 +458,7 @@ app.get('/api/getRooms/:id', async (req, res) => {
       return res.status(404).json({ error: 'Entry not found' });
     }
 
-    res.json(result.rows[0]);
+    res.json(result.rows);
   } catch (err) {
     console.error(`Error getting rooms:`, err);
     res.status(500).json({ error: 'Database query failed' });
