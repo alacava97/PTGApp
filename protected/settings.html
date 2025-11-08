@@ -34,7 +34,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		populateYearDropdown();
+		await populateYearDropdown();
 		const types = await read('types');
 		const rooms = await getRooms();
 
@@ -217,7 +217,6 @@
 
 	async function populateYearDropdown() {
 		const conventions = await read('conventions');
-		console.log(conventions);
 		const dd = document.getElementById('year-select');
 		conventions.forEach(convention => {
 			const option = document.createElement('option');
@@ -225,6 +224,18 @@
 			option.value = convention.location_id;
 			dd.appendChild(option);
 		});
+
+		dd.addEventListener('blur', async () => {
+			document.getElementById('room-list').innerHTML = '';
+			const newRooms = await getRooms();
+			setupEditableSortableList({
+				table: 'rooms',
+				data: newRooms,
+				listId: 'room-list',
+				addButtonId: 'add-room',
+				displayKey: 'name',
+			});
+		})
 	}
 
 	async function getRooms() {
