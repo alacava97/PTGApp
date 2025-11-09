@@ -7,11 +7,11 @@ function requireLogin(req, res, next) {
     return res.redirect('public/login.html');
   }
 
-  if (req.session.user.role == 'admin') {
-    next();
+  if (req.session.user.role != 'admin') {
+    return res.redirect('public/login.html');
   }
-
-  return res.redirect('public/login.html');
+  
+  next();  
 }
 
 module.exports = { requireLogin };
