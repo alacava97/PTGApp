@@ -62,6 +62,8 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     return res.status(500).json({ error: 'Error loading table schema' });
   }
 
+  console.log(allowedFields);
+
   if (!allowedFields.length) {
     return res.status(400).json({ error: 'Invalid table name' });
   }
@@ -96,11 +98,12 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       record = rows[0];
 
     } else if (table === 'rooms') { 
+      const { name, location_id } = req.body;
       const { rows } = await client.query(
         `INSERT INTO rooms (name, location_id,position)
          VALUES ($1, $2, (SELECT COALESCE(MAX(position),0)+1 FROM types))
          RETURNING id, position`,
-        [data.name, data.location_id]
+        [name, location_id]
       );
       record = rows[0];
     } else {
