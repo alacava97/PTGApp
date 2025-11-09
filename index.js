@@ -10,6 +10,7 @@ const { requireLogin } = require('./middleware/requireLogin');
 
 const authRoutes = require('./routes/auth');
 const { getAllowedFields } = require('./utils/dbHelper');
+const { createRecord } = require('./services/crud');
 
 const app = express();
 

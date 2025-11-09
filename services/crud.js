@@ -15,3 +15,5 @@ async function createRecord({ table, data, returning = ['id'] }, client = pool) 
   const result = await client.query(query, values);
   return result.rows[0];
 }
+
+module.exports = { createRecord };
