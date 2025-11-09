@@ -132,10 +132,12 @@
 
 	      	if (table == "rooms") {
 	      		const loc_id = document.getElementById('year-select').value;
+	      		console.log(loc_id);
       			newData = { [displayKey]: value, 'location_id': loc_id };
 	      	} else {
 	      		newData = { [displayKey]: value };
 	      	}
+	      	console.log(newData)
 	        const res = await fetch(`/api/create/${table}`, {
 	          method: 'POST',
 	          headers: { 'Content-Type': 'application/json' },
