@@ -129,6 +129,7 @@
 			const schedule = await schedRes.json();
 
 			const loc_id = document.getElementById('year-select').value;
+			console.log(loc_id);
 			const roomRes = await fetch(`/api/getRooms/${loc_id}`);
 			const rooms = await roomRes.json();
 
