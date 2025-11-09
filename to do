@@ -1,9 +1,6 @@
 -Login
 	-Password reset emailing
 
--Refactor schedule
-	-Wire up con select dropdown
-
 -Form for class submission
 	-Talk to Corie about fields
 	-Class needs
