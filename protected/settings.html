@@ -125,6 +125,7 @@
 	    input.focus();
 
 	    const finalizeAdd = async () => {
+	      input.blur();
 	      const value = input.value.trim();
 	      if (!value) return li.remove();
 	      try {
