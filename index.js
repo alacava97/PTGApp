@@ -62,8 +62,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     return res.status(500).json({ error: 'Error loading table schema' });
   }
 
-  console.log(allowedFields);
-
   if (!allowedFields.length) {
     return res.status(400).json({ error: 'Invalid table name' });
   }
@@ -77,7 +75,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     }
   }
 
-  console.log(data);
 
   if (Object.keys(data).length === 0) {
     return res.status(400).json({ error: 'No valid fields provided' });
@@ -90,7 +87,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     let record;
 
     if (table === 'types') {
-      console.log('made it to types block');
       const { rows } = await client.query(
         `INSERT INTO types (type, position)
          VALUES ($1, (SELECT COALESCE(MAX(position),0)+1 FROM types))
@@ -100,7 +96,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       record = rows[0];
 
     } else if (table === 'rooms') { 
-      console.log(req.body);
       const { name, location_id } = req.body;
       const { rows } = await client.query(
         `INSERT INTO rooms (name, location_id, position)
