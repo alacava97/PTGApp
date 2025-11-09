@@ -77,6 +77,8 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     }
   }
 
+  console.log(data);
+
   if (Object.keys(data).length === 0) {
     return res.status(400).json({ error: 'No valid fields provided' });
   }
@@ -98,6 +100,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       record = rows[0];
 
     } else if (table === 'rooms') { 
+      console.log(req.body);
       const { name, location_id } = req.body;
       const { rows } = await client.query(
         `INSERT INTO rooms (name, location_id,position)
