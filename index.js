@@ -90,7 +90,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       const { rows } = await client.query(
         `INSERT INTO types (type, position)
          VALUES ($1, (SELECT COALESCE(MAX(position),0)+1 FROM types))
-         RETURNING id, position`,
+         RETURNING *`,
         [data.type]
       );
       record = rows[0];
