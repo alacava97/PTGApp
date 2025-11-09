@@ -132,12 +132,10 @@
 
 	      	if (table == "rooms") {
 	      		const loc_id = document.getElementById('year-select').value;
-	      		console.log(loc_id);
       			newData = { [displayKey]: value, 'location_id': loc_id };
 	      	} else {
 	      		newData = { [displayKey]: value };
 	      	}
-	      	console.log(newData)
 	        const res = await fetch(`/api/create/${table}`, {
 	          method: 'POST',
 	          headers: { 'Content-Type': 'application/json' },
@@ -189,18 +187,11 @@
 	      const save = async () => {
 	        const newText = input.value.trim();
 	        if (newText === oldText || !newText) return (span.textContent = oldText);
-	        if (table == 'rooms') {
-	        	const loc_id = document.getElementById('year-select').value;
-		        const updateData = { [displayKey]: newText, location_id: loc_id };
-	        } else {
-	        	const updateData = { [displayKey]: newText };
-	        }
-	        const updateData = { [displayKey]: newText }
 	        try {
 	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
 	            method: 'PATCH',
 	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify(updateData)
+	            body: JSON.stringify({ [displayKey]: newText })
 	          });
 	          if (!res.ok) throw new Error('Update failed');
 	          span.textContent = newText;
