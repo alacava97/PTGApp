@@ -36,7 +36,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		const yearDd = document.getElementById('year-select')
 		await populateYearDropdown(yearDd);
-		yearDd.addEventListener('blur', async () => {
+		yearDd.addEventListener('change', async () => {
 			const newRooms = await getRooms();
 			const list = document.getElementById('room-list');
 			list.innerHTML = '';
@@ -132,7 +132,7 @@
 
 	      	if (table == "rooms") {
 	      		const loc_id = document.getElementById('year-select').value;
-      			newData = { [displayKey]: value, location_id: loc_id };
+      			newData = { [displayKey]: value, 'location_id': loc_id };
 	      	} else {
 	      		newData = { [displayKey]: value };
 	      	}
