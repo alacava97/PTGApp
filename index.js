@@ -103,9 +103,9 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       console.log(req.body);
       const { name, location_id } = req.body;
       const { rows } = await client.query(
-        `INSERT INTO rooms (name, location_id,position)
-         VALUES ($1, $2, (SELECT COALESCE(MAX(position),0)+1 FROM types))
-         RETURNING id, position`,
+        `INSERT INTO rooms (name, location_id, position)
+         VALUES ($1, $2, (SELECT COALESCE(MAX(position),0)+1 FROM rooms))
+         RETURNING id, location_id, position`,
         [name, location_id]
       );
       record = rows[0];
@@ -130,6 +130,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 
     if (err.code === '23505') {
       const errCol = err.constraint.split('_')[1];
+      console.error('Insert failed:', err);
       return res.status(400).json({ error: `${errCol} already exists.` });
     }
 
