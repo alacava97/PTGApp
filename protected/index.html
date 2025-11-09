@@ -403,6 +403,9 @@
 			const yearDd = document.createElement('select');
 			yearDd.classList.add('year-select', 'schedule-year-select');
 			populateYearDropdown(yearDd);
+			yearDd.addEventListener('blur', async() => {
+				renderSchedule();
+			});
 			key.appendChild(yearDd);
 
 			const printBtn = document.createElement('button');
