@@ -95,6 +95,8 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       );
       record = rows[0];
 
+      await client.query('COMMIT');
+      return res.json(record);
     } else if (table === 'rooms') { 
       const { name, location_id } = req.body;
       const { rows } = await client.query(
@@ -104,6 +106,9 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
         [name, location_id]
       );
       record = rows[0];
+
+      await client.query('COMMIT');
+      return res.json(record);
     } else {
       record = await createRecord({ table, data, returning: ['id'] }, client);
   
@@ -119,7 +124,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     }
     
     await client.query('COMMIT');
-    res.json({ message: `Created record in ${table}`, id: record.id });
+    return res.json({ message: `Created record in ${table}`, id: record.id });
   } catch (err) {
     await client.query('ROLLBACK');
 
