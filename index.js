@@ -551,7 +551,7 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
 
   try {
 
-    const allowedTables = ['schedule', 'classes', 'instructors', 'types'];
+    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms'];
     if (!allowedTables.includes(table)) {
       return res.status(400).json({ error: 'Invalid table name' });
     }
