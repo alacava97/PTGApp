@@ -100,7 +100,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       const { rows } = await client.query(
         `INSERT INTO rooms (name, location_id, position)
          VALUES ($1, $2, (SELECT COALESCE(MAX(position),0)+1 FROM rooms))
-         RETURNING id, location_id, position`,
+         RETURNING id, name, location_id, position`,
         [name, location_id]
       );
       record = rows[0];
