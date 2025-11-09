@@ -128,10 +128,16 @@
 	      const value = input.value.trim();
 	      if (!value) return li.remove();
 	      try {
+	      	if (table == "room") {
+	      		const loc_id = document.getElementById('year-select').value;
+      			const newData = { [displayKey]: value, location_id: loc_id };
+	      	} else {
+	      		const newData = { [displayKey]: value };
+	      	}
 	        const res = await fetch(`/api/create/${table}`, {
 	          method: 'POST',
 	          headers: { 'Content-Type': 'application/json' },
-	          body: JSON.stringify({ [displayKey]: value })
+	          body: JSON.stringify(newData)
 	        });
 	        const data = await res.json();
 	        li.remove();

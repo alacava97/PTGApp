@@ -100,7 +100,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
         `INSERT INTO rooms (name, position)
          VALUES ($1, (SELECT COALESCE(MAX(position),0)+1 FROM types))
          RETURNING id, position`,
-        [data.type]
+        [data.name]
       );
       record = rows[0];
     } else {
