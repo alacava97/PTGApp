@@ -95,6 +95,14 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       );
       record = rows[0];
 
+    } else if (table === 'rooms') { 
+      const { rows } = await client.query(
+        `INSERT INTO rooms (name, position)
+         VALUES ($1, (SELECT COALESCE(MAX(position),0)+1 FROM types))
+         RETURNING id, position`,
+        [data.type]
+      );
+      record = rows[0];
     } else {
       record = await createRecord({ table, data, returning: ['id'] }, client);
   
