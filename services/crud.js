@@ -1,5 +1,5 @@
 const pool = require('../db/pool');
-const { getAllowedFields } = require('./utils/dbHelper');
+const { getAllowedFields } = require('../utils/dbHelper');
 
 async function createRecord({ table, data, returning = ['id'] }, client = pool) {
   const columns = Object.keys(data);
