@@ -124,7 +124,11 @@
 	    list.appendChild(li);
 	    input.focus();
 
+	    let finalized = false;
+
 	    const finalizeAdd = async () => {
+	    	if (finalized == true) return;
+	    	finalized = true;
 	      input.blur();
 	      const value = input.value.trim();
 	      if (!value) return li.remove();
@@ -144,6 +148,7 @@
 	        });
 	        const data = await res.json();
 	        li.remove();
+	        console.log(data);
 	        renderListItem(data);
 	      } catch (err) {
 	        console.error(`Add ${displayKey} failed:`, err);
@@ -155,6 +160,7 @@
 	      if (e.key === 'Enter') finalizeAdd();
 	      if (e.key === 'Escape') li.remove();
 	    });
+	    input.addEventListener('blur', finalizeAdd);
 	  });
 
 	  // --- Helper: Render a Single Item ---
