@@ -76,7 +76,8 @@
 <script src="public/js/script.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		renderSchedule();
+		await populateKey();
+		await renderSchedule();
 		modalButtons();
 		setupScheduleForm();
 
@@ -93,8 +94,6 @@
 			opt.textContent = room;
 			roomDD.appendChild(opt);
 		});
-
-		populateKey();
 	});
 
 	async function renderSchedule() {
@@ -128,7 +127,9 @@
 		try {
 			const schedRes = await fetch(`/api/schedule`, { credentials: 'include' });
 			const schedule = await schedRes.json();
-			const roomRes = await fetch(`/api/read/rooms`);
+
+			const loc_id = document.getElementById('year-select').value;
+			const roomRes = await fetch(`/api/getRooms/${loc_id}`);
 			const rooms = await roomRes.json();
 
 			for (const key in rooms) {
