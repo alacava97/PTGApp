@@ -19,7 +19,7 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const res = await fetch('/api/auth/session', { credentials: 'include' });
+		const res = await fetch('/auth/session', { credentials: 'include' });
 		const user = await res.json();
 
 		console.log(user.role);
