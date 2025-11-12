@@ -142,4 +142,10 @@ router.post('/password', async (req, res) => {
   }
 });
 
+// On the server
+router.get('/session', (req, res) => {
+  if (!req.session.user) return res.status(401).json({ error: 'Not logged in' });
+  res.json(req.session.user);
+});
+
 module.exports = router;

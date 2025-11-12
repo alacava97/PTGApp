@@ -229,6 +229,7 @@ textarea {
 	text-align: center;
 	grid-column-start: 1;
 	grid-column-end: 6;
+	max-height: 40px;
 }
 
 .period {
