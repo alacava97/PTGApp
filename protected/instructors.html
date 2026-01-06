@@ -20,11 +20,20 @@
 	<div id="count" class="count"></div>
 
 	<div id="list"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		//populate table with instructor records
+		const instructors = await read('instructors');
+		displayRecords(instructors);
 
-	<div class="modal" id="newModal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h2>New Instructor</h2>
+		//initialize searchbar
+		searchBar(instructors);
+
+		const newInst = new Modal('newModal');
+		newInst.content(`<h2>New Instructor</h2>
 			<form id="new-instructor-form">
 				<input type="text" name="name" placeholder="Name" autocomplete="off" required class="modal-center">
 				<br><br>
@@ -44,20 +53,8 @@
 				<button type="submit" class="button modal-center">Create Record</button>
 			</form>
 
-			<div id="message"></div>
-
-		</div>
-	</div>
-</body>
-<script src="public/js/script.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		//populate table with instructor records
-		const instructors = await read('instructors');
-		displayRecords(instructors);
-
-		//initialize searchbar
-		searchBar(instructors);
+			<div id="message"></div>`);
+		document.getElementById('new-btn').addEventListener('click', () => newInst.show());
 
 		//wire modal form submit button
 		const form = document.getElementById('new-instructor-form');
@@ -69,8 +66,16 @@
 			});
 		});
 
-		modalButtons();
-		openBtn('new-btn', 'newModal');
+		const sponsored = document.getElementById('sponsored');
+		const sponsor = document.getElementById('sponsor');
+
+		sponsored.addEventListener('change', () => {
+			if (sponsored.checked) {
+				sponsor.style.display = 'inline-block';
+			} else {
+				sponsor.style.display = 'none';
+			}
+		});
 	})
 	function displayRecords(instructors) {
 		const instList = document.getElementById('list');
@@ -104,15 +109,6 @@
 		count.innerHTML = `Found ${num} records.`;
 	}
 
-	const sponsored = document.getElementById('sponsored');
-	const sponsor = document.getElementById('sponsor');
 
-	sponsored.addEventListener('change', () => {
-		if (sponsored.checked) {
-			sponsor.style.display = 'inline-block';
-		} else {
-			sponsor.style.display = 'none';
-		}
-	});
 </script>
 </html>

@@ -20,11 +20,20 @@
 	<div id="count" class="count"></div>
 
 	<div id="list"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		//populate table with class records
+		const classes = await read('classes');
+		displayRecords(classes);
 
-	<div class="modal" id="newModal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h2>New Class</h2>
+		//initialize searchbar
+		searchBar(classes);
+
+		const newClass = new Modal('newModal');
+		newClass.content(`<h2>New Class</h2>
 			<form id="new-class-form">
 				<label>Title:
 					<input type="text" name="title" placeholder="Class Title" autocomplete="off" required>
@@ -54,20 +63,8 @@
 				<button type="submit" class="button">Create Record</button>
 			</form>
 
-			<div id="message"></div>
-
-		</div>
-	</div>
-</body>
-<script src="public/js/script.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		//populate table with class records
-		const classes = await read('classes');
-		displayRecords(classes);
-
-		//initialize searchbar
-		searchBar(classes);
+			<div id="message"></div>`);
+		document.getElementById('new-btn').addEventListener('click', () => newClass.show());
 
 		//populate modal dropdowns
 		const instDropdown = document.getElementById('instDropdown');
@@ -84,9 +81,6 @@
 				displayRecords(data);
 			});
 		});
-
-		modalButtons();
-		openBtn('new-btn', 'newModal');
 	});
 
 	function displayRecords(records) {

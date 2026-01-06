@@ -28,87 +28,9 @@
 	<br><br>
 
 	<button id="delete-inst" class="delete-row">Delete Instructor</button>
-
-	<div class="modal" id="contact-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Instructor Contact</h4>
-			<form id="edit-contact">
-				<input type="text" name="name"required class="modal-center" placeholder="Instructor name">
-				<br><br>
-				<input type="email" name="email" class="modal-center" placeholder="Email">
-				<br><br>
-				<input type="tel" name="phone" class="modal-center" placeholder="Phone">
-				<br><br>
-				<label class="modal-center">RPT Status
-					<input class="small-input" type="checkbox" name="rpt" class="modal-center">
-				</label><br><br>
-				<button type="submit" class="button modal-center">Update Record</button>
-				<div id="message"></div>
-			</form>
-		</div>
-	</div>
-
-	<div class="modal" id="delete-confirmation-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Remove class from instructor record?</h4>
-			<div>
-				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>
-		</div>
-	</div>
-
-	<div class="modal" id="class-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Select a Class</h4>
-			<form id="instructor-class-form">
-			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
-				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit" class="button modal-center">Add Class</button>
-			</form>
-		</div>
-	</div>
-
-	<div class="modal" id="sponsor-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Instructor Sponsor</h4>
-			<form id="edit-sponsor">
-				<label class="modal-center">Sponsored
-					<input id="sponsored" class="small-input" type="checkbox" name="sponsored" class="modal-center">
-				</label><br><br>
-				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center" id="sponsor"><br><br>
-				<button type="submit" class="button modal-center">Update Sponsor</button>
-			</form>
-		</div>
-	</div>
-
-	<div class="modal" id="name-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Update Instructor Name</h4>
-			<form id="name-form">
-				<label for="name-input"></label>
-				<input type="text" id="name-input" name="name" class="modal-center" placeholder="Instructor name">
-				<br><br>
-				<button type="submit" id="submit-name" class="button modal-center">Submit</button>
-			</form>
-		</div>
-	</div>
-
-	<div class="modal" id="delete-inst-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Permanently delete instructor record?</h4>
-			<div>
-				<button id="delete-inst-button" class="button red modal-center">Delete</button>
-			</div>
-		</div>
-	</div>
 </body>
 <script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
 <script>
 	async function getClasses(instructor_id) {
 		try {
@@ -124,11 +46,65 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
+		const deleteInst = new Modal('delete-inst-modal');
+		deleteInst.content(`<h4>Permanently delete instructor record?</h4>
+			<div>
+				<button id="delete-inst-button" class="button red modal-center">Delete</button>
+			</div>`);
+
+		const nameModal = new Modal('name-modal');
+		nameModal.content(`<h4>Update Instructor Name</h4>
+			<form id="name-form">
+				<label for="name-input"></label>
+				<input type="text" id="name-input" name="name" class="modal-center" placeholder="Instructor name">
+				<br><br>
+				<button type="submit" id="submit-name" class="button modal-center">Submit</button>
+			</form>`);
+
+		const sponsorModal = new Modal('sponsor-modal');
+		sponsorModal.content(`<h4>Instructor Sponsor</h4>
+			<form id="edit-sponsor">
+				<label class="modal-center">Sponsored
+					<input id="sponsored" class="small-input" type="checkbox" name="sponsored" class="modal-center">
+				</label><br><br>
+				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center" id="sponsor"><br><br>
+				<button type="submit" class="button modal-center">Update Sponsor</button>
+			</form>`);
+
+		const classModal = new Modal('class-modal');
+		classModal.content(`<h4>Select a Class</h4>
+			<form id="instructor-class-form">
+			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
+				<ul id="results" class="drop-down-select"></ul><br>
+				<button type="submit" class="button modal-center">Add Class</button>
+			</form>`);
+
+		const delConfModal = new Modal('delete-confirmation-modal');
+		delConfModal.content(`<h4>Remove class from instructor record?</h4>
+			<div>
+				<button id="delete-button" class="button red modal-center">Delete</button>
+			</div>`);
+
+		const contactModal = new Modal('contact-modal');
+		contactModal.content(`<h4>Instructor Contact</h4>
+			<form id="edit-contact">
+				<input type="text" name="name"required class="modal-center" placeholder="Instructor name">
+				<br><br>
+				<input type="email" name="email" class="modal-center" placeholder="Email">
+				<br><br>
+				<input type="tel" name="phone" class="modal-center" placeholder="Phone">
+				<br><br>
+				<label class="modal-center">RPT Status
+					<input class="small-input" type="checkbox" name="rpt" class="modal-center">
+				</label><br><br>
+				<button type="submit" class="button modal-center">Update Record</button>
+				<div id="message"></div>
+			</form>`);
+
 		const id = getInstructorId();
 
 		await populateModals(id);
 		await loadInstructor(id);
-		modalButtons();
 		sponsorCheck();
 
 		const contact = document.getElementById('instructor-details');
