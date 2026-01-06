@@ -18,6 +18,9 @@
 	-Select from list
 	-Select all button
 
+Refactoring
+-New class for info rows
+
 Far Future
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year
