@@ -100,24 +100,6 @@ textarea {
 	text-decoration: underline;
 }
 
-.delete-btn {
-	flex-shrink: 0;
-	border-left: 1px black solid;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	height: 56px;
-	aspect-ratio: 1 / 1;
-	background-color: #ffdddd;
-	cursor: pointer;
-	font-size: 32px;
-}
-
-.delete-btn:hover {
-	background-color: #ffbbbb;
-	font-weight: 900;
-}
-
 .delete-button {
 	background-color: red;
 	color: white;
@@ -340,13 +322,7 @@ textarea {
 }
 /* end tooltips */
 
-.row {
-	position: relative;
-	padding: 7px 5%;
-	border: #CCCCCC solid 1px;
-	background-color: #EEEEEE;
-	overflow: hidden;
-}
+
 
 .row:hover, .flex-row:hover {
 	background-color: #E0E0E0;
@@ -568,4 +544,40 @@ textarea {
 .right-text {
 	text-align: right;
 	margin: auto;
+}
+
+/*---styles for UI classes---*/
+.row-title {
+	font-weight: bold;
+	font-size: 16px;
+}
+
+.row-subtitle {
+	font-size: 16px;
+}
+
+.row {
+	display: grid;
+	position: relative;
+	padding: 7px 5%;
+	border: #CCCCCC solid 1px;
+	background-color: #EEEEEE;
+	overflow: hidden;
+}
+
+.delete-btn {
+	border: 1px #333 solid;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	height: 56px;
+	aspect-ratio: 1 / 1;
+	background-color: #ffdddd;
+	cursor: pointer;
+	font-size: 32px;
+}
+
+.delete-btn:hover {
+	background-color: #ffbbbb;
+	font-weight: 900;
 }

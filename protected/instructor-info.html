@@ -17,13 +17,13 @@
 	</header>
 	<h2 id="instructor-name" class="info-header">Loading...</h2>
 	<h3>Contact</h3>
-	<div id="instructor-details" class="row">No Contact Found</div>
+	<div id="instructor-details">No Contact Found</div>
 
 	<div class="clearfix"><h3>Classes</h3>
 	<div id="classes"></div>
 
 	<h3>More Info</h3>
-	<div id="more-info" class="row">No Extra Info</div>
+	<div id="more-info">No Extra Info</div>
 
 	<br><br>
 
@@ -31,6 +31,7 @@
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
 <script>
 	async function getClasses(instructor_id) {
 		try {
@@ -46,11 +47,57 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
+		const id = getInstructorId();
+
+		await populateModals(id);
+		await loadInstructor(id);
+		sponsorCheck();
+
+	    document.getElementById('delete-inst-button').addEventListener('click', async () => {
+    		await deleteEntry('instructors', id);
+    		window.location.href = "/instructors.html"
+	    });
+
+		document.querySelectorAll('form').forEach(form => {
+			form.addEventListener('submit', async (e) => {
+				e.preventDefault();
+				if (form.id === 'instructor-class-form') {
+					const data = parseForm(form);
+					await linkInstructorToClass(id, data.title);
+					await loadInstructor(id);
+					const classModal = form.closest('.modal')
+					classModal.style.display = 'none';
+					form.reset();
+				} else {
+					const id = getInstructorId();
+					handleFormSubmission(e, form, `/api/update/instructors/${id}`, 'PATCH', async () => {
+						await populateModals(id);
+						await loadInstructor(id);
+					});
+				}
+			});
+		});
+
+		const sponsored = document.getElementById('sponsored');
+		sponsored.addEventListener('change', sponsorCheck);
+
+		const classData = await read('classes');
+		const titles = classData.map(item => item.title);
+		createSearchableDropdown('searchable', 'results', titles);
+	});
+
+	function getInstructorId() {
+		return new URLSearchParams(window.location.search).get('id');
+	}
+
+	async function loadInstructor(id = getInstructorId()) {
+		//initialize modals
 		const deleteInst = new Modal('delete-inst-modal');
 		deleteInst.content(`<h4>Permanently delete instructor record?</h4>
 			<div>
 				<button id="delete-inst-button" class="button red modal-center">Delete</button>
 			</div>`);
+		document.getElementById('delete-inst').addEventListener('click', () => deleteInst.show());
 
 		const nameModal = new Modal('name-modal');
 		nameModal.content(`<h4>Update Instructor Name</h4>
@@ -101,66 +148,84 @@
 				<div id="message"></div>
 			</form>`);
 
-		const id = getInstructorId();
+		try {
+			const res = await fetch(`/api/readEntry/instructors/${id}`);
+			if (!res.ok) throw new Error('Network error');
 
-		await populateModals(id);
-		await loadInstructor(id);
-		sponsorCheck();
+			const instructor = await res.json();
 
-		const contact = document.getElementById('instructor-details');
-		const classes = document.getElementById('classes');
-		const moreInfo = document.getElementById('more-info');
+			var instTitle = instructor.name;
+			if (instructor.rpt == true) {
+				instTitle += ", RPT";
+			}
 
-		contact.addEventListener('click', () => {
-			const modal = document.getElementById('contact-modal')
-			modal.style.display = "flex";
-			modal.querySelector('#message').innerHTML = '';
-		});
+			instTitle += "✎";
 
-		moreInfo.addEventListener('click', () => {
-			document.getElementById('sponsor-modal').style.display = "flex";
-		});
+			//set title
+			const name = document.getElementById('instructor-name');
+			name.textContent = instTitle;
+			name.addEventListener('click', () => { nameModal.show() });
+			
+			//contact section
+			const contact = new Row();
+			contact.addTitle(instTitle);
+			contact.addSubtitle(instructor.email || 'No email on record.');
+			contact.addSubtitle(instructor.phone || 'No phone on record.');
+			contact.editArrow();
+			contact.row.addEventListener('click', () => contactModal.show());
 
-	    const delClass = document.getElementById('delete-inst');
-	    delClass.addEventListener('click', () => {
-	    	document.getElementById('delete-inst-modal').style.display = 'flex';
-	    });
+			const contactContainer = document.getElementById('instructor-details');
+			contactContainer.replaceChildren(contact.row);
 
-	    document.getElementById('delete-inst-button').addEventListener('click', async () => {
-    		await deleteEntry('instructors', id);
-    		window.location.href = "/instructors.html"
-	    })
+			//Classes
+			const classes = await getClasses(id);
+			const classContainer = document.getElementById('classes');
+			classes.forEach(entry => {
+				const classRow = new Row();
+				classRow.addTitle(entry.title);
+				classRow.addSubtitle(entry.type_name);
+				classRow.addSubtitle(entry.level);
+				classRow.addLink(`/class-info.html?id=${entry.class_id}`);
+				classRow.addDeleteButton();
+				classRow.deleteButton.addEventListener('click', (e) => {
+					e.stopPropagation();
+					delConfModal.show();
+					const confDel = document.getElementById('delete-button');
 
-		document.querySelectorAll('form').forEach(form => {
-			form.addEventListener('submit', async (e) => {
-				e.preventDefault();
-				if (form.id === 'instructor-class-form') {
-					const data = parseForm(form);
-					await linkInstructorToClass(id, data.title);
-					await loadInstructor(id);
-					const classModal = form.closest('.modal')
-					classModal.style.display = 'none';
-					form.reset();
-				} else {
+					const newConfDel = confDel.cloneNode(true);
+					confDel.parentNode.replaceChild(newConfDel, confDel);
+
 					const id = getInstructorId();
-					handleFormSubmission(e, form, `/api/update/instructors/${id}`, 'PATCH', async () => {
-						await populateModals(id);
-						await loadInstructor(id);
+					newConfDel.addEventListener('click', async () => {
+						deleteClassInstructorLink(entry.class_id, id);
+						loadInstructor(id);
+						delModal.style.display = "none";
 					});
-				}
+				});
+				classContainer.appendChild(classRow.row);
 			});
-		});
+			const addClass = new Row();
+			addClass.addSubtitle(`<b>＋</b> Add class`);
+			addClass.subtitle.addEventListener('click', () => classModal.show());
+			classContainer.appendChild(addClass.row);
 
-		const sponsored = document.getElementById('sponsored');
-		sponsored.addEventListener('change', sponsorCheck);
+			//sponsor section
+			const moreInfoContainer = document.getElementById('more-info');
+			const moreInfo = new Row();
+			if (instructor.sponsored === true) {
+				moreInfo.addTitle(`Sponsored Instructor`);
+				moreInfo.addSubtitle(instructor.sponsor || 'No sponsor on record');
+			} else {
+				moreInfo.addSubtitle('No Extra Info');
+			}
+			moreInfo.editArrow();
+			moreInfo.row.addEventListener('click', () => sponsorModal.show());
+			moreInfoContainer.replaceChildren(moreInfo.row);
 
-		const classData = await read('classes');
-		const titles = classData.map(item => item.title);
-		createSearchableDropdown('searchable', 'results', titles);
-	});
-
-	function getInstructorId() {
-		return new URLSearchParams(window.location.search).get('id');
+		} catch (err) {
+			console.error('Error loading instructor:', err);
+			document.getElementById('instructor-name').textContent = 'Error loading instructor.';
+		}
 	}
 
 </script>

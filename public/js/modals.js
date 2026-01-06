@@ -25,6 +25,8 @@ class Modal {
 
 	show() {
 		this.modal.style.display = "flex";
+		const message = this.modal.querySelector('#message')
+		if (message) { message.innerHTML = '' };
 	}
 
 	close() {

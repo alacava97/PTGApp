@@ -23,6 +23,7 @@
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		//populate table with instructor records
@@ -82,27 +83,17 @@
 		instList.innerHTML = '';
 
 		instructors.forEach(instructor => {
-			const entry = document.createElement('div');
-			entry.classList.add('row');
+			const entry = new Row();
 
-			const name = document.createElement('span');
-			name.textContent = instructor.name;
+			const name = instructor.name;
 			if (instructor.rpt == true) {
-				name.textContent += ', RPT';
+				name += ', RPT';
 			};
 
-			const arrow = document.createElement('span')
-			arrow.innerHTML = `&#9654;`;
-			arrow.classList.add("arrow");
+			entry.addTitle(name);
+			entry.addArrow(`/instructor-info.html?id=${instructor.id}`);
 
-			entry.appendChild(name);
-			entry.appendChild(arrow);
-
-			entry.addEventListener('click', () => {
-				window.location.href = `/instructor-info.html?id=${instructor.id}`;
-			});
-
-			instList.appendChild(entry);
+			instList.appendChild(entry.row);
 		});
 		const count = document.getElementById('count');
 		const num = instructors.length;
