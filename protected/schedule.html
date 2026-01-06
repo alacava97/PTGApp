@@ -18,23 +18,25 @@
 	</header>
 	<div id="color-key" class="key"></div>
 	<div id="color-block" class="schedule grid"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		await populateKey();
+		await renderSchedule();
 
-	<div class="modal" id="class-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Select a Class</h4>
+		const classModal = new Modal('class-modal');
+		classModal.content(`<h4>Select a Class</h4>
 			<p id="period-info"></p>
 			<form id="schedule-form">
 			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
 				<ul id="results" class="drop-down-select"></ul><br>
 				<button type="submit" class="button modal-center">Add Class</button>
-			</form>
-		</div>
-	</div>
-	<div class="modal" id="event-modal">
-		<div class="modal-content big-modal">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4><a id="class-title"></a></h4>
+			</form>`);
+
+		const eventModal = new Modal('event-modal');
+		eventModal.content(`<h4><a id="class-title"></a></h4>
 			<h5 id="inst"></h5>
 			<p id="class-info"></p>
 			<form id="update-sched">
@@ -59,26 +61,14 @@
 				<textarea name="notes" placeholder="notes" id="notes" class="modal-center"></textarea><br>
 				<button type="submit" id="edit-sched" class="button modal-center">Update</button>
 			</form><br>
-			<button id="confirm-delete" class="button red modal-center">Delete</button>
-		</div>
-		<div id="message"></div>
-	</div>
-	<div class="modal" id="delete-confirmation-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Remove event from calendar?</h4>
+			<button id="confirm-delete" class="button red modal-center">Delete</button>`);
+
+		const deleteModal = new Modal('delete-confirmation-modal');
+		deleteModal.content(`<h4>Remove event from calendar?</h4>
 			<div>
 				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>
-		</div>
-	</div>
-</body>
-<script src="public/js/script.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		await populateKey();
-		await renderSchedule();
-		modalButtons();
+			</div>`);
+
 		setupScheduleForm();
 
 		const classData = await read('classes');

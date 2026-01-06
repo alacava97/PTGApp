@@ -19,18 +19,6 @@
 	<h3>Instructors</h3>
 	<div id="instructors">No Instructors Found</div>
 
-	<div class="modal" id="instructor-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Select an Instructor</h4>
-			<form id="instructor-class-form">
-			    <input name="instructor_name" type="text" id="searchable" placeholder="Search instructors" class="modal-center">
-				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit" class="button modal-center">Add Instructor</button>
-			</form>
-		</div>
-	</div>
-
 	<h3>Length</h3>
 	<div id="length" class="row flex-row"></div>
 
@@ -43,34 +31,37 @@
 	<br><br>
 
 	<button id="delete-class" class="delete-row">Delete Class</button>
-
-	<div class="modal" id="delete-confirmation-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Remove instructor from class record?</h4>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const delClassModal = new Modal('delete-class-modal');
+		delClassModal.content(`<h4>Permanently delete class record?</h4>
 			<div>
-				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>
-		</div>
-	</div>
+				<button id="delete-class-button" class="button red modal-center">Delete</button>
+			</div>`);
 
-	<div class="modal" id="type-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Update Type</h4>
-			<form id="type-form">
-				<label for="type-select"></label>
-				<select name="type" id="type-select" class="modal-center"></select>
+		const titleModal = new Modal('title-modal');
+		titleModal.content(`<h4>Update Class Title</h4>
+			<form id="title-form">
+				<label for="title-input"></label>
+				<input type="text" id="title-input" name="title" class="modal-center">
 				<br><br>
-				<button type="submit" id="submit-type" class="button modal-center">Submit</button>
-			</form>
-		</div>
-	</div>
+				<button type="submit" id="submit-title" class="button modal-center">Submit</button>
+			</form>`);
 
-	<div class="modal" id="level-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Update Level</h4>
+		const lengthModal = new Modal('length-modal');
+		lengthModal.content(`<h4>Update Class Length</h4>
+			<form id="length-form">
+				<label for="length-input"></label>
+				<input type="number" min="1" max="5" id="length-input" name="length" class="modal-center">
+				<br><br>
+				<button type="submit" id="submit-length" class="button modal-center">Submit</button>
+			</form>`);
+
+		const levelModal = new Modal('level-modal');
+		levelModal.content(`<h4>Update Level</h4>
 			<form id="level-form">
 				<label for="level-select"></label>
 				<select name="level" id="level-select" class="modal-center">
@@ -81,49 +72,31 @@
 				</select>
 				<br><br>
 				<button type="submit" id="submit-level" class="button modal-center">Submit</button>
-			</form>
-		</div>
-	</div>
+			</form>`);
 
-	<div class="modal" id="length-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Update Class Length</h4>
-			<form id="length-form">
-				<label for="length-input"></label>
-				<input type="number" min="1" max="5" id="length-input" name="length" class="modal-center">
+		const typeModal = new Modal('type-modal');
+		typeModal.content(`<h4>Update Type</h4>
+			<form id="type-form">
+				<label for="type-select"></label>
+				<select name="type" id="type-select" class="modal-center"></select>
 				<br><br>
-				<button type="submit" id="submit-length" class="button modal-center">Submit</button>
-			</form>
-		</div>
-	</div>
+				<button type="submit" id="submit-type" class="button modal-center">Submit</button>
+			</form>`);
 
-	<div class="modal" id="title-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Update Class Title</h4>
-			<form id="title-form">
-				<label for="title-input"></label>
-				<input type="text" id="title-input" name="title" class="modal-center">
-				<br><br>
-				<button type="submit" id="submit-title" class="button modal-center">Submit</button>
-			</form>
-		</div>
-	</div>
-
-	<div class="modal" id="delete-class-modal">
-		<div class="modal-content">
-			<div class="close-btn" id="close-btn">&times;</div>
-			<h4>Permanently delete class record?</h4>
+		const delConfModal = new Modal('delete-confirmation-modal');
+		delConfModal.content(`<h4>Remove instructor from class record?</h4>
 			<div>
-				<button id="delete-class-button" class="button red modal-center">Delete</button>
-			</div>
-		</div>
-	</div>
-</body>
-<script src="public/js/script.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
+				<button id="delete-button" class="button red modal-center">Delete</button>
+			</div>`);
+
+		const instModal = new Modal('instructor-modal');
+		instModal.content(`<h4>Select an Instructor</h4>
+			<form id="instructor-class-form">
+			    <input name="instructor_name" type="text" id="searchable" placeholder="Search instructors" class="modal-center">
+				<ul id="results" class="drop-down-select"></ul><br>
+				<button type="submit" class="button modal-center">Add Instructor</button>
+			</form>`);
+
 		const delClass = document.getElementById('delete-class');
 	    delClass.addEventListener('click', () => {
 	    	document.getElementById('delete-class-modal').style.display = 'flex';
