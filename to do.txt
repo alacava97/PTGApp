@@ -19,7 +19,7 @@
 	-Select all button
 
 Refactoring
--New class for info rows
+-Fix info refresh functions so they don't break modals
 
 Far Future
 -Instructor login

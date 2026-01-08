@@ -355,6 +355,7 @@ app.get('/api/instByClass/:id', requireLogin, async (req, res) => {
     ELSE ''
     END
     AS instructor_name,
+      instructors.sponsor,
       types.type AS type_name,
       types.id AS type_id
     FROM 

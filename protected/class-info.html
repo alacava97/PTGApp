@@ -17,16 +17,16 @@
 	</header>
 	<h2 id="class-title" class="info-header">Loading...</h2>
 	<h3>Instructors</h3>
-	<div id="instructors">No Instructors Found</div>
+	<div id="instructors">Loading...</div>
 
 	<h3>Length</h3>
-	<div id="length" class="row flex-row"></div>
+	<div id="length">Loading...</div>
 
 	<h3>Type</h3>
-	<div id="type" class="row flex-row">No Type Found</div>
+	<div id="type">Loading...</div>
 
 	<h3>Level</h3>
-	<div id="level" class="row flex-row">No Level Found</div>
+	<div id="level">Loading...</div>
 
 	<br><br>
 
@@ -34,8 +34,62 @@
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
+		await loadClass();
+		const id = getId();
+
+		const delClass = document.getElementById('delete-class');
+	    delClass.addEventListener('click', () => delClassModal.show());
+
+	    document.getElementById('delete-class-button').addEventListener('click', async () => {
+    		await deleteEntry('classes', id);
+    		window.location.href = "/classes.html";
+	    });
+
+	    // Build instructor dropdown
+	    const instructorData = await read('instructors');
+	    const instructors = instructorData.map(item => item.name);
+	    await createSearchableDropdown('searchable', 'results', instructors);
+
+	    const typeDD = document.getElementById('type-select');
+	    await populateDropdown(typeDD, 'types', 'type');
+
+	    // Attach submit handlers
+	    document.querySelectorAll('form').forEach(form => {
+	        form.addEventListener('submit', async (e) => {
+	            e.preventDefault();
+
+	            if (form.id === 'instructor-class-form') {
+	                // Link instructor to class
+	                const data = parseForm(form);
+	                try {
+	                    await linkClasstoInstructor({
+	                        class_id: id,
+	                        instructor_name: data.instructor_name
+	                    });
+	                    await refreshClass();
+	                    form.reset();
+	                } catch (err) {
+	                    console.error('Error linking instructor to class:', err);
+	                }
+	            } else {
+	                // Update other class data
+	                try {
+	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', async () => {
+	                        await refreshClass();
+	                    });
+	                    form.reset();
+	                } catch (err) {
+	                    console.error('Error updating class:', err);
+	                }
+	            }
+	        });
+	    });
+	});
+
+	async function loadClass(id = getId()) {
 		const delClassModal = new Modal('delete-class-modal');
 		delClassModal.content(`<h4>Permanently delete class record?</h4>
 			<div>
@@ -97,74 +151,8 @@
 				<button type="submit" class="button modal-center">Add Instructor</button>
 			</form>`);
 
-		const delClass = document.getElementById('delete-class');
-	    delClass.addEventListener('click', () => {
-	    	document.getElementById('delete-class-modal').style.display = 'flex';
-	    });
-
-	    document.getElementById('delete-class-button').addEventListener('click', async () => {
-    		await deleteEntry('classes', id);
-    		window.location.href = "/classes.html";
-	    })
-	    
-	    const id = getId();
-
-	    // Initial page load
-	    await loadClasses(id);
-	    modalButtons();
-
-	    // Build instructor dropdown
-	    const instructorData = await read('instructors');
-	    const instructors = instructorData.map(item => item.name);
-	    await createSearchableDropdown('searchable', 'results', instructors);
-
-	    const typeDD = document.getElementById('type-select');
-	    await populateDropdown(typeDD, 'types', 'type');
-
-	    // Attach submit handlers
-	    document.querySelectorAll('form').forEach(form => {
-	        form.addEventListener('submit', async (e) => {
-	            e.preventDefault();
-
-	            if (form.id === 'instructor-class-form') {
-	                // Link instructor to class
-	                const data = parseForm(form);
-	                try {
-	                    await linkClasstoInstructor({
-	                        class_id: id,
-	                        instructor_name: data.instructor_name
-	                    });
-	                    await loadClasses(id);
-	                    closeModal(form);
-	                    form.reset();
-	                } catch (err) {
-	                    console.error('Error linking instructor to class:', err);
-	                }
-	            } else {
-	                // Update other class data
-	                try {
-	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', async () => {
-	                        await loadClasses(id);
-	                    });
-	                    closeModal(form);
-	                    form.reset();
-	                } catch (err) {
-	                    console.error('Error updating class:', err);
-	                }
-	            }
-	        });
-	    });
-	});
-
-	// Utility: closes the modal containing a given form
-	function closeModal(form) {
-	    const modal = form.closest('.modal');
-	    if (modal) modal.style.display = 'none';
-	}
-
-	async function loadClasses(class_id) {
 		try {
-			const res = await fetch(`/api/readEntry/classes/${class_id}`)
+			const res = await fetch(`/api/readEntry/classes/${id}`)
 			if(!res.ok) throw new Error('Network error');
 
 			const classRecord = await res.json();
@@ -172,103 +160,176 @@
 			const title = document.getElementById('class-title');
 			title.innerHTML = `${classRecord.title} ✎`
 			title.addEventListener('click', () => {
-				document.getElementById('title-modal').style.display = "flex";
+				titleModal.show();
 				document.getElementById('title-input').value = classRecord.title;
 			});
 
-			const classes = await getClasses(class_id);
-			renderInstructorList(classes, class_id);
+			//instructors
+			const instructorContainer = document.getElementById('instructors');
+			const instClass = await getInstClass(id);
+			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
+			instClass.forEach(entry => {
+				const instRow = new Row();
+				instRow.addTitle(`${entry.instructor_name}`);
+				instRow.addSubtitle(`${entry.sponsor || 'No sponsor'}`);
+				instRow.addLink(`/instructor-info.html?id=${entry.instructor_id}`);
+				instRow.addDeleteButton();
+				instRow.deleteButton.addEventListener('click', (e) => {
+					e.stopPropagation();
+					delConfModal.show();
+					const confDel = document.getElementById('delete-button');
 
+					const newConfDel = confDel.cloneNode(true);
+					confDel.parentNode.replaceChild(newConfDel, confDel);
+
+					const id = getId();
+					newConfDel.addEventListener('click', async () => {
+						deleteClassInstructorLink(id, entry.instructor_id);
+						refreshClass();
+						delModal.style.display = "none";
+					});
+				})
+				
+				instructorContainer.appendChild(instRow.row);
+			});
+
+			const addInst = new Row();
+			addInst.addSubtitle(`<b>＋</b> Add instructor`);
+			addInst.row.addEventListener('click', () => { instModal.show() });
+			instructorContainer.appendChild(addInst.row);
+
+			//class length
+			const classLength = document.getElementById('length');
+			const length = new Row();
+			if (instClass.length) {
+				classLength.innerHTML = '';
+				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`);
+			} else {
+				length.addTitle('No length');
+			}
+			length.row.addEventListener('click', () => {
+				lengthModal.show();
+				document.getElementById('length-input').value = instClass[0].length;
+			});
+			classLength.appendChild(length.row);
+
+			//class type
+			const classType = document.getElementById('type');
+			const type = new Row();
+			classType.innerHTML = '';
+			type.addTitle(`${instClass[0].type_name || 'No type'}`);
+			classType.addEventListener('click', () => {
+				typeModal.show();
+				document.getElementById('type-select').value = instClass[0].type_id;
+			});
+			classType.appendChild(type.row);
+
+			//class level
+			const classLevel = document.getElementById('level');
+			const level = new Row();
+			classLevel.innerHTML = '';
+			const l = instClass[0].level.charAt(0).toUpperCase() + instClass[0].level.slice(1);
+			level.addTitle(l || 'No level');
+			level.row.addEventListener('click', () => {
+				levelModal.show();
+				document.getElementById('level-select').value = instClass[0].level;
+			});
+			classLevel.appendChild(level.row);
 		} catch (err) {
 			console.error('Internal server error:', err);
 		}
 	}
 
-	function renderInstructorList(instClasses, classId) {
-		const instructors = document.getElementById('instructors');
-		instructors.innerHTML = '';
+	async function refreshClass(id = getId()) {
+		try {
+			const res = await fetch(`/api/readEntry/classes/${id}`)
+			if(!res.ok) throw new Error('Network error');
 
-		instClasses.forEach(entry => {
-			const fullRow = document.createElement('div');
-			fullRow.classList.add('flex-row');
+			const classRecord = await res.json();
 
-			const instRow = document.createElement('span');
-			instRow.classList.add('class-row-content');
-			instRow.innerHTML = `<b>${entry.instructor_name}</b>`
-
-			instRow.addEventListener('click', () => {
-				window.location.href = `/instructor-info.html?id=${entry.instructor_id}`
+			const title = document.getElementById('class-title');
+			title.innerHTML = `${classRecord.title} ✎`
+			title.addEventListener('click', () => {
+				document.getElementById('title-input').value = classRecord.title;
 			});
 
-			const delBtn = document.createElement('div');
-			delBtn.classList.add('delete-btn');
-			delBtn.innerHTML = `&times;`
+			//instructors
+			const instructorContainer = document.getElementById('instructors');
+			const instClass = await getInstClass(id);
+			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
+			instClass.forEach(entry => {
+				const instRow = new Row();
+				instRow.addTitle(`${entry.instructor_name}`);
+				instRow.addSubtitle(`${entry.sponsor || 'No sponsor'}`);
+				instRow.addLink(`/instructor-info.html?id=${entry.instructor_id}`);
+				instRow.addDeleteButton();
+				instRow.deleteButton.addEventListener('click', (e) => {
+					e.stopPropagation();
+					delConfModal.show();
+					const confDel = document.getElementById('delete-button');
 
-			delBtn.addEventListener('click', () => {
-				const delModal = document.getElementById('delete-confirmation-modal')
-				delModal.style.display = 'flex';
+					const newConfDel = confDel.cloneNode(true);
+					confDel.parentNode.replaceChild(newConfDel, confDel);
 
-				const confDel = document.getElementById('delete-button');
-
-				const newConfDel = confDel.cloneNode(true);
-				confDel.parentNode.replaceChild(newConfDel, confDel);
-
-				const id = getId();
-				newConfDel.addEventListener('click', async () => {
-					deleteClassInstructorLink(id, entry.instructor_id);
-					loadClasses(id);
-					delModal.style.display = "none";
-				});
+					const id = getId();
+					newConfDel.addEventListener('click', async () => {
+						deleteClassInstructorLink(id, entry.instructor_id);
+						refreshClass();
+						delModal.style.display = "none";
+					});
+				})
+				
+				instructorContainer.appendChild(instRow.row);
 			});
 
-			fullRow.appendChild(instRow);
-			fullRow.appendChild(delBtn)
-			instructors.appendChild(fullRow);
-		});
+			const addInst = new Row();
+			addInst.addSubtitle(`<b>＋</b> Add instructor`);
+			addInst.row.addEventListener('click', () => { instModal.show() });
+			instructorContainer.appendChild(addInst.row);
 
-		//add instructor button
-		const addInst = document.createElement('div');
-		addInst.classList.add('row');
-		addInst.innerHTML = `<b>＋</b> Add instructor`
-		instructors.appendChild(addInst);	
-		addInst.addEventListener('click', () => {
-			document.getElementById('instructor-modal').style.display = "flex";
-		});
+			//class length
+			const classLength = document.getElementById('length');
+			const length = new Row();
+			if (instClass.length) {
+				classLength.innerHTML = '';
+				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`);
+			} else {
+				length.addTitle('No length');
+			}
+			length.row.addEventListener('click', () => {
+				lengthModal.show();
+				document.getElementById('length-input').value = instClass[0].length;
+			});
+			classLength.appendChild(length.row);
 
-		//change class length
-		const classLength = document.getElementById('length');
-		classLength.textContent = `${instClasses[0].length} ${instClasses[0].length == 1 ? 'period' : 'periods'}`;
-		classLength.style.fontWeight = 'bold';
-		classLength.addEventListener('click', () => {
-			document.getElementById('length-modal').style.display = 'flex';
-			document.getElementById('length-input').value = instClasses[0].length;
-		});
+			//class type
+			const classType = document.getElementById('type');
+			const type = new Row();
+			classType.innerHTML = '';
+			type.addTitle(`${instClass[0].type_name || 'No type'}`);
+			classType.addEventListener('click', () => {
+				typeModal.show();
+				document.getElementById('type-select').value = instClass[0].type_id;
+			});
+			classType.appendChild(type.row);
 
-		//change class type
-		const classType = document.getElementById('type');
-		if (instClasses[0].type_name) {
-			classType.textContent = instClasses[0].type_name;
-			classType.style.fontWeight = 'bold';
-		};
-		classType.addEventListener('click', () => {
-			document.getElementById('type-modal').style.display = "flex";
-			document.getElementById('type-select').value = instClasses[0].type_id;
-		});
-
-		//change class level
-		const classLevel = document.getElementById('level');
-		const level = instClasses[0].level.toString();
-		if (level) {
-			classLevel.textContent = level.slice(0, 1).toUpperCase() + level.slice(1);
-			classLevel.style.fontWeight = 'bold';
-		};
-		classLevel.addEventListener('click', () => {
-			document.getElementById('level-modal').style.display = "flex";
-			document.getElementById('level-select').value = instClasses[0].level;
-		});
+			//class level
+			const classLevel = document.getElementById('level');
+			const level = new Row();
+			classLevel.innerHTML = '';
+			const l = instClass[0].level.charAt(0).toUpperCase() + instClass[0].level.slice(1);
+			level.addTitle(l || 'No level');
+			level.row.addEventListener('click', () => {
+				levelModal.show();
+				document.getElementById('level-select').value = instClass[0].level;
+			});
+			classLevel.appendChild(level.row);
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
 	}
 
-	async function getClasses(class_id) {
+	async function getInstClass(class_id) {
 		try {
 			const res = await fetch(`/api/instByClass/${class_id}`);
 			if (!res.ok) throw new Error('Network error');

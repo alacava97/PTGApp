@@ -47,7 +47,7 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
-		const id = getInstructorId();
+		const id = getId();
 
 		await populateModals(id);
 		await loadInstructor(id);
@@ -86,11 +86,7 @@
 		createSearchableDropdown('searchable', 'results', titles);
 	});
 
-	function getInstructorId() {
-		return new URLSearchParams(window.location.search).get('id');
-	}
-
-	async function loadInstructor(id = getInstructorId()) {
+	async function loadInstructor(id = getId()) {
 		//initialize modals
 		const deleteInst = new Modal('delete-inst-modal');
 		deleteInst.content(`<h4>Permanently delete instructor record?</h4>
@@ -164,7 +160,10 @@
 			//set title
 			const name = document.getElementById('instructor-name');
 			name.textContent = instTitle;
-			name.addEventListener('click', () => { nameModal.show() });
+			name.addEventListener('click', () => {
+				nameModal.show();
+				document.getElementById('name-input').value = instructor.name;
+			});
 			
 			//contact section
 			const contact = new Row();

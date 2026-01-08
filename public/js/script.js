@@ -114,34 +114,6 @@ function searchBar(records) {
 	});
 }
 
-function modalButtons() {
-	const modals = document.querySelectorAll('.modal');
-	const openBtn = document.getElementById('new-btn');
-
-	modals.forEach(el => {
-		el.addEventListener('click', function (event) {
-			if (event.target === el) {
-		  		el.style.display = 'none';
-			}
-		});
-
-		const closeBtn = el.querySelector('.close-btn');
-		closeBtn.addEventListener('click', function () {
-			el.style.display = 'none';
-		});
-	});
-}
-
-function openBtn(btnId, modalId) {
-	const openBtn = document.getElementById(btnId);
-	const modal = document.getElementById(modalId);
-	if (openBtn) {
-		openBtn.addEventListener('click', function () {
-			modal.style.display = 'flex';
-		});
-	}
-}
-
 async function populateModals(id) {
 	const modals = document.querySelectorAll('.modal');
 	try {
