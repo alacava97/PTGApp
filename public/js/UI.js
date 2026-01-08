@@ -4,8 +4,11 @@ class Row {
 		this.row.classList.add('row');
 	}
 
-	addTitle(html) {
+	addTitle(html, id) {
 		this.title = document.createElement('span');
+		if (id) {
+			this.title.id = id;
+		}
 		this.title.innerHTML = html;
 		this.title.classList.add('row-title');
 		this.row.appendChild(this.title);

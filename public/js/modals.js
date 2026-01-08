@@ -6,6 +6,7 @@ class Modal {
 
 		this.modalContent = document.createElement('div');
 		this.modalContent.classList.add('modal-content');
+		this.modalContent.addEventListener('click', (e) => { e.stopPropagation() });
 
 		const closeBtn = document.createElement('div');
 		closeBtn.classList.add('close-btn');
@@ -35,5 +36,25 @@ class Modal {
 
 	content(html) {
 		this.modalContent.insertAdjacentHTML('beforeend', html);
+	}
+
+	findEl(el) {
+		console.log(this.modal.querySelector(el));
+	}
+
+	formSubmit(onSuccess, id = getId()) {
+		const modalForm = this.modal.querySelector('form');
+		modalForm.addEventListener('submit', async (e) => {
+			const form = this.modal.querySelector('form');
+			try {
+                await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', () => {
+                	onSuccess();
+                	this.close();
+                });
+                form.reset();
+            } catch (err) {
+                console.error('Error updating class:', err);
+            }
+		});
 	}
 }

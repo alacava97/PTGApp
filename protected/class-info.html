@@ -57,36 +57,26 @@
 	    await populateDropdown(typeDD, 'types', 'type');
 
 	    // Attach submit handlers
-	    document.querySelectorAll('form').forEach(form => {
-	        form.addEventListener('submit', async (e) => {
-	            e.preventDefault();
+	    // document.querySelectorAll('form').forEach(form => {
+	    //     form.addEventListener('submit', async (e) => {
+	    //         e.preventDefault();
 
-	            if (form.id === 'instructor-class-form') {
-	                // Link instructor to class
-	                const data = parseForm(form);
-	                try {
-	                    await linkClasstoInstructor({
-	                        class_id: id,
-	                        instructor_name: data.instructor_name
-	                    });
-	                    await refreshClass();
-	                    form.reset();
-	                } catch (err) {
-	                    console.error('Error linking instructor to class:', err);
-	                }
-	            } else {
-	                // Update other class data
-	                try {
-	                    await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', async () => {
-	                        await refreshClass();
-	                    });
-	                    form.reset();
-	                } catch (err) {
-	                    console.error('Error updating class:', err);
-	                }
-	            }
-	        });
-	    });
+	    //         if (form.id === 'instructor-class-form') {
+	    //             // Link instructor to class
+	    //             const data = parseForm(form);
+	    //             try {
+	    //                 await linkClasstoInstructor({
+	    //                     class_id: id,
+	    //                     instructor_name: data.instructor_name
+	    //                 });
+	    //                 await refreshClass();
+	    //                 form.reset();
+	    //             } catch (err) {
+	    //                 console.error('Error linking instructor to class:', err);
+	    //             }
+	    //         }
+	    //     });
+	    // });
 	});
 
 	async function loadClass(id = getId()) {
@@ -104,6 +94,24 @@
 				<br><br>
 				<button type="submit" id="submit-title" class="button modal-center">Submit</button>
 			</form>`);
+		async function titleSuccess() {
+			try {
+				const res = await fetch(`/api/readEntry/classes/${id}`)
+				if(!res.ok) throw new Error('Network error');
+
+				const classRecord = await res.json();
+
+				const title = document.getElementById('class-title');
+				title.innerHTML = `${classRecord.title} ✎`
+				title.addEventListener('click', () => {
+					titleModal.show();
+					document.getElementById('title-input').value = classRecord.title;
+				});
+			} catch (err) {
+			console.error('Internal server error:', err);
+			}
+		}
+		titleModal.formSubmit(titleSuccess);
 
 		const lengthModal = new Modal('length-modal');
 		lengthModal.content(`<h4>Update Class Length</h4>
@@ -113,6 +121,18 @@
 				<br><br>
 				<button type="submit" id="submit-length" class="button modal-center">Submit</button>
 			</form>`);
+		async function lengthSuccess() {
+			const newData = await getInstClass(getId());
+			const lengthTitle = document.getElementById('length-title');
+			const newLength = newData[0]['length'];
+			lengthTitle.textContent = `${newLength} ${newLength == 1 ? 'period' : 'periods'}`;
+			const length = document.getElementById('length');
+			length.addEventListener('click', () => {
+				lengthModal.show();
+				document.getElementById('length-input').value = newLength;
+			});
+		}
+		lengthModal.formSubmit(lengthSuccess);
 
 		const levelModal = new Modal('level-modal');
 		levelModal.content(`<h4>Update Level</h4>
@@ -152,6 +172,7 @@
 			</form>`);
 
 		try {
+			const instClass = await getInstClass(id);
 			const res = await fetch(`/api/readEntry/classes/${id}`)
 			if(!res.ok) throw new Error('Network error');
 
@@ -166,7 +187,6 @@
 
 			//instructors
 			const instructorContainer = document.getElementById('instructors');
-			const instClass = await getInstClass(id);
 			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
 			instClass.forEach(entry => {
 				const instRow = new Row();
@@ -203,7 +223,7 @@
 			const length = new Row();
 			if (instClass.length) {
 				classLength.innerHTML = '';
-				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`);
+				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`, 'length-title');
 			} else {
 				length.addTitle('No length');
 			}
@@ -292,9 +312,9 @@
 			const length = new Row();
 			if (instClass.length) {
 				classLength.innerHTML = '';
-				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`);
+				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`, 'length-title');
 			} else {
-				length.addTitle('No length');
+				length.addTitle('No length', 'length-title');
 			}
 			length.row.addEventListener('click', () => {
 				lengthModal.show();
