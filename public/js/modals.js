@@ -42,15 +42,22 @@ class Modal {
 		console.log(this.modal.querySelector(el));
 	}
 
-	formSubmit(onSuccess, id = getId()) {
+	formSubmit(onSuccess, instClass = false, id = getId()) {
 		const modalForm = this.modal.querySelector('form');
 		modalForm.addEventListener('submit', async (e) => {
 			const form = this.modal.querySelector('form');
 			try {
-                await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', () => {
-                	onSuccess();
-                	this.close();
-                });
+				if (!instClass) {
+					await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', () => {
+	                	onSuccess();
+	                	this.close();
+	                });
+            	} else {
+            		e.preventDefault();
+            		const data = parseForm(form);
+            		onSuccess(data);
+            		this.close();
+            	}
                 form.reset();
             } catch (err) {
                 console.error('Error updating class:', err);

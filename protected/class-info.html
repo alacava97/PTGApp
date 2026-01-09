@@ -55,28 +55,6 @@
 
 	    const typeDD = document.getElementById('type-select');
 	    await populateDropdown(typeDD, 'types', 'type');
-
-	    // Attach submit handlers
-	    // document.querySelectorAll('form').forEach(form => {
-	    //     form.addEventListener('submit', async (e) => {
-	    //         e.preventDefault();
-
-	    //         if (form.id === 'instructor-class-form') {
-	    //             // Link instructor to class
-	    //             const data = parseForm(form);
-	    //             try {
-	    //                 await linkClasstoInstructor({
-	    //                     class_id: id,
-	    //                     instructor_name: data.instructor_name
-	    //                 });
-	    //                 await refreshClass();
-	    //                 form.reset();
-	    //             } catch (err) {
-	    //                 console.error('Error linking instructor to class:', err);
-	    //             }
-	    //         }
-	    //     });
-	    // });
 	});
 
 	async function loadClass(id = getId()) {
@@ -194,6 +172,22 @@
 				<ul id="results" class="drop-down-select"></ul><br>
 				<button type="submit" class="button modal-center">Add Instructor</button>
 			</form>`);
+		async function instSuccess(data) {
+                try {
+    				const instructorName = data.instructor_name;
+    				const id = getId();
+    				console.log(id);
+                    await linkClasstoInstructor({
+                        class_id: id,
+                        instructor_name: instructorName
+                    });
+                    
+                } catch (err) {
+                    console.error('Error linking instructor to class:', err);
+                }
+		}
+		instModal.formSubmit(instSuccess, instClass = true);
+
 
 		try {
 			const instClass = await getInstClass(id);
