@@ -66,6 +66,11 @@
 
 			<div id="message"></div>`);
 		document.getElementById('new-btn').addEventListener('click', () => newClass.show());
+		async function classSuccess() {
+			const classes = await read('classes');
+			displayRecords(classes);
+		}
+		newClass.formSubmit(classSuccess, 'classes', type = 'create');
 
 		//populate modal dropdowns
 		const instDropdown = document.getElementById('instDropdown');
@@ -73,15 +78,6 @@
 
 		const typeDD = document.getElementById('typeDropdown');
 		populateDropdown(typeDD, 'types', 'type');
-
-		//wire modal form submit button
-		const form = document.getElementById('new-class-form');
-		form.addEventListener('submit', async (e) => {
-			handleFormSubmission(e, form, `/api/create/classes`, 'POST', async () => {
-				const data = await read('classes');
-				displayRecords(data);
-			});
-		});
 	});
 
 	function displayRecords(records) {

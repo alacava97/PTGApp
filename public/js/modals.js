@@ -42,16 +42,21 @@ class Modal {
 		console.log(this.modal.querySelector(el));
 	}
 
-	formSubmit(onSuccess, table, instClass = false, id = getId()) {
+	formSubmit(onSuccess, table, type = 'update', id = getId()) {
 		const modalForm = this.modal.querySelector('form');
 		modalForm.addEventListener('submit', async (e) => {
 			const form = this.modal.querySelector('form');
 			try {
-				if (!instClass) {
+				if (type == 'update') {
 					await handleFormSubmission(e, form, `/api/update/${table}/${id}`, 'PATCH', () => {
 	                	onSuccess();
 	                	this.close();
 	                });
+            	} else if (type == 'create') {
+            		await handleFormSubmission(e, form, `/api/create/${table}`, 'POST', () => {
+            			onSuccess();
+            			this.close();
+            		});
             	} else {
             		e.preventDefault();
             		const data = parseForm(form);

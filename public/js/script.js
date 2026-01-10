@@ -37,6 +37,18 @@ async function read(table) {
 	}
 }
 
+async function readEntry(table, id) {
+	try {
+		const res = await fetch(`/api/readEntry/${{table}}/${id}`)
+		if(!res.ok) throw new Error('Network error');
+
+		const data = await res.json();
+		return data;
+	} catch (err) {
+		console.error('Failed to load data:', err);
+	}
+}
+
 async function updateRecord(table, id, data) {
 	try {
 	const res = await fetch(`/api/update/${table}/${id}`, {
@@ -234,12 +246,12 @@ function createSearchableDropdown(inputId, resultsId, options) {
 	});
 }
 
-async function linkInstructorToClass(instructorId, classTitle) {
+async function linkInstructorToClass({ instructor_id, class_title }) {
 	try {
 		const res = await fetch('/api/addInstructorClassByTitle', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ instructor_id: instructorId, class_title: classTitle })
+			body: JSON.stringify({ instructor_id, class_title })
 		});
 
 		if (!res.ok) {

@@ -56,16 +56,11 @@
 
 			<div id="message"></div>`);
 		document.getElementById('new-btn').addEventListener('click', () => newInst.show());
-
-		//wire modal form submit button
-		const form = document.getElementById('new-instructor-form');
-		form.addEventListener('submit', async (e) => {
-			handleFormSubmission(e, form, `/api/create/instructors`, 'POST', async () => {
-				const data = await read('instructors');
-				displayRecords(data);
-				sponsorCheck();
-			});
-		});
+		async function instSuccess() {
+			const records = await read('instructors');
+			displayRecords(records);
+		}
+		newInst.formSubmit(instSuccess, 'instructors', type = 'create');
 
 		const sponsored = document.getElementById('sponsored');
 		const sponsor = document.getElementById('sponsor');
@@ -78,6 +73,7 @@
 			}
 		});
 	})
+
 	function displayRecords(instructors) {
 		const instList = document.getElementById('list');
 		instList.innerHTML = '';
@@ -85,10 +81,7 @@
 		instructors.forEach(instructor => {
 			const entry = new Row();
 
-			const name = instructor.name;
-			if (instructor.rpt == true) {
-				name += ', RPT';
-			};
+			const name = `${instructor.name}${instructor.rpt ? ', RPT' : ''}`;
 
 			entry.addTitle(name);
 			entry.addArrow(`/instructor-info.html?id=${instructor.id}`);

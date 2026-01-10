@@ -99,7 +99,7 @@
 				<button type="submit" id="submit-length" class="button modal-center">Submit</button>
 			</form>`);
 		async function lengthSuccess() {
-			const newData = await getInstClass(getId());
+			const newData = await readEntry('classes', getId());
 			const lengthTitle = document.getElementById('length-title');
 			const newLength = newData[0]['length'];
 			lengthTitle.textContent = `${newLength} ${newLength == 1 ? 'period' : 'periods'}`;
@@ -125,7 +125,7 @@
 				<button type="submit" id="submit-level" class="button modal-center">Submit</button>
 			</form>`);
 		async function levelSuccess() {
-			const newData = await getInstClass(getId());
+			const newData = await readEntry('classes', getId());
 			const levelTitle = document.getElementById('level-title');
 			const newLevel = newData[0]['level'];
 			levelTitle.textContent = newLevel;
@@ -146,7 +146,7 @@
 				<button type="submit" id="submit-type" class="button modal-center">Submit</button>
 			</form>`);
 		async function typeSuccess() {
-			const newData = await getInstClass(getId());
+			const newData = await readEntry('classes', getId());
 			const typeTitle = document.getElementById('type-title');
 			const newType = newData[0]['type_name'];
 			typeTitle.textContent = newType;
@@ -174,7 +174,7 @@
 
 		async function populateInstructors(instClass) {
 			const instructorContainer = document.getElementById('instructors');
-			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
+			if (instClass) { instructorContainer.innerHTML = '' };
 			instClass.forEach(entry => {
 				const instRow = new Row();
 				instRow.addTitle(`${entry.instructor_name}`);
@@ -222,7 +222,7 @@
                 console.error('Error linking instructor to class:', err);
             }
 		}
-		instModal.formSubmit(instSuccess, instClass = true);
+		instModal.formSubmit(instSuccess, '', type = 'other');
 
 
 		try {
@@ -246,15 +246,15 @@
 			//class length
 			const classLength = document.getElementById('length');
 			const length = new Row();
-			if (instClass.length) {
+			if (classRecord.length) {
 				classLength.innerHTML = '';
-				length.addTitle(`${instClass[0].length} ${instClass[0].length == 1 ? 'period' : 'periods'}`, 'length-title');
+				length.addTitle(`${classRecord.length} ${classRecord.length == 1 ? 'period' : 'periods'}`, 'length-title');
 			} else {
 				length.addTitle('No length');
 			}
 			length.row.addEventListener('click', () => {
 				lengthModal.show();
-				document.getElementById('length-input').value = instClass[0].length;
+				document.getElementById('length-input').value = classRecord.length;
 			});
 			classLength.appendChild(length.row);
 
@@ -262,10 +262,10 @@
 			const classType = document.getElementById('type');
 			const type = new Row();
 			classType.innerHTML = '';
-			type.addTitle(`${instClass[0].type_name || 'No type'}`, 'type-title');
+			type.addTitle(`${classRecord.type_name || 'No type'}`, 'type-title');
 			classType.addEventListener('click', () => {
 				typeModal.show();
-				document.getElementById('type-select').value = instClass[0].type_id;
+				document.getElementById('type-select').value = classRecord.type_id;
 			});
 			classType.appendChild(type.row);
 
@@ -273,11 +273,11 @@
 			const classLevel = document.getElementById('level');
 			const level = new Row();
 			classLevel.innerHTML = '';
-			const l = instClass[0].level.charAt(0).toUpperCase() + instClass[0].level.slice(1);
+			const l = classRecord.level.charAt(0).toUpperCase() + classRecord.level.slice(1);
 			level.addTitle(l || 'No level', 'level-title');
 			level.row.addEventListener('click', () => {
 				levelModal.show();
-				document.getElementById('level-select').value = instClass[0].level;
+				document.getElementById('level-select').value = classRecord.level;
 			});
 			classLevel.appendChild(level.row);
 		} catch (err) {

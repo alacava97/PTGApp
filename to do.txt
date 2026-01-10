@@ -4,6 +4,7 @@
 -Form for class submission
 	-Talk to Corie about fields
 	-Class needs
+	-Option to customize fields? Maybe too complicated right now.
 
 -Page for inst team to approve/deny submissions
 	-List view
@@ -18,8 +19,8 @@
 	-Select from list
 	-Select all button
 
-Refactoring
--Fix info refresh functions so they don't break modals
+Schedule Page
+-Make 2026 work better
 
 Far Future
 -Instructor login

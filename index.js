@@ -253,7 +253,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       instructors.name ||
       CASE
         WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
-      THEN ', ' || instructors.rpt
+      THEN ', ' || RPT
       ELSE ''
       END,
       ', '
