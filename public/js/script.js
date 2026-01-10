@@ -39,7 +39,7 @@ async function read(table) {
 
 async function readEntry(table, id) {
 	try {
-		const res = await fetch(`/api/readEntry/${{table}}/${id}`)
+		const res = await fetch(`/api/readEntry/${table}/${id}`)
 		if(!res.ok) throw new Error('Network error');
 
 		const data = await res.json();

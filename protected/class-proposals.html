@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>PTG Convention Web App</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header class="clearfix">
+		<h1>Class Proposals</h1>
+	</header>
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by title, name, type, level, length, etc.">
+	<div id="count" class="count"></div>
+	<div id="list"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const proposals = await read('class_proposals');
+		displayRecords(proposals);
+		searchBar(proposals);
+	});
+
+	function displayRecords(data) {
+		const propList = document.getElementById('list');
+		propList.innerHTML = '';
+		data.forEach(entry => {
+			const row = new Row();
+			row.addTitle(entry.title || 'No Title');
+			row.addSubtitle(entry.name || 'No Instructor');
+			row.addSubtitle((entry.type || 'No type') + ', ' + (entry.level || 'No level'));
+			row.addSubtitle(`${entry.length || 0} ${entry.length == 1 ? 'period' : 'periods'}, ${entry.uprights || 0} ${entry.uprights == 1 ? 'upright' : 'uprights'}, ${entry.grands || 0} ${entry.grands == 1 ? 'grand' : 'grands'}`);
+			row.addSubtitle(`${entry.assigned ? `Assigned to ${entry.assigned}` : 'Not assigned'}`);
+			row.addArrow(`/prop-info.html?id=${entry.id}`);
+			propList.appendChild(row.row);
+		});
+		const count = document.getElementById('count');
+		const num = data.length;
+		count.innerHTML = `Found ${num} records.`;
+	};
+
+	function loadNavs(role) {
+		const institute = document.createElement('span');
+	}
+</script>

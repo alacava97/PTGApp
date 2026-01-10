@@ -1,14 +1,16 @@
--Login
+-Emailing
 	-Password reset emailing
-
--Form for class submission
-	-Talk to Corie about fields
-	-Class needs
-	-Option to customize fields? Maybe too complicated right now.
+	-Approved class emailing
 
 -Page for inst team to approve/deny submissions
-	-List view
-	-Sorting
+	-Assign team member
+	-Approve/deny
+		-Create new instructor record - createRecord
+		-Create a new class record - createRecord
+		-Update an existing instructor or class record - record search like the instructor search on the class info page - updateRecord
+		-Assign class to an existing instructor - same as above - updateRecord
+
+-Second form for approved classes
 
 -Form for class review
 	-URL slug carrying class ID

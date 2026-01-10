@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>PTG Convention Web App</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header class="clearfix">
+		<h1>Class Proposal</h1>
+		<div id="back-btn" class="back-btn"><a href="/class-proposals.html">&#9664; Classes</a></div>
+	</header>
+	<h3>Class</h3>
+	<div id="class-info">Loading...</div>
+	<h3>Instructor</h3>
+	<div id="instructor-info">Loading...</div>
+	<h3>Sponsor</h3>
+	<div id="sponsor-info">Loading...</div>
+	<h3>Assigned To</h3>
+	<div id="assigned">Loading...</div>
+
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const data = await readEntry('class_proposals', getId());
+		displayRecord(data);
+	});
+
+	function displayRecord(data) {
+		const classInfo = document.getElementById('class-info');
+		const classRow = new Row();
+		classRow.addTitle(data.title || 'No Title');
+		classRow.addSubtitle(`${data.type || 'No type'}`);
+		classRow.addSubtitle(`${data.level || 'No level'}`);
+		classInfo.replaceChildren(classRow.row);
+
+		const descRow = new Row();
+		descRow.addTitle('Class Description');
+		descRow.addSubtitle(`${data.description || 'No description'}`);
+		classInfo.appendChild(descRow.row);
+
+		const moreRow = new Row();
+		moreRow.addSubtitle(`${data.length || 0} ${data.length == 1 ? 'period' : 'periods'}`);
+		moreRow.addSubtitle(`${data.uprights || 0} ${data.uprights == 1 ? 'upright' : 'uprights'}`);
+		moreRow.addSubtitle(`${data.grands || 0} ${data.grands == 1 ? 'grand' : 'grands'}`);
+		classInfo.appendChild(moreRow.row);
+
+		const instInfo = document.getElementById('instructor-info');
+		const instRow = new Row();
+		instRow.addTitle(`${data.name || 'No Instructor'}`);
+		instRow.addSubtitle(`${data.email || 'No email'}`);
+		instRow.addSubtitle(`${data.phone || 'No phone'}`);
+		instInfo.replaceChildren(instRow.row);
+
+		const sponsorInfo = document.getElementById('sponsor-info');
+		const sponsorRow = new Row();
+		sponsorRow.addSubtitle(`${data.sponsor || 'No Sponsor'}`);
+		sponsorInfo.replaceChildren(sponsorRow.row);
+
+		const assignInfo = document.getElementById('assigned');
+		const assignRow = new Row();
+		assignRow.addTitle('Institute Team Member');
+		assignRow.addSubtitle(`${data.assigned || 'Not assigned.'}`);
+		assignRow.editArrow();
+		assignRow.row.addEventListener('click', () => {
+			//open modal
+		});
+		assignInfo.replaceChildren(assignRow.row);
+	}
+
+	function loadNavs(role) {
+		const institute = document.createElement('span');
+	}
+</script>
