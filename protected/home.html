@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Home</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<div id="panes" class="main-content">
+		<h1>Resources</h1>
+		<a href="/class_proposal.html">Class Proposal Form</a>
+	</div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const res = await fetch('/auth/session', { credentials: 'include' });
+		const user = await res.json();
+
+		console.log(user.role);
+	});
+
+	function loadNavs(role) {
+		const institute = document.createElement('span');
+	}
+</script>

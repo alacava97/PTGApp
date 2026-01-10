@@ -1,12 +1,4 @@
 /* Base elements */
-body {
-	margin: 0;
-	margin-bottom: 45px;
-	color: #333333;
-	background-color: #F8F8F8;
-	font-family: 'Montserrat', sans-serif;
-}
-
 .nav-ul {
 	list-style-type: none;
 	margin: 0;
@@ -44,10 +36,6 @@ header {
 	box-sizing: border-box;
 }
 
-h1 {
-	margin: 0;
-}
-
 h3 {
 	margin: 15px 5% 5px;
 	font-weight: 400;
@@ -70,10 +58,6 @@ a:hover {
 
 textarea {
 	resize: none;
-	display: block;
-	width: 100%;
-	height: auto;
-	min-height: 4rem;
 }
 
 /* End base elements */
@@ -375,10 +359,6 @@ textarea {
 	cursor: pointer;
 }
 
-#sponsor {
-	display: none;
-}
-
 .add-record {
 	position: absolute;
 	right: 0;
@@ -580,4 +560,27 @@ textarea {
 .delete-btn:hover {
 	background-color: #ffbbbb;
 	font-weight: 900;
+}
+
+.main-content {
+	display: grid;
+	justify-content: center;
+	margin: 0 5%;
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr;
+	gap: 5px;
+}
+
+#class-proposal {
+	max-width: 400px;
+}
+
+#class-proposal > input,
+#class-proposal > textarea,
+#class-proposal > select {
+	border: 1px solid #d1d1d1;
+	border-radius: 2px;
 }

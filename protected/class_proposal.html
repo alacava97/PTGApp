@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Class Proposal</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header>
+		<h1>Class Proposal Form</h1>
+	</header>
+	<div class="main-content">
+		<form id="class-proposal" class="form-grid">
+			<h2>Contact Information</h2>
+			<label for="name">Name</label>
+			<input id="name" type="text" name="name" autocomplete="name">
+			<label for="email">Email</label>
+			<input id="email" type="email" name="email" autocomplete="email">
+			<label for="phone">Phone</label>
+			<input id="phone" type="tel" name="phone" autocomplete="tel">
+			<label for="sponsor">Sponsor</label>
+			<input id="sponsor" type="text" name="sponsor">
+			<span>
+				<label for="rpt">RPT</label>
+				<input id="rpt" type="checkbox" name="rpt" value="true">
+			</span>
+
+			<h2>Class Information</h2>
+			<label for="title">Class Title</label>
+			<input id="title" type="text" name="title">
+			<label for="desc">Description</label>
+			<textarea id="desc" name="desc"></textarea>
+			<label for="level">Level</label>
+			<select id="level" name="level">
+				<option value="" disabled selected>Select a level</option>
+				<option value="everyone">everyone</option>
+				<option value="beginner">beginner</option>
+				<option value="intermediate">intermediate</option>
+				<option value="adanvced">advanced</option>
+			</select>
+			<label for="type">Type</label>
+			<select id="type" name="type">
+				<option value="" disabled selected>Select a type</option>
+			</select>
+			<label for="length">Class Length<br>(1 period = 1.5 hours)</label>
+			<input id="length" name="length" type="number" min="1" max="5">
+			<label for="uprights">Uprights needed</label>
+			<input id="uprights" name="uprights" type="number" min="0">
+			<label for="grands">Grands needed</label>
+			<input id="grands" name="grands" type="number" min="0">
+
+			<button type="submit">Submit</button>
+			<span id="message"></span>
+		</form>
+	</div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const res = await fetch('/auth/session', { credentials: 'include' });
+		const user = await res.json();
+
+		console.log(user.role);
+
+		await populateDropdown(document.getElementById('type'), 'types', 'type');
+
+		const form = document.getElementById('class-proposal');
+		form.addEventListener('submit', (e) => {
+			handleFormSubmission(e, form, `/api/create/class_proposals`, 'POST', () => {
+				document.getElementById('message').textContent = "Thank you for your submission. The institute team will review your class and get back to you soon!"
+			});
+		});
+	});
+
+	function loadNavs(role) {
+		const institute = document.createElement('span');
+	}
+</script>
