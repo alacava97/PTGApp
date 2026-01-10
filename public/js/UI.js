@@ -14,8 +14,11 @@ class Row {
 		this.row.appendChild(this.title);
 	}
 
-	addSubtitle(html) {
+	addSubtitle(html, id) {
 		this.subtitle = document.createElement('span');
+		if (id) {
+			this.subtitle.id = id;
+		}
 		this.subtitle.innerHTML = html;
 		this.subtitle.classList.add('row-subtitle');
 		this.row.appendChild(this.subtitle);

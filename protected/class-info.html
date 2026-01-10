@@ -40,9 +40,6 @@
 		await loadClass();
 		const id = getId();
 
-		const delClass = document.getElementById('delete-class');
-	    delClass.addEventListener('click', () => delClassModal.show());
-
 	    document.getElementById('delete-class-button').addEventListener('click', async () => {
     		await deleteEntry('classes', id);
     		window.location.href = "/classes.html";
@@ -63,6 +60,8 @@
 			<div>
 				<button id="delete-class-button" class="button red modal-center">Delete</button>
 			</div>`);
+		const delClass = document.getElementById('delete-class');
+	    delClass.addEventListener('click', () => delClassModal.show());
 
 		const titleModal = new Modal('title-modal');
 		titleModal.content(`<h4>Update Class Title</h4>
@@ -89,7 +88,7 @@
 			console.error('Internal server error:', err);
 			}
 		}
-		titleModal.formSubmit(titleSuccess);
+		titleModal.formSubmit(titleSuccess, 'classes');
 
 		const lengthModal = new Modal('length-modal');
 		lengthModal.content(`<h4>Update Class Length</h4>
@@ -110,7 +109,7 @@
 				document.getElementById('length-input').value = newLength;
 			});
 		}
-		lengthModal.formSubmit(lengthSuccess);
+		lengthModal.formSubmit(lengthSuccess, 'classes');
 
 		const levelModal = new Modal('level-modal');
 		levelModal.content(`<h4>Update Level</h4>
@@ -136,7 +135,7 @@
 				document.getElementById('level-select').value = newLevel;
 			});
 		}
-		levelModal.formSubmit(levelSuccess);
+		levelModal.formSubmit(levelSuccess, 'classes');
 
 		const typeModal = new Modal('type-modal');
 		typeModal.content(`<h4>Update Type</h4>
@@ -157,7 +156,7 @@
 				document.getElementById('type-select').value = newData[0]['type_id'];
 			});
 		}
-		typeModal.formSubmit(typeSuccess);
+		typeModal.formSubmit(typeSuccess, 'classes');
 
 		const delConfModal = new Modal('delete-confirmation-modal');
 		delConfModal.content(`<h4>Remove instructor from class record?</h4>
@@ -172,19 +171,56 @@
 				<ul id="results" class="drop-down-select"></ul><br>
 				<button type="submit" class="button modal-center">Add Instructor</button>
 			</form>`);
+
+		async function populateInstructors(instClass) {
+			const instructorContainer = document.getElementById('instructors');
+			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
+			instClass.forEach(entry => {
+				const instRow = new Row();
+				instRow.addTitle(`${entry.instructor_name}`);
+				instRow.addSubtitle(`${entry.sponsor || 'No sponsor'}`);
+				instRow.addLink(`/instructor-info.html?id=${entry.instructor_id}`);
+				instRow.addDeleteButton();
+				instRow.deleteButton.addEventListener('click', (e) => {
+					e.stopPropagation();
+					delConfModal.show();
+					const confDel = document.getElementById('delete-button');
+
+					const newConfDel = confDel.cloneNode(true);
+					confDel.parentNode.replaceChild(newConfDel, confDel);
+
+					const id = getId();
+					newConfDel.addEventListener('click', async (e) => {
+						await deleteClassInstructorLink(id, entry.instructor_id);
+						const newData = await getInstClass(id);
+						await populateInstructors(newData);
+						document.getElementById('delete-confirmation-modal').style.display = "none";
+					});
+				})
+				
+				instructorContainer.appendChild(instRow.row);
+			});
+
+			const addInst = new Row();
+			addInst.addSubtitle(`<b>＋</b> Add instructor`);
+			addInst.row.addEventListener('click', () => { instModal.show() });
+			instructorContainer.appendChild(addInst.row);
+		}
+
 		async function instSuccess(data) {
-                try {
-    				const instructorName = data.instructor_name;
-    				const id = getId();
-    				console.log(id);
-                    await linkClasstoInstructor({
-                        class_id: id,
-                        instructor_name: instructorName
-                    });
-                    
-                } catch (err) {
-                    console.error('Error linking instructor to class:', err);
-                }
+            try {
+				const instructorName = data.instructor_name;
+				const id = getId();
+                await linkClasstoInstructor({
+                    class_id: id,
+                    instructor_name: instructorName
+                }); 
+
+                const instClass = await getInstClass(id);
+                await populateInstructors(instClass);
+            } catch (err) {
+                console.error('Error linking instructor to class:', err);
+            }
 		}
 		instModal.formSubmit(instSuccess, instClass = true);
 
@@ -204,37 +240,8 @@
 			});
 
 			//instructors
-			const instructorContainer = document.getElementById('instructors');
-			if (instClass[0].instructor_name) { instructorContainer.innerHTML = '' };
-			instClass.forEach(entry => {
-				const instRow = new Row();
-				instRow.addTitle(`${entry.instructor_name}`);
-				instRow.addSubtitle(`${entry.sponsor || 'No sponsor'}`);
-				instRow.addLink(`/instructor-info.html?id=${entry.instructor_id}`);
-				instRow.addDeleteButton();
-				instRow.deleteButton.addEventListener('click', (e) => {
-					e.stopPropagation();
-					delConfModal.show();
-					const confDel = document.getElementById('delete-button');
-
-					const newConfDel = confDel.cloneNode(true);
-					confDel.parentNode.replaceChild(newConfDel, confDel);
-
-					const id = getId();
-					newConfDel.addEventListener('click', async () => {
-						deleteClassInstructorLink(id, entry.instructor_id);
-						refreshClass();
-						delModal.style.display = "none";
-					});
-				})
-				
-				instructorContainer.appendChild(instRow.row);
-			});
-
-			const addInst = new Row();
-			addInst.addSubtitle(`<b>＋</b> Add instructor`);
-			addInst.row.addEventListener('click', () => { instModal.show() });
-			instructorContainer.appendChild(addInst.row);
+			await populateInstructors(instClass);
+			
 
 			//class length
 			const classLength = document.getElementById('length');

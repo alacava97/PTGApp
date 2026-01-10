@@ -224,7 +224,7 @@ function createSearchableDropdown(inputId, resultsId, options) {
 			.forEach(o => {
 				const li = document.createElement('li');
 				li.textContent = o;
-				li.classList.add('dd-options')
+				li.classList.add('dd-options');
 				li.addEventListener('click', () => {
 					input.value = o;
 					results.innerHTML = '';

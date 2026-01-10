@@ -42,13 +42,13 @@ class Modal {
 		console.log(this.modal.querySelector(el));
 	}
 
-	formSubmit(onSuccess, instClass = false, id = getId()) {
+	formSubmit(onSuccess, table, instClass = false, id = getId()) {
 		const modalForm = this.modal.querySelector('form');
 		modalForm.addEventListener('submit', async (e) => {
 			const form = this.modal.querySelector('form');
 			try {
 				if (!instClass) {
-					await handleFormSubmission(e, form, `/api/update/classes/${id}`, 'PATCH', () => {
+					await handleFormSubmission(e, form, `/api/update/${table}/${id}`, 'PATCH', () => {
 	                	onSuccess();
 	                	this.close();
 	                });
