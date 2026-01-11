@@ -231,6 +231,10 @@ function createSearchableDropdown(inputId, resultsId, options) {
 		const searchTerm = input.value.toLowerCase();
 		results.innerHTML = '';
 
+		if (input.value == '') {
+			return
+		}
+
 		options
 			.filter(o => o.toLowerCase().includes(searchTerm))
 			.forEach(o => {
@@ -243,6 +247,10 @@ function createSearchableDropdown(inputId, resultsId, options) {
 				});
 				results.appendChild(li);
 			});
+	});
+
+	input.addEventListener('blur', () => {
+		results.innerHTML = '';
 	});
 }
 

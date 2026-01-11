@@ -36,29 +36,42 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		const data = await readEntry('class_proposals', getId());
 		displayRecord(data);
+
+		const classes = await read('classes');
+		const names = classes.map(entry => entry.title);
+
+		const instructors = await read('instructors');
+		const instructorNames = instructors.map(entry => entry.name);
+
+		createSearchableDropdown('class-dd', 'class-dd-result', names);
+		createSearchableDropdown('inst-dd', 'inst-dd-result', instructorNames);
 	});
 
 	function displayRecord(data) {
 		const approveModal = new Modal();
 		approveModal.content(`
-			<h4>Approve Class?</h4>
+			<h2 class="center" >Approve Class?</h2>
 			<div class="grid3">
-				<span>new class</span>
+				<span id="new-class" class="bold">Create new<br>class record.</span>
 				<label class="switch">
-					<input type="checkbox">
+					<input type="checkbox" id="class-switch">
 					<span class="slider"></span>
 				</label>
-				<span>update class</span>
-				<span>new instructor</span>
+				<span id="update-class">Update existing class record.<input id="class-dd" class="class-dd-input"><ul id="class-dd-result" class="dd"></ul></span>
+				<span class="grid-border"></span>
+				<span id="new-inst" class="bold">Create new<br>instructor record.</span>
 					<label class="switch">
-						<input type="checkbox">
+						<input type="checkbox" id="inst-switch">
 						<span class="slider"></span>
 					</label>
-					<span>update instructor</span>
+					<span id="update-inst">Update existing instructor record.<input id="inst-dd" class="class-dd-input"><ul id="inst-dd-result" class="dd"></ul></span>
+				<span class="grid-border"></span>
 			</div>
+			<br>
 			<button id="approve-class" class="green button modal-center">Approve</button>
 			<button id="decline-class" class="red button modal-center">Decline</button>
 		`);
+
 		document.getElementById('approve-class').addEventListener('click', async (e) => {
 			e.preventDefault();
 			await updateRecord('class_proposals', getId(), {approved:true});
@@ -68,6 +81,35 @@
 				approveModal.show();
 			});
 		});
+
+		document.getElementById('class-switch').addEventListener('change', (e) => {
+			const nClass = document.getElementById('new-class');
+			const uClass = document.getElementById('update-class');
+
+			if (e.target.checked) {	
+				nClass.classList.remove('bold');
+				uClass.classList.add('bold');
+			} else {
+				uClass.classList.remove('bold');
+				nClass.classList.add('bold');
+			}
+		});
+
+		document.getElementById('inst-switch').addEventListener('change', (e) => {
+			const nInst = document.getElementById('new-inst');
+			const uInst = document.getElementById('update-inst');	
+
+			if (e.target.checked) {
+				nInst.classList.remove('bold');
+				uInst.classList.add('bold');
+			} else {
+				uInst.classList.remove('bold');
+				nInst.classList.add('bold');
+			}
+		});
+
+
+
 
 		document.getElementById('decline-class').addEventListener('click', async (e) => {
 			e.preventDefault();
