@@ -42,6 +42,20 @@
 		const approveModal = new Modal();
 		approveModal.content(`
 			<h4>Approve Class?</h4>
+			<div class="grid3">
+				<span>new class</span>
+				<label class="switch">
+					<input type="checkbox">
+					<span class="slider"></span>
+				</label>
+				<span>update class</span>
+				<span>new instructor</span>
+					<label class="switch">
+						<input type="checkbox">
+						<span class="slider"></span>
+					</label>
+					<span>update instructor</span>
+			</div>
 			<button id="approve-class" class="green button modal-center">Approve</button>
 			<button id="decline-class" class="red button modal-center">Decline</button>
 		`);
