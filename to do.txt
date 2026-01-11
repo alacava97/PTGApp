@@ -3,13 +3,10 @@
 	-Approved class emailing
 
 -Page for inst team to approve/deny submissions
-	-Assign team member
-	-Approve/deny
-		-Create new instructor record - createRecord
-		-Create a new class record - createRecord
-		-Update an existing instructor or class record - record search like the instructor search on the class info page - updateRecord
-		-Assign class to an existing instructor - same as above - updateRecord
-
+	-Create new instructor record - createRecord
+	-Create a new class record - createRecord
+	-Update an existing instructor or class record - record search like the instructor search on the class info page - updateRecord
+	-Assign class to an existing instructor - same as above - updateRecord
 -Second form for approved classes
 
 -Form for class review

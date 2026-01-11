@@ -574,6 +574,12 @@ textarea {
 	gap: 5px;
 }
 
+.right {
+	float: right;
+	clear: right;
+	margin-right: 5%;
+}
+
 #class-proposal {
 	max-width: 400px;
 }

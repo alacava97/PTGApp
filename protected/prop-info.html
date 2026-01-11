@@ -17,6 +17,8 @@
 		<h1>Class Proposal</h1>
 		<div id="back-btn" class="back-btn"><a href="/class-proposals.html">&#9664; Classes</a></div>
 	</header>
+	<h3>Approval Status</h3>
+	<div id="approved">Loading...</div>
 	<h3>Class</h3>
 	<div id="class-info">Loading...</div>
 	<h3>Instructor</h3>
@@ -37,6 +39,59 @@
 	});
 
 	function displayRecord(data) {
+		const approveModal = new Modal();
+		approveModal.content(`
+			<h4>Approve Class?</h4>
+			<button id="approve-class" class="green button modal-center">Approve</button>
+			<button id="decline-class" class="red button modal-center">Decline</button>
+		`);
+		document.getElementById('approve-class').addEventListener('click', async (e) => {
+			e.preventDefault();
+			await updateRecord('class_proposals', getId(), {approved:true});
+			approveModal.close();
+			document.getElementById('status-subtitle').textContent = 'Approved';
+			document.getElementById('approved').addEventListener('click', () => {
+				approveModal.show();
+			});
+		});
+
+		document.getElementById('decline-class').addEventListener('click', async (e) => {
+			e.preventDefault();
+			await updateRecord('class_proposals', getId(), {approved:false});
+			approveModal.close();
+			document.getElementById('status-subtitle').textContent = 'Declined';
+			document.getElementById('approved').addEventListener('click', () => {
+				approveModal.show();
+			});
+		});
+
+		const assignModal = new Modal();
+		assignModal.content(`
+			<h4>Assign</h4>
+			<form>
+				<input id="assign-input" name="assigned" type="text" class="modal-center">
+				<button type="submit" class="button modal-center">Assign</button>
+			</form>
+		`);
+		async function assignSuccess() {
+			const newData = await readEntry('class_proposals', getId());
+			document.getElementById('assign-subtitle').textContent = newData.assigned || 'Not assigned';
+			document.getElementById('assigned').addEventListener('click', () => {
+				assignModal.show();
+				document.getElementById('assign-input').value = newData.assigned;
+			});
+		}
+		assignModal.formSubmit(assignSuccess, 'class_proposals');
+
+		const status = document.getElementById('approved');
+		const statusRow = new Row();
+		statusRow.addSubtitle(`${data.approved == true ? 'Approved' : data.approved == false ? 'Declined' : 'Pending'}`, 'status-subtitle');
+		statusRow.editArrow();
+		statusRow.row.addEventListener('click', () => {
+			approveModal.show();
+		});
+		status.replaceChildren(statusRow.row);
+
 		const classInfo = document.getElementById('class-info');
 		const classRow = new Row();
 		classRow.addTitle(data.title || 'No Title');
@@ -70,10 +125,11 @@
 		const assignInfo = document.getElementById('assigned');
 		const assignRow = new Row();
 		assignRow.addTitle('Institute Team Member');
-		assignRow.addSubtitle(`${data.assigned || 'Not assigned.'}`);
+		assignRow.addSubtitle(`${data.assigned || 'Not assigned'}`, 'assign-subtitle');
 		assignRow.editArrow();
 		assignRow.row.addEventListener('click', () => {
-			//open modal
+			assignModal.show();
+			document.getElementById('assign-input').value = data.assigned;
 		});
 		assignInfo.replaceChildren(assignRow.row);
 	}

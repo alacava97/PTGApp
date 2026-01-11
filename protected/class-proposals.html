@@ -15,6 +15,18 @@
 	<div id="navbar"></div>
 	<header class="clearfix">
 		<h1>Class Proposals</h1>
+		<div class="right">
+			<label for="declined">show declined</label>
+			<input id="declined" name="declined" type="checkbox" value="false">
+		</div>
+		<div class="right">
+			<label for="pending">show pending</label>
+			<input id="pending" name="pending" type="checkbox" checked value="null">
+		</div>
+		<div class="right">
+			<label for="approved">show approved</label>
+			<input id="approved" name="approved" type="checkbox" value="true">
+		</div>
 	</header>
 	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by title, name, type, level, length, etc.">
 	<div id="count" class="count"></div>
@@ -29,14 +41,32 @@
 		const proposals = await read('class_proposals');
 		displayRecords(proposals);
 		searchBar(proposals);
+
+		const checks = document.querySelectorAll('input[type="checkbox"]');
+		checks.forEach(check => {
+			check.addEventListener('change', () => {
+				displayRecords(proposals);
+			});
+		});
 	});
 
 	function displayRecords(data) {
 		const propList = document.getElementById('list');
 		propList.innerHTML = '';
-		data.forEach(entry => {
+		const checkedNodes = document.querySelectorAll('input[type="checkbox"]:checked');
+		const checkedValues = [...checkedNodes].map(check => {
+			if (check.value == 'true') return true;
+			if (check.value == 'false') return false;
+			return null;
+		});
+
+		const filteredData = data.filter(row => {
+			return checkedValues.includes(row.approved);
+		});
+
+		filteredData.forEach(entry => {
 			const row = new Row();
-			row.addTitle(entry.title || 'No Title');
+			row.addTitle(`${entry.title || 'No Title'} - ${entry.approved == true ? 'approved' : entry.approved == false ? 'declined' : 'pending'}`);
 			row.addSubtitle(entry.name || 'No Instructor');
 			row.addSubtitle((entry.type || 'No type') + ', ' + (entry.level || 'No level'));
 			row.addSubtitle(`${entry.length || 0} ${entry.length == 1 ? 'period' : 'periods'}, ${entry.uprights || 0} ${entry.uprights == 1 ? 'upright' : 'uprights'}, ${entry.grands || 0} ${entry.grands == 1 ? 'grand' : 'grands'}`);

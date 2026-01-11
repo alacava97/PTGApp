@@ -51,16 +51,16 @@ async function readEntry(table, id) {
 
 async function updateRecord(table, id, data) {
 	try {
-	const res = await fetch(`/api/update/${table}/${id}`, {
-		method: 'PUT',
-		headers: {
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify(data)
-	});
-	if (!res.ok) throw new Error('Network response was not ok');
-	const result =  await res.json();
-	return result;
+		const res = await fetch(`/api/update/${table}/${id}`, {
+			method: 'PATCH',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(data)
+		});
+		if (!res.ok) throw new Error('Network response was not ok');
+		const result =  await res.json();
+		return result;
 	} catch (err) {
 		console.error('Internal server error:', err);
 		return { error: 'Request failed' };

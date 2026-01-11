@@ -2,7 +2,9 @@ class Modal {
 	constructor(id) {
 		this.modal = document.createElement('div');
 		this.modal.classList.add('modal');
-		this.modal.id = id;
+		if (id) {
+			this.modal.id = id;
+		}
 
 		this.modalContent = document.createElement('div');
 		this.modalContent.classList.add('modal-content');
