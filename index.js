@@ -75,7 +75,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     }
   }
 
-
   if (Object.keys(data).length === 0) {
     return res.status(400).json({ error: 'No valid fields provided' });
   }
@@ -168,19 +167,20 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
   }
 });
 
-app.post('/api/addInstructorClassByTitle', requireLogin, async (req, res) => {
-  const { instructor_id, class_title } = req.body;
+app.post('/api/addInstructorClassById', requireLogin, async (req, res) => {
+  const { instructor_id, class_id } = req.body;
 
-  if (!instructor_id || !class_title) {
-    return res.status(400).json({ error: 'Missing instructor_id or class_title' });
+  if (!instructor_id || !class_id) {
+    return res.status(400).json({ error: 'Missing instructor_id or class_id' });
   }
 
   try {
     const result = await pool.query(
       `INSERT INTO class_instructors (instructor_id, class_id)
-       SELECT $1, id FROM classes WHERE title = $2
+       VALUES ($1, $2)
+       ON CONFLICT DO NOTHING
        RETURNING *`,
-      [instructor_id, class_title]
+      [instructor_id, class_id]
     );
 
     if (result.rowCount === 0) {
@@ -194,19 +194,20 @@ app.post('/api/addInstructorClassByTitle', requireLogin, async (req, res) => {
   }
 });
 
-app.post('/api/addClassbyInstructorName', requireLogin, async (req, res) => {
-  const { class_id, instructor_name } = req.body;
+app.post('/api/addClassbyInstructorId', requireLogin, async (req, res) => {
+  const { class_id, instructor_id } = req.body;
 
-  if (!class_id || !instructor_name) {
-    return res.status(400).json({ error: 'Missing class_id or instructor_name' });
+  if (!class_id || !instructor_id) {
+    return res.status(400).json({ error: 'Missing class_id or instructor_id' });
   }
 
   try {
     const result = await pool.query(
       `INSERT INTO class_instructors (class_id, instructor_id)
-       SELECT $1, id FROM instructors WHERE name = $2
+       VALUES($1, $2)
+       ON CONFLICT DO NOTHING
        RETURNING *`,
-      [class_id, instructor_name]
+      [class_id, instructor_id]
     );
 
     if (result.rowCount === 0) {

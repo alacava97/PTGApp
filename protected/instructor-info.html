@@ -61,8 +61,7 @@
 		sponsored.addEventListener('change', sponsorCheck);
 
 		const classData = await read('classes');
-		const titles = classData.map(item => item.title);
-		createSearchableDropdown('searchable', 'results', titles);
+		createSearchableDropdown('searchable', 'results', classData, 'title');
 	});
 
 	async function loadInstructor(id = getId()) {
@@ -159,9 +158,10 @@
 		classModal.content(`<h4>Select a Class</h4>
 			<form id="instructor-class-form">
 			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
-				<ul id="results" class="drop-down-select"></ul><br>
+				<ul id="results" class="drop-down-select dd"></ul><br>
 				<button type="submit" class="button modal-center">Add Class</button>
 			</form>`);
+
 		async function populateClasses(classes) {
 			const classContainer = document.getElementById('classes');
 			if (classes) { classContainer.innerHTML = '' };
@@ -199,10 +199,11 @@
 		async function classSuccess(data) {
 			try {
 				const classTitle = data.title;
+				const classId = document.getElementById('searchable').getAttribute('row-id');
 				const id = getId();
 				await linkInstructorToClass({
 					instructor_id: id,
-					class_title: classTitle
+					class_id: classId
 				});
 
 				const instClass = await getClasses(id);

@@ -23,6 +23,29 @@ document.addEventListener('DOMContentLoaded', () => {
 	}
 });
 
+async function create(table, data) {
+	try {
+		const res = await fetch(`/api/create/${table}`, {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			credentials: 'include',
+			body: JSON.stringify(data)
+		});
+
+		if (!res.ok) {
+		  console.error('STATUS:', res.status);
+		  const text = await res.text();
+		  console.error('BODY:', text);
+		  throw new Error(`Request failed: ${res.status}`);
+		}
+
+		const result = await res.json();
+		return result;
+	} catch (err) {
+		console.error('Failed to load data:', err);
+	}
+}
+
 async function read(table) {
 	try {
 		const response = await fetch(`/api/read/${table}`, {
@@ -218,7 +241,7 @@ async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubm
 	}
 }
 
-function createSearchableDropdown(inputId, resultsId, options) {
+function createSearchableDropdown(inputId, resultsId, options, display) {
 	const input = document.getElementById(inputId);
 	const results = document.getElementById(resultsId);
 
@@ -236,30 +259,27 @@ function createSearchableDropdown(inputId, resultsId, options) {
 		}
 
 		options
-			.filter(o => o.toLowerCase().includes(searchTerm))
+			.filter(o => o[display].toLowerCase().includes(searchTerm))
 			.forEach(o => {
 				const li = document.createElement('li');
-				li.textContent = o;
+				li.textContent = o[display];
 				li.classList.add('dd-options');
 				li.addEventListener('click', () => {
-					input.value = o;
+					input.value = o[display];
+					input.setAttribute('row-id', o.id);
 					results.innerHTML = '';
 				});
 				results.appendChild(li);
 			});
 	});
-
-	input.addEventListener('blur', () => {
-		results.innerHTML = '';
-	});
 }
 
-async function linkInstructorToClass({ instructor_id, class_title }) {
+async function linkInstructorToClass({ instructor_id, class_id }) {
 	try {
-		const res = await fetch('/api/addInstructorClassByTitle', {
+		const res = await fetch('/api/addInstructorClassById', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ instructor_id, class_title })
+			body: JSON.stringify({ instructor_id, class_id })
 		});
 
 		if (!res.ok) {
@@ -271,12 +291,12 @@ async function linkInstructorToClass({ instructor_id, class_title }) {
 	}
 }
 
-async function linkClasstoInstructor({ class_id, instructor_name }) {
+async function linkClasstoInstructor({ class_id, instructor_id }) {
 	try {
-		const res = await fetch('/api/addClassbyInstructorName', {
+		const res = await fetch('/api/addClassbyInstructorId', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ class_id, instructor_name })
+			body: JSON.stringify({ class_id, instructor_id })
 		});
 
 		if (!res.ok) {

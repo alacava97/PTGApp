@@ -47,8 +47,7 @@
 
 	    // Build instructor dropdown
 	    const instructorData = await read('instructors');
-	    const instructors = instructorData.map(item => item.name);
-	    await createSearchableDropdown('searchable', 'results', instructors);
+	    await createSearchableDropdown('searchable', 'results', instructorData, 'name');
 
 	    const typeDD = document.getElementById('type-select');
 	    await populateDropdown(typeDD, 'types', 'type');
@@ -211,9 +210,10 @@
             try {
 				const instructorName = data.instructor_name;
 				const id = getId();
+				const instId = document.getElementById('searchable').getAttribute('row-id');
                 await linkClasstoInstructor({
                     class_id: id,
-                    instructor_name: instructorName
+                    instructor_id: instId
                 }); 
 
                 const instClass = await getInstClass(id);

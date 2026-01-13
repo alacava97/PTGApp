@@ -38,13 +38,11 @@
 		displayRecord(data);
 
 		const classes = await read('classes');
-		const names = classes.map(entry => entry.title);
 
 		const instructors = await read('instructors');
-		const instructorNames = instructors.map(entry => entry.name);
 
-		createSearchableDropdown('class-dd', 'class-dd-result', names);
-		createSearchableDropdown('inst-dd', 'inst-dd-result', instructorNames);
+		createSearchableDropdown('class-dd', 'class-dd-result', classes, 'title');
+		createSearchableDropdown('inst-dd', 'inst-dd-result', instructors, 'instructor_name');
 	});
 
 	function displayRecord(data) {
@@ -57,7 +55,7 @@
 					<input type="checkbox" id="class-switch">
 					<span class="slider"></span>
 				</label>
-				<span id="update-class">Update existing class record.<input id="class-dd" class="class-dd-input"><ul id="class-dd-result" class="dd"></ul></span>
+				<span id="update-class">Update existing class record.<input id="class-dd" class="class-dd-input" autocomplete="off"><ul id="class-dd-result" class="dd"></ul></span>
 				<span class="grid-border"></span>
 				<span id="new-inst" class="bold">Create new<br>instructor record.</span>
 					<label class="switch">
@@ -70,11 +68,42 @@
 			<br>
 			<button id="approve-class" class="green button modal-center">Approve</button>
 			<button id="decline-class" class="red button modal-center">Decline</button>
+			<div id="message"></div>
 		`);
 
 		document.getElementById('approve-class').addEventListener('click', async (e) => {
 			e.preventDefault();
 			await updateRecord('class_proposals', getId(), {approved:true});
+			const cSwitch = document.getElementById('class-switch');
+			const message = document.getElementById('message');
+			const uClass = document.getElementById('class-dd');
+					const data = await readEntry('class_proposals', getId());
+			const types = await read('types');
+			const typeId = types.find(type => type.type == data.type).id;
+
+			const classData = { 
+				title: data.title,
+				level: data.level.toLowerCase(),
+				type: typeId,
+				length: data.length,
+				description: data.description,
+				grands: data.grands,
+				uprights: data.uprights
+			}
+			if (cSwitch.checked) {
+				if (uClass.value) {
+					await updateRecord('classes', uClass.getAttribute('row-id'), classData);
+				} else {
+					message.textContent = 'Please select a class to update';
+					return;
+				}
+			} else {
+				await create('classes', classData);
+			}
+
+			//include similar logic for instructors
+			//link class/instructors together
+
 			approveModal.close();
 			document.getElementById('status-subtitle').textContent = 'Approved';
 			document.getElementById('approved').addEventListener('click', () => {
@@ -107,8 +136,6 @@
 				nInst.classList.add('bold');
 			}
 		});
-
-
 
 
 		document.getElementById('decline-class').addEventListener('click', async (e) => {
