@@ -194,33 +194,6 @@ app.post('/api/addInstructorClassById', requireLogin, async (req, res) => {
   }
 });
 
-app.post('/api/addClassbyInstructorId', requireLogin, async (req, res) => {
-  const { class_id, instructor_id } = req.body;
-
-  if (!class_id || !instructor_id) {
-    return res.status(400).json({ error: 'Missing class_id or instructor_id' });
-  }
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO class_instructors (class_id, instructor_id)
-       VALUES($1, $2)
-       ON CONFLICT DO NOTHING
-       RETURNING *`,
-      [class_id, instructor_id]
-    );
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ error: 'Instructor not found' });
-    }
-
-    res.json({ success: true, link: result.rows[0] });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-});
-
 //end create
 
 //read

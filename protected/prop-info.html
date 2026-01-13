@@ -36,6 +36,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		const data = await readEntry('class_proposals', getId());
 		displayRecord(data);
+		console.log(data);
 
 		const classes = await read('classes');
 
@@ -73,17 +74,24 @@
 
 		document.getElementById('approve-class').addEventListener('click', async (e) => {
 			e.preventDefault();
+			const types = await read('types');
 			await updateRecord('class_proposals', getId(), {approved:true});
 			const cSwitch = document.getElementById('class-switch');
+			const iSwitch = document.getElementById('inst-switch');
 			const message = document.getElementById('message');
 			const uClass = document.getElementById('class-dd');
-					const data = await readEntry('class_proposals', getId());
-			const types = await read('types');
-			const typeId = types.find(type => type.type == data.type).id;
+			const uInst = document.getElementById('inst-dd');
+			const data = await readEntry('class_proposals', getId());
+			let classId = uClass.getAttribute('row-id');
+			let instId = uInst.getAttribute('row-id');
+
+			const typeId = data.type ? (types.find(type => type.type == data.type).id) : null;
+
+			const classLevel = data.level ? data.level.toLowerCase() : null;
 
 			const classData = { 
 				title: data.title,
-				level: data.level.toLowerCase(),
+				level: classLevel,
 				type: typeId,
 				length: data.length,
 				description: data.description,
@@ -92,17 +100,51 @@
 			}
 			if (cSwitch.checked) {
 				if (uClass.value) {
-					await updateRecord('classes', uClass.getAttribute('row-id'), classData);
+					if (!classId) {
+						message.textContent = 'Please select a class from the dropdown list';
+						return;
+					}
+					await updateRecord('classes', classId, classData);
 				} else {
 					message.textContent = 'Please select a class to update';
 					return;
 				}
 			} else {
-				await create('classes', classData);
+				const newClass = await create('classes', classData);
+				classId = newClass.id;
+				console.log(classId);
 			}
 
-			//include similar logic for instructors
-			//link class/instructors together
+			const instData = {
+				name: data.name,
+				phone: data.phone,
+				email: data.email,
+				rpt: data.rpt,
+				sponsored: data.sponsor ? true : null,
+				sponsor: data.sponsor
+			}
+
+			if (iSwitch.checked) {
+				if (uInst.value) {
+					if (!instId) {
+						message.textContent = 'Please select an instructor from the dropdown list';
+						return;
+					}
+					await updateRecord('instructors', instId, instData);
+				} else {
+					message.textContent = 'Please select an instructor to update';
+					return;
+				}
+			} else {
+				const newInst = await create('instructors', instData);
+				instId = newInst.id;
+				console.log(instId);
+			}
+
+			await linkInstructorToClass({
+				instructor_id: instId,
+				class_id: classId
+			});
 
 			approveModal.close();
 			document.getElementById('status-subtitle').textContent = 'Approved';
@@ -156,6 +198,7 @@
 				<button type="submit" class="button modal-center">Assign</button>
 			</form>
 		`);
+
 		async function assignSuccess() {
 			const newData = await readEntry('class_proposals', getId());
 			document.getElementById('assign-subtitle').textContent = newData.assigned || 'Not assigned';
@@ -170,8 +213,31 @@
 		const statusRow = new Row();
 		statusRow.addSubtitle(`${data.approved == true ? 'Approved' : data.approved == false ? 'Declined' : 'Pending'}`, 'status-subtitle');
 		statusRow.editArrow();
-		statusRow.row.addEventListener('click', () => {
+		statusRow.row.addEventListener('click', async () => {
 			approveModal.show();
+			const data = await readEntry('class_proposals', getId());
+			const classes = await read('classes');
+			const instructors = await read('instructors');
+			const uClass = document.getElementById('class-dd');
+			const uInst = document.getElementById('inst-dd');
+			const classTitle = data.title ? classes.find(entry => entry.title == data.title) : null;
+			const instName = data.name ? instructors.find(entry => entry.name == data.name) : null;
+
+			if (classTitle) {				
+				uClass.value = classTitle.title;
+				uClass.setAttribute('row-id', classTitle.id);
+				document.getElementById('class-switch').checked = true;
+				document.getElementById('new-class').classList.remove('bold');
+				document.getElementById('update-class').classList.add('bold');
+			}
+
+			if (instName) {
+				uInst.value = instName.name;
+				uInst.setAttribute('row-id', instName.id);
+				document.getElementById('inst-switch').checked = true;
+				document.getElementById('new-inst').classList.remove('bold');
+				document.getElementById('update-inst').classList.add('bold');
+			}
 		});
 		status.replaceChildren(statusRow.row);
 

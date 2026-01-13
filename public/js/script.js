@@ -291,24 +291,6 @@ async function linkInstructorToClass({ instructor_id, class_id }) {
 	}
 }
 
-async function linkClasstoInstructor({ class_id, instructor_id }) {
-	try {
-		const res = await fetch('/api/addClassbyInstructorId', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ class_id, instructor_id })
-		});
-
-		if (!res.ok) {
-			const errData = await res.json();
-			throw new Error(errData.error || 'Failed to link instructor to class');
-		}
-		return res.json();
-	} catch (err) {
-		console.error(err);
-	}
-}
-
 async function deleteClassInstructorLink(classId, instructorId) {
   try {
     const res = await fetch('/api/deleteInstructorClass', {

@@ -211,9 +211,9 @@
 				const instructorName = data.instructor_name;
 				const id = getId();
 				const instId = document.getElementById('searchable').getAttribute('row-id');
-                await linkClasstoInstructor({
-                    class_id: id,
-                    instructor_id: instId
+                await linkInstructorToClass({
+                    instructor_id: instId,
+                    class_id: id
                 }); 
 
                 const instClass = await getInstClass(id);
