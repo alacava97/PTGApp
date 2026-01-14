@@ -29,3 +29,7 @@ Far Future
 	-Favorite classes
 	-Build custom ittinerary
 	-Comments/reviews
+
+-refactoring
+	-Make everything comply with best practices better
+	-reduce repetetive logic and DOM queries

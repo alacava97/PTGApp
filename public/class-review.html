@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/public/styles/styles.css">
+	<link rel="stylesheet" href="/public/styles/buttons.css">
+	<link rel="stylesheet" href="/public/styles/themes.css">
+	<link rel="stylesheet" href="/public/styles/modals.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>Class Review</title>
+</head>
+<body>
+	<h1>Class Feedback</h1>
+	<h2 id="class-title"></h2>
+	<form id="star-form">
+		<div class="rating-widget">
+			<div class="rating">
+				<input type="radio" name="rating-1" id="r1-star5" value="5">
+				<label for="r1-star5">★</label>
+
+				<input type="radio" name="rating-1" id="r1-star4" value="4">
+				<label for="r1-star4">★</label>
+
+				<input type="radio" name="rating-1" id="r1-star3" value="3">
+				<label for="r1-star3">★</label>
+
+				<input type="radio" name="rating-1" id="r1-star2" value="2">
+				<label for="r1-star2">★</label>
+
+				<input type="radio" name="rating-1" id="r1-star1" value="1">
+				<label for="r1-star1">★</label>
+			</div>
+		</div>
+
+		<div class="rating-widget">
+			<div class="rating">
+				<input type="radio" name="rating-2" id="r2-star5" value="5">
+				<label for="r2-star5">★</label>
+
+				<input type="radio" name="rating-2" id="r2-star4" value="4">
+				<label for="r2-star4">★</label>
+
+				<input type="radio" name="rating-2" id="r2-star3" value="3">
+				<label for="r2-star3">★</label>
+
+				<input type="radio" name="rating-2" id="r2-star2" value="2">
+				<label for="r2-star2">★</label>
+
+				<input type="radio" name="rating-2" id="r2-star1" value="1">
+				<label for="r2-star1">★</label>
+			</div>
+		</div>
+
+		<button type="submit">Submit.</button>
+	</form>
+
+</body>
+<script src="/public/js/script.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const classData = await readEntry('classes', getId());
+		document.getElementById('class-title').textContent = classData.title;
+		const form = document.getElementById('star-form');
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const data = parseForm(form);
+			console.log(data);
+		})
+	});
+</script>
