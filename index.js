@@ -256,6 +256,11 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   }
 });
 
+app.get('/api/getSchedule', requireLogin, async (req, res) => {
+    const result = await pool.query('SELECT * FROM getschedule()');
+    res.json(result.rows);
+});
+
 app.get('/api/classByInst/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
 

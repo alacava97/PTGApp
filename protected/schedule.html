@@ -38,7 +38,7 @@
 		const eventModal = new Modal('event-modal');
 		eventModal.content(`<h4><a id="class-title"></a></h4>
 			<h5 id="inst"></h5>
-			<p id="class-info"></p>
+			<a id="class-info">Review Form</a>
 			<form id="update-sched">
 				<label for="day">Day</label>
 				<select id="day" name="day" class="modal-center">
@@ -119,8 +119,13 @@
 			const schedule = await schedRes.json();
 
 			const loc_id = document.getElementById('year-select').value;
-			console.log(loc_id);
 			const roomRes = await fetch(`/api/getRooms/${loc_id}`);
+			if (!roomRes.ok) {
+				calendar.innerHTML = `No rooms on record`;
+				calendar.style.backgroundColor = 'white';
+				return
+			}
+			calendar.style.backgroundColor = '#333'
 			const rooms = await roomRes.json();
 
 			for (const key in rooms) {
@@ -168,6 +173,7 @@
 					      eventTitle.href = `/class-info.html?id=${periodEvent.class_id}`
 
 					      document.getElementById('inst').textContent = periodEvent.instructors;
+					      document.getElementById('class-info').href = `/public/class-review.html?id=${periodEvent.schedule_id}`
 					      document.getElementById('day').value = periodEvent.day;
 					      document.getElementById('start_period').value = periodEvent.start_period;
 					      document.getElementById('room-select').value = periodEvent.room;

@@ -14,7 +14,6 @@
 	<header class="clearfix">
 		<h1>Class Info</h1>
 		<div id="back-btn" class="back-btn"><a href="/classes.html">&#9664; Classes</a></div>
-		<div id="review" class="new-btn"><a id="review-a">Review Form</a></div>
 	</header>
 	<h2 id="class-title" class="info-header">Loading...</h2>
 	<h3>Instructors</h3>
@@ -40,7 +39,6 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		await loadClass();
 		const id = getId();
-		document.getElementById('review-a').href = `public/class-review.html?id=${id}`;
 
 	    document.getElementById('delete-class-button').addEventListener('click', async () => {
     		await deleteEntry('classes', id);

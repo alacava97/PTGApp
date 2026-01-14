@@ -3,22 +3,37 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="public/styles/styles.css">
-	<link rel="stylesheet" href="public/styles/buttons.css">
-	<link rel="stylesheet" href="public/styles/themes.css">
-	<link rel="stylesheet" href="public/styles/modals.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link rel="stylesheet" href="public/styles/class-labels.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Test</title>
 </head>
-<body>
-
+<body style="background-color: #eeeeee">
+	
+	<div id="paper" class="letter-size">
+		<h1 id="class-title"></h1>
+		<h2 id="instructor"></h2>
+		<h3 id="class-period-room"></h3>
+		<div id="qrcode"></div>
+		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
+	</div>
 </body>
-<script src="public/js/modals.js"></script>
+<script src="public/js/script.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="public/js/qr.js"></script>
+
 <script>
-	document.addEventListener('DOMContentLoaded', () => {
-		const modal = new Modal('test');
-		modal.content(`<h1>Test</h1>`);
+	document.addEventListener('DOMContentLoaded', async () => {
+
+		const scheduleData = await getSched();
+		console.log(scheduleData);
+
+		function createLabel(data) {
+			const title = document.getElementById('class-title');
+			const inst = document.getElementById('instructor');
+			const cpr = document.getElementById('class-period-room');
+			generateQRCode(`/class-review.html?id=${data.id}`);
+		}
 	})
 </script>
 </html>

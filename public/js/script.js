@@ -60,6 +60,20 @@ async function read(table) {
 	}
 }
 
+async function getSched() {
+	try {
+		const response = await fetch(`/api/getSchedule`, {
+			credentials: 'include'
+		});
+		if (!response.ok) throw new Error('Network response was not ok');
+
+		const all = await response.json();
+		return all;
+	} catch (err) {
+		console.error('Failed to load data:', err);
+	}
+}
+
 async function readEntry(table, id) {
 	try {
 		const res = await fetch(`/api/readEntry/${table}/${id}`)

@@ -4,17 +4,9 @@
 	
 -Second form for approved classes
 
--Form for class review
-	-URL slug carrying class ID
-
--Generate QR codes to link to review form
-
 -Generate classroom labels as pdfs
 	-Select from list
 	-Select all button
-
-Schedule Page
--Make 2026 work better
 
 Far Future
 -Instructor login
