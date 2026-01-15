@@ -13,7 +13,11 @@
 	<div id="paper" class="letter-size">
 		<h1 id="class-title"></h1>
 		<h2 id="instructor"></h2>
-		<h3 id="class-period-room"></h3>
+		<div id="dpr" class="flex-row">
+			<h3 id="day"></h3>
+			<h3 id="period"></h3>
+			<h3 id="room"></h3>
+		</div>
 		<div id="qrcode"></div>
 		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
 	</div>
@@ -25,15 +29,25 @@
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 
-		const scheduleData = await getSched();
-		console.log(scheduleData);
+		const scheduleData = await read('schedule');
+		console.log(scheduleData[0]);
 
 		function createLabel(data) {
 			const title = document.getElementById('class-title');
 			const inst = document.getElementById('instructor');
-			const cpr = document.getElementById('class-period-room');
+			const day = document.getElementById('day');
+			const period = document.getElementById('period');
+			const room = document.getElementById('room');
 			generateQRCode(`/class-review.html?id=${data.id}`);
+
+			title.textContent = data.title;
+			inst.textContent = data.instructor_name;
+			day.textContent = data.day;
+			period.innerHTML = `${data.start.slice(0, -3)} - ${data.end.slice(0, -3)}`
+			room.textContent = data.room;
 		}
+
+		createLabel(scheduleData[0])
 	})
 </script>
 </html>

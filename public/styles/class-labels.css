@@ -5,4 +5,18 @@
 	flex-direction: column;
 	align-items: center;
 	background-color: white;
+	padding: 1in;
+	box-sizing: border-box;
+}
+
+.flex-row {
+	display: flex;
+	flex-direction: row;
+	width: 100%;
+	justify-content: space-around;
+}
+
+#dpr > h3 {
+	text-align: center;
+	width: 100%;
 }

@@ -26,7 +26,7 @@
 	font-size: 2em;
 	display: inline-block;
 	height: auto;
-  	float: right;
+  	margin-left: auto;
 }
 
 .close-btn:hover {

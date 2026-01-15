@@ -141,21 +141,10 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 });
 
 app.post('/api/addSchedule', requireLogin, async (req, res) => {
-  const { title, day, start_period, end_period, room } = req.body;
+  const { class_id, day, start_period, room } = req.body;
   try {
-    const classResult = await pool.query(
-      'SELECT id FROM classes WHERE title = $1',
-      [title]
-    );
-
-    if (classResult.rowCount === 0) {
-      return res.status(400).json({ error: 'Class not found' });
-    }
-
-    const class_id = classResult.rows[0].id;
-
     await pool.query(
-      `INSERT INTO schedule (class_id, day, start_period, room)
+      `INSERT INTO schedule (class_id, day, start_period, room_id)
        VALUES ($1, $2, $3, $4)`,
       [class_id, day, start_period, room]
     );
@@ -243,6 +232,65 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   `;
   } else if (table === 'types') {
     query = `SELECT * FROM types ORDER BY position ASC`;
+  } else  if (table === 'schedule' ) {
+    query =
+    `SELECT 
+    schedule.id AS schedule_id,
+    classes.title,
+
+    CASE schedule.day
+      WHEN 1 THEN 'Monday'
+      WHEN 2 THEN 'Tuesday'
+      WHEN 3 THEN 'Wednesday'
+      WHEN 4 THEN 'Thursday'
+      WHEN 5 THEN 'Friday'
+      WHEN 6 THEN 'Saturday'
+      WHEN 7 THEN 'Sunday'
+      ELSE ''
+    END AS day,
+
+    p_start.start AS start,
+    p_end.end     AS "end",
+
+    rooms.name AS room,
+
+    COALESCE(
+      string_agg(
+        instructors.name ||
+        CASE
+          WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
+          THEN ', ' || instructors.rpt
+          ELSE ''
+        END,
+        ', '
+      ),
+      'No instructors'
+    ) AS instructor_name
+
+  FROM schedule
+  JOIN classes ON schedule.class_id = classes.id
+
+  -- starting period
+  JOIN periods p_start 
+    ON schedule.start_period = p_start.period
+
+  -- ending period
+  JOIN periods p_end
+    ON p_end.period = schedule.start_period + classes.length - 1
+
+  JOIN rooms ON schedule.room_id = rooms.id
+  LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
+  LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
+
+  GROUP BY
+    schedule.id,
+    classes.title,
+    day,
+    p_start.start,
+    p_end.end,
+    classes.length,
+    rooms.name;
+  `
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
   }

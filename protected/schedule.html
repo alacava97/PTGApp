@@ -7,6 +7,8 @@
 	<link rel="stylesheet" href="public/styles/buttons.css">
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/schedule-styles.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>PTG Convention Web App</title>
@@ -17,7 +19,7 @@
 		<h1>Schedule</h1>
 	</header>
 	<div id="color-key" class="key"></div>
-	<div id="color-block" class="schedule grid"></div>
+	<div id="color-block" class="schedule"></div>
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
@@ -27,18 +29,18 @@
 		await renderSchedule();
 
 		const classModal = new Modal('class-modal');
-		classModal.content(`<h4>Select a Class</h4>
+		classModal.content(`<h3>Select a Class</h3>
 			<p id="period-info"></p>
-			<form id="schedule-form">
-			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
+			<form id="schedule-form" class="modal-form">
+			    <input name="title" type="text" id="searchable" placeholder="Search classes">
 				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit" class="button modal-center">Add Class</button>
+				<button type="submit">Add Class</button>
 			</form>`);
 
 		const eventModal = new Modal('event-modal');
-		eventModal.content(`<h4><a id="class-title"></a></h4>
-			<h5 id="inst"></h5>
-			<a id="class-info">Review Form</a>
+		eventModal.content(`<h3><a id="class-title"></a></h3>
+			<h4 id="inst"></h4>
+			<a id="class-info">Review Form &#x1F517</a>
 			<form id="update-sched">
 				<label for="day">Day</label>
 				<select id="day" name="day" class="modal-center">
@@ -73,7 +75,7 @@
 
 		const classData = await read('classes');
 		const titles = classData.map(item => item.title);
-		createSearchableDropdown('searchable', 'results', titles);
+		createSearchableDropdown('searchable', 'results', classData, 'title');
 
 		const rooms = await read('rooms');
 		const roomDD = document.getElementById('room-select');
@@ -131,6 +133,7 @@
 			for (const key in rooms) {
 				const room = document.createElement('div');
 				const roomName = rooms[key]['name'];
+				const roomId = rooms[key].id;
 				room.textContent = roomName
 				room.classList.add('cal-col');
 				calendar.appendChild(room);
@@ -203,17 +206,17 @@
 					    dummy.textContent = p; 
 					    dummy.id = 0;
 					    const currentPeriod = p;
-					    const form = document.getElementById('schedule-form');
 
 					    dummy.addEventListener('click', async () => {
-					      document.getElementById('searchable').value = '';
-					      document.getElementById('results').innerHTML = '';
-					      document.getElementById('class-modal').style.display = 'flex';
-					      document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
+					    	const form = document.getElementById('schedule-form');
+					      	document.getElementById('searchable').value = '';
+					     	 document.getElementById('results').innerHTML = '';
+					     	 document.getElementById('class-modal').style.display = 'flex';
+					     	 document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
 
-					      form.dataset.day = index + 3;
-					      form.dataset.period = currentPeriod;
-					      form.dataset.room = roomName;
+					      	form.dataset.day = index + 3;
+					      	form.dataset.period = currentPeriod;
+					      	form.dataset.room = parseInt(roomId);
 					    });
 
 					    roomDay.appendChild(dummy);
@@ -283,10 +286,19 @@
 	      }
 
 	      // No conflicts → submit to backend
+	      const data = {
+	      	class_id: parseInt(document.getElementById('searchable').getAttribute('row-id')),
+	      	day: day,
+	      	start_period: start_period,
+	      	room: parseInt(room)
+	      };
+
+	      console.log(data);
+
 	      const res = await fetch('/api/addSchedule', {
 	        method: 'POST',
 	        headers: { 'Content-Type': 'application/json' },
-	        body: JSON.stringify({ title, day, start_period, room })
+	        body: JSON.stringify(data)
 	      });
 
 	      if (!res.ok) throw new Error(await res.text());
@@ -393,12 +405,12 @@
 			});
 
 			const spacer = document.createElement('span');
-			spacer.classList.add('flex-grow', 'right-text');
+			spacer.classList.add('spacer');
 			spacer.textContent = "Select Convention";
 			key.appendChild(spacer);
 
 			const yearDd = document.createElement('select');
-			yearDd.classList.add('year-select', 'schedule-year-select');
+			yearDd.classList.add('year-select');
 			yearDd.id = 'year-select';
 			await populateYearDropdown(yearDd);
 			yearDd.addEventListener('blur', async() => {

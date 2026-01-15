@@ -1,0 +1,131 @@
+.key {
+	width: auto;
+	margin: auto 5%;
+	display: flex;
+	position: sticky;
+	top: 0;
+	background-color: #dcdddc;
+	z-index: 1;
+}
+
+.key-item {
+	width: 25px;
+	height: 25px;
+	margin: 5px;
+	border: none;
+	box-sizing: border-box;
+	background-color: transparent;
+	padding: 0;
+}
+
+.key-item:hover {
+	cursor: pointer;
+}
+
+.color-select {
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	margin: 0;
+	width: 25px;
+}
+
+.spacer {
+	text-align: right;
+	width: 100%;
+	margin: auto;
+}
+
+.schedule *, .cal-day * {
+	background-color: #F8F8F8;
+	padding: 5px;
+}
+
+.schedule {
+	display: grid;
+	gap: 1px;
+	grid-template-columns: max-content repeat(4, 1fr);
+	position: fixed;
+	justify-content: space-between;
+	margin: 0 5%;
+	background-color: #333;
+	padding: 1px;
+	width: -webkit-fill-available;
+	height: -webkit-fill-available;
+	overflow: scroll;
+	border: #333 solid 1px;
+	border-radius: 5px;
+}
+
+.cal-day {
+	position: sticky;
+	top: 0;
+
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	width: 100%;
+	box-sizing: border-box;
+	background-color: #333;
+	gap: 1px;
+	padding: 0;
+	border-right: 1px #333 solid;
+	border-left: 1px #333 solid;
+}
+
+.day-label {
+	text-align: center;
+	grid-column-start: 1;
+	grid-column-end: 6;
+	max-height: 40px;
+}
+
+.period {
+	text-align: center;
+}
+
+.cal-col {
+	min-height: 82px;
+  box-sizing: border-box;
+	text-align: center;
+	vertical-align: bottom;
+	padding: 15px;
+	position: sticky;
+	left: 0;
+	z-index: 1;
+	border-right: 1px solid black;
+}
+
+.room-period {
+	min-height: 75px;
+	min-width: 75px;
+	font-size: 10px;
+}
+
+.room-period:hover {
+	background-color: #EEEEEE;
+	cursor: pointer;
+}
+
+.day-period {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	border-bottom: 1px solid black;
+}
+
+.blank {
+	z-index: 3;
+	position: sticky;
+	top:0;
+	left:0;
+	border-bottom: 1px solid black;
+}
+
+.year-select {
+  	width: fit-content;
+    height: 25px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: auto 15px;
+    padding: 0 5px;
+}

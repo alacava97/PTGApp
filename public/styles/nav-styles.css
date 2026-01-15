@@ -1,0 +1,35 @@
+.nav-ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 10px 5%;
+	background-color: #333;
+	width: 100%;
+	min-width: 528px;
+	box-sizing: border-box;
+}
+
+.nav-ul > li {
+	display: inline;
+}
+
+.nav-right {
+	float: right;
+}
+
+.nav-ul > li > a,
+.nav-right > * {
+	color: white;
+	text-align: center;
+	padding: 10px 16px;
+	text-decoration: none;
+}
+
+.nav-ul > li > a:hover {
+	background-color: #111;
+	cursor: pointer;
+}
+
+.active, .active:hover {
+	background-color: #04AA6D;
+	font-weight: 900;
+}

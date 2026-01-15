@@ -1,6 +1,5 @@
 //dynamically insert the navbar into the document, highlighting the active link
-document.addEventListener('DOMContentLoaded', () => {
-	const navbar = document.getElementById('navbar');
+const navbar = document.getElementById('navbar');
 	if (navbar) {
 		fetch('navbar.html')
 			.then(response => response.text())
@@ -21,8 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				console.error('Failed to load navbar:', err)
 			});
 	}
-});
-
+	
 async function create(table, data) {
 	try {
 		const res = await fetch(`/api/create/${table}`, {
