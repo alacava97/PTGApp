@@ -51,7 +51,9 @@
 
       const result = await res.json();
       document.getElementById('message').textContent = result.message || result.error || 'Unknown response';
-      if (res.ok && result.success) {
+      console.log(res)
+      console.log(result)
+      if (res.ok) {
         form.reset();
       }
     }
