@@ -16,11 +16,11 @@
     <div class="login-window">
       <a href="/public/login.html" class="back-button">< back to login</a>
       <h1>Create an Account</h1><br>
-      <form id="register-form" autocomplete="off">
-        <input type="text" name="name" placeholder="Name" autocomplete="off" required />
-        <input type="email" name="email" placeholder="Email" autocomplete="off" required />
-        <input type="password" name="password" placeholder="Password" required />
-        <button type="submit" class="button green" id="reg-btn">Register</button>
+      <form id="register-form">
+        <input id="name" type="text" name="name" placeholder="Name" autocomplete="off" required />
+        <input id="email" type="email" name="email" placeholder="Email" autocomplete="off" required />
+        <input id="password" type="password" name="password" placeholder="Password" required />
+        <button type="submit" class="green" id="reg-btn">Register</button>
       </form>
       <div id="message"></div>
     </div>
@@ -51,6 +51,9 @@
 
       const result = await res.json();
       document.getElementById('message').textContent = result.message || result.error || 'Unknown response';
+      if (res.ok && result.success) {
+        form.reset();
+      }
     }
   </script>
 </body>

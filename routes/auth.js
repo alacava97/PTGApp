@@ -65,7 +65,7 @@ router.post('/logout', (req, res) => {
 // --- REGISTER ---
 router.post('/register', async (req, res) => {
   try {
-    const { email, password, role } = req.body;
+    const { name, email, password } = req.body;
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required.' });
@@ -73,8 +73,8 @@ router.post('/register', async (req, res) => {
 
     const hashed = await bcrypt.hash(password, 10);
     await pool.query(
-      'INSERT INTO users (email, password, role) VALUES ($1, $2, $3)',
-      [email, hashed, role || 'user']
+      `INSERT INTO users (name, email, password, role) VALUES ($1, $2, $3, 'user')`,
+      [name, email, hashed]
     );
 
     res.status(201).json({ message: 'Registered successfully' });

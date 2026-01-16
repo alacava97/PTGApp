@@ -40,6 +40,7 @@
   padding: 10px;
   align-items: center;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .center-form {
@@ -47,5 +48,18 @@
   flex-direction: column;
   gap: 10px;
   align-items: center;
-  margin: 0 10%;
+  width: 100%;
+}
+
+.main-content > h1,
+.main-content > h2 {
+  text-align: center;
+}
+
+form > button {
+  width: 100%;
+  box-sizing: border-box;
+  height: 2em;
+  padding: 0 5px;
+  font-size: 1em;
 }

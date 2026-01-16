@@ -429,7 +429,23 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
   }
 
   try {
-    const result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
+    let result = '';
+
+    if (table == 'classes') {
+      result = await pool.query(`
+        SELECT
+          classes.*,
+          types.type AS type_name
+        FROM
+          classes
+        LEFT JOIN
+          types ON types.id = classes.type
+        WHERE
+          classes.id = $1
+      `, [id]);
+    } else {
+      result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
+    }
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Entry not found' });

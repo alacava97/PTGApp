@@ -56,9 +56,8 @@
 	async function loadClass(id = getId()) {
 		const delClassModal = new Modal('delete-class-modal');
 		delClassModal.content(`<h4>Permanently delete class record?</h4>
-			<div>
-				<button id="delete-class-button" class="button red modal-center">Delete</button>
-			</div>`);
+			<button id="delete-class-button" class="red">Delete</button>
+		`);
 		const delClass = document.getElementById('delete-class');
 	    delClass.addEventListener('click', () => delClassModal.show());
 
@@ -66,9 +65,9 @@
 		titleModal.content(`<h4>Update Class Title</h4>
 			<form id="title-form">
 				<label for="title-input"></label>
-				<input type="text" id="title-input" name="title" class="modal-center">
-				<br><br>
-				<button type="submit" id="submit-title" class="button modal-center">Submit</button>
+				<input type="text" id="title-input" name="title">
+				<div class="seperator"></div>
+				<button type="submit" id="submit-title">Submit</button>
 			</form>`);
 		async function titleSuccess() {
 			try {
@@ -93,14 +92,14 @@
 		lengthModal.content(`<h4>Update Class Length</h4>
 			<form id="length-form">
 				<label for="length-input"></label>
-				<input type="number" min="1" max="5" id="length-input" name="length" class="modal-center">
-				<br><br>
-				<button type="submit" id="submit-length" class="button modal-center">Submit</button>
+				<input type="number" min="1" max="5" id="length-input" name="length">
+				<div class="seperator"></div>
+				<button type="submit" id="submit-length">Submit</button>
 			</form>`);
 		async function lengthSuccess() {
 			const newData = await readEntry('classes', getId());
 			const lengthTitle = document.getElementById('length-title');
-			const newLength = newData[0]['length'];
+			const newLength = newData.length;
 			lengthTitle.textContent = `${newLength} ${newLength == 1 ? 'period' : 'periods'}`;
 			const length = document.getElementById('length');
 			length.addEventListener('click', () => {
@@ -114,24 +113,24 @@
 		levelModal.content(`<h4>Update Level</h4>
 			<form id="level-form">
 				<label for="level-select"></label>
-				<select name="level" id="level-select" class="modal-center">
+				<select name="level" id="level-select">
 					<option value="everyone">Everyone</option>
 					<option value="beginner">Beginner</option>
 					<option value="intermediate">Intermediate</option>
 					<option value="advanced">Advanced</option>
 				</select>
-				<br><br>
-				<button type="submit" id="submit-level" class="button modal-center">Submit</button>
+				<div class="seperator"></div>
+				<button type="submit" id="submit-level">Submit</button>
 			</form>`);
 		async function levelSuccess() {
 			const newData = await readEntry('classes', getId());
 			const levelTitle = document.getElementById('level-title');
-			const newLevel = newData[0]['level'];
+			const newLevel = newData.level.charAt(0).toUpperCase() + newData.level.slice(1);
 			levelTitle.textContent = newLevel;
 			const level = document.getElementById('level');
 			level.addEventListener('click', () => {
 				levelModal.show();
-				document.getElementById('level-select').value = newLevel;
+				document.getElementById('level-select').value = newLevel.toLowerCase();
 			});
 		}
 		levelModal.formSubmit(levelSuccess, 'classes');
@@ -140,35 +139,35 @@
 		typeModal.content(`<h4>Update Type</h4>
 			<form id="type-form">
 				<label for="type-select"></label>
-				<select name="type" id="type-select" class="modal-center"></select>
-				<br><br>
-				<button type="submit" id="submit-type" class="button modal-center">Submit</button>
+				<select name="type" id="type-select"></select>
+				<div class="seperator"></div>
+				<button type="submit" id="submit-type">Submit</button>
 			</form>`);
 		async function typeSuccess() {
 			const newData = await readEntry('classes', getId());
 			const typeTitle = document.getElementById('type-title');
-			const newType = newData[0]['type_name'];
+			const newType = newData.type_name;
 			typeTitle.textContent = newType;
 			const type = document.getElementById('type');
 			type.addEventListener('click', () => {
 				typeModal.show();
-				document.getElementById('type-select').value = newData[0]['type_id'];
+				document.getElementById('type-select').value = newData.type;
 			});
 		}
 		typeModal.formSubmit(typeSuccess, 'classes');
 
 		const delConfModal = new Modal('delete-confirmation-modal');
 		delConfModal.content(`<h4>Remove instructor from class record?</h4>
-			<div>
-				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>`);
+			<button id="delete-button" class="red">Delete</button>
+		`);
 
 		const instModal = new Modal('instructor-modal');
 		instModal.content(`<h4>Select an Instructor</h4>
 			<form id="instructor-class-form">
-			    <input name="instructor_name" type="text" id="searchable" placeholder="Search instructors" class="modal-center">
-				<ul id="results" class="drop-down-select"></ul><br>
-				<button type="submit" class="button modal-center">Add Instructor</button>
+			    <input name="instructor_name" type="text" id="searchable" placeholder="Search instructors">
+				<ul id="results" class="drop-down-select"></ul>
+				<div class="seperator"></div>
+				<button type="submit">Add Instructor</button>
 			</form>`);
 
 		async function populateInstructors(instClass) {
@@ -232,6 +231,8 @@
 
 			const classRecord = await res.json();
 
+			console.log(classRecord);
+
 			const title = document.getElementById('class-title');
 			title.innerHTML = `${classRecord.title} ✎`
 			title.addEventListener('click', () => {
@@ -265,7 +266,7 @@
 			type.addTitle(`${classRecord.type_name || 'No type'}`, 'type-title');
 			classType.addEventListener('click', () => {
 				typeModal.show();
-				document.getElementById('type-select').value = classRecord.type_id;
+				document.getElementById('type-select').value = classRecord.type;
 			});
 			classType.appendChild(type.row);
 

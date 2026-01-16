@@ -28,6 +28,16 @@ textarea {
 	resize: none;
 }
 
+body > h3 {
+	margin-left: 5%;
+}
+
+.main-content {
+	display: grid;
+	justify-content: center;
+	margin: 0 5%;
+}
+
 /* End base elements */
 
 /* Buttons */
@@ -382,12 +392,6 @@ textarea {
 .delete-btn:hover {
 	background-color: #ffbbbb;
 	font-weight: 900;
-}
-
-.main-content {
-	display: grid;
-	justify-content: center;
-	margin: 0 5%;
 }
 
 .form-grid {

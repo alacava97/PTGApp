@@ -11,6 +11,9 @@
 	align-items: center;
 	overflow: auto;
 	padding: 20px;
+	box-sizing: border-box;
+	max-height: 100%;
+	overscroll-behavior: contain;
 }
 
 .modal-content {
@@ -36,12 +39,12 @@
 }
 
 .modal-content > form > *,
-.modal-content > .delete {
+.modal-content button {
 	width: 100%;
 	box-sizing: border-box;
 }
 
-.modal-content > form > button,
+.modal-content button,
 .modal-content > form input,
 .modal-content > form > select,
 .modal-content > form > textarea,

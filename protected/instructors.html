@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="public/styles/buttons.css">
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="public/styles/nav-styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Instructors</title>
 </head>
@@ -88,9 +89,10 @@
 		instructors.forEach(instructor => {
 			const entry = new Row();
 
-			const name = `${instructor.name}${instructor.rpt ? ', RPT' : ''}`;
+			const name = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''}`;
 
 			entry.addTitle(name);
+			entry.addSubtitle(instructor.sponsored == true ? instructor.sponsor : 'No sponsor')
 			entry.addArrow(`/instructor-info.html?id=${instructor.id}`);
 
 			instList.appendChild(entry.row);

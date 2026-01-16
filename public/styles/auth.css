@@ -17,3 +17,17 @@
 h1 {
 	margin-top: 45px;
 }
+
+input, button {
+	height: 30px;
+	box-sizing: border-box;
+	padding: 0 5px;
+}
+
+form {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 80%;
+	margin: 0 auto 10px;
+}

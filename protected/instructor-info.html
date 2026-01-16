@@ -19,7 +19,7 @@
 	<h3>Contact</h3>
 	<div id="instructor-details">Loading...</div>
 
-	<div class="clearfix"><h3>Classes</h3>
+	<h3>Classes</h3>
 	<div id="classes"></div>
 
 	<h3>More Info</h3>
@@ -68,9 +68,8 @@
 		//initialize modals
 		const deleteInst = new Modal('delete-inst-modal');
 		deleteInst.content(`<h4>Permanently delete instructor record?</h4>
-			<div>
-				<button id="delete-inst-button" class="button red modal-center">Delete</button>
-			</div>`);
+			<button id="delete-inst-button" class="red">Delete</button>
+		`);
 		document.getElementById('delete-inst').addEventListener('click', () => deleteInst.show());
 
 		const nameModal = new Modal('name-modal');
@@ -78,8 +77,8 @@
 			<form id="name-form">
 				<label for="name-input"></label>
 				<input type="text" id="name-input" name="name" class="modal-center" placeholder="Instructor name">
-				<br><br>
-				<button type="submit" id="submit-name" class="button modal-center">Submit</button>
+				<div class="seperator"></div>
+				<button type="submit" id="submit-name">Submit</button>
 			</form>`);
 		async function nameSuccess() {
 			try {
@@ -89,7 +88,7 @@
 				const instructor = await res.json();
 
 				const name = document.getElementById('instructor-name');
-				const instName = `${instructor.name}${instructor.rpt ? ', RPT' : '' } ✎`;
+				const instName = `${instructor.name}${instructor.rpt == true ? ', RPT' : '' } ✎`;
 				name.innerHTML = instName;
 				name.addEventListener('click', () => {
 					nameModal.show();
@@ -115,9 +114,10 @@
 			<form id="edit-sponsor">
 				<label class="modal-center">Sponsored
 					<input id="sponsored" class="small-input" type="checkbox" name="sponsored" class="modal-center">
-				</label><br><br>
-				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center" id="sponsor"><br><br>
-				<button type="submit" class="button modal-center">Update Sponsor</button>
+				</label>
+				<div class="seperator"></div>
+				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center" id="sponsor">
+				<button type="submit">Update Sponsor</button>
 			</form>`);
 		async function populateSponsor(instructor) {
 			const moreInfoContainer = document.getElementById('more-info');
@@ -158,7 +158,8 @@
 		classModal.content(`<h4>Select a Class</h4>
 			<form id="instructor-class-form">
 			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
-				<ul id="results" class="drop-down-select dd"></ul><br>
+				<ul id="results" class="drop-down-select"></ul>
+				<div class="seperator"></div>
 				<button type="submit" class="button modal-center">Add Class</button>
 			</form>`);
 
@@ -216,23 +217,23 @@
 
 		const delConfModal = new Modal('delete-confirmation-modal');
 		delConfModal.content(`<h4>Remove class from instructor record?</h4>
-			<div>
-				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>`);
+			<button id="delete-button" class="red">Delete</button>
+		`);
 
 		const contactModal = new Modal('contact-modal');
 		contactModal.content(`<h4>Instructor Contact</h4>
 			<form id="edit-contact">
 				<input id="instructor-name-input" type="text" name="name"required class="modal-center" placeholder="Instructor name">
-				<br><br>
+				<div class="seperator"></div>
 				<input id="instructor-email" type="email" name="email" class="modal-center" placeholder="Email">
-				<br><br>
+				<div class="seperator"></div>
 				<input id="instructor-phone" type="tel" name="phone" class="modal-center" placeholder="Phone">
-				<br><br>
+				<div class="seperator"></div>
 				<label class="modal-center">RPT Status
 					<input id="rpt-radio" class="small-input" type="checkbox" name="rpt" class="modal-center">
-				</label><br><br>
-				<button type="submit" class="button modal-center">Update Record</button>
+				</label>
+				<div class="seperator"></div>
+				<button type="submit">Update Record</button>
 				<div id="message"></div>
 			</form>`);
 		async function contactSuccess() {
@@ -245,7 +246,7 @@
 				const contactTitle = document.getElementById('contact-title');
 				const contactEmail = document.getElementById('contact-email');
 				const contactPhone = document.getElementById('contact-phone');
-				const instTitle = `${instructor.name}${instructor.rpt ? ', RPT' : ''} ✎`;
+				const instTitle = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''} ✎`;
 				name.textContent = instTitle;
 				contactTitle.textContent = instTitle;
 				contactEmail.textContent = instructor.email || 'No email on record.';
@@ -275,7 +276,7 @@
 
 			const instructor = await res.json();
 
-			const instTitle = `${instructor.name}${instructor.rpt ? ', RPT' : ''} ✎`;
+			const instTitle = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''} ✎`;
 
 			//set title
 			const name = document.getElementById('instructor-name');
