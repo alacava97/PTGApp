@@ -1,303 +1,58 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Class Info</title>
+
 	<link rel="stylesheet" href="public/styles/styles.css">
 	<link rel="stylesheet" href="public/styles/buttons.css">
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>Class Info</title>
 </head>
+
 <body>
 	<header class="clearfix">
 		<h1>Class Info</h1>
 		<div id="back-btn" class="back-btn"><a href="/classes.html">&#9664; Classes</a></div>
 	</header>
-	<h2 id="class-title" class="info-header">Loading...</h2>
-	<h3>Instructors</h3>
-	<div id="instructors">Loading...</div>
+	<main class="content">
+		<section class="class-header">
+			<h2 id="class-title" class="info-header">Loading...</h2>
+		</section>
 
-	<h3>Length</h3>
-	<div id="length">Loading...</div>
+		<section class="class-section">
+			<h3>Instructors</h3>
+			<div id="instructors">Loading...</div>
+		</section>
 
-	<h3>Type</h3>
-	<div id="type">Loading...</div>
+		<section class="class-section">
+			<h3>Length</h3>
+			<div id="length">Loading...</div>
+		</section>
 
-	<h3>Level</h3>
-	<div id="level">Loading...</div>
+		<section class="class-section">
+			<h3>Type</h3>
+			<div id="type">Loading...</div>
+		</section>
 
-	<br><br>
+		<section class="class-section">
+			<h3>Level</h3>
+			<div id="level">Loading...</div>
+		</section>
 
-	<button id="delete-class" class="delete-row">Delete Class</button>
+		<section class="danger-zone">
+			<button id="delete-class" class="delete-row">
+				Delete Class
+			</button>
+		</section>
+	</main>
+
+	<script src="public/js/script.js"></script>
+	<script src="public/js/modals.js"></script>
+	<script src="public/js/UI.js"></script>
+	<script src="public/js/class-info.js" defer></script>
 </body>
-<script src="public/js/script.js"></script>
-<script src="public/js/modals.js"></script>
-<script src="public/js/UI.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		await loadClass();
-		const id = getId();
-
-	    document.getElementById('delete-class-button').addEventListener('click', async () => {
-    		await deleteEntry('classes', id);
-    		window.location.href = "/classes.html";
-	    });
-
-	    // Build instructor dropdown
-	    const instructorData = await read('instructors');
-	    await createSearchableDropdown('searchable', 'results', instructorData, 'name');
-
-	    const typeDD = document.getElementById('type-select');
-	    await populateDropdown(typeDD, 'types', 'type');
-	});
-
-	async function loadClass(id = getId()) {
-		const delClassModal = new Modal('delete-class-modal');
-		delClassModal.content(`<h4>Permanently delete class record?</h4>
-			<button id="delete-class-button" class="red">Delete</button>
-		`);
-		const delClass = document.getElementById('delete-class');
-	    delClass.addEventListener('click', () => delClassModal.show());
-
-		const titleModal = new Modal('title-modal');
-		titleModal.content(`<h4>Update Class Title</h4>
-			<form id="title-form">
-				<label for="title-input"></label>
-				<input type="text" id="title-input" name="title">
-				<div class="seperator"></div>
-				<button type="submit" id="submit-title">Submit</button>
-			</form>`);
-		async function titleSuccess() {
-			try {
-				const res = await fetch(`/api/readEntry/classes/${id}`)
-				if(!res.ok) throw new Error('Network error');
-
-				const classRecord = await res.json();
-
-				const title = document.getElementById('class-title');
-				title.innerHTML = `${classRecord.title} ✎`
-				title.addEventListener('click', () => {
-					titleModal.show();
-					document.getElementById('title-input').value = classRecord.title;
-				});
-			} catch (err) {
-			console.error('Internal server error:', err);
-			}
-		}
-		titleModal.formSubmit(titleSuccess, 'classes');
-
-		const lengthModal = new Modal('length-modal');
-		lengthModal.content(`<h4>Update Class Length</h4>
-			<form id="length-form">
-				<label for="length-input"></label>
-				<input type="number" min="1" max="5" id="length-input" name="length">
-				<div class="seperator"></div>
-				<button type="submit" id="submit-length">Submit</button>
-			</form>`);
-		async function lengthSuccess() {
-			const newData = await readEntry('classes', getId());
-			const lengthTitle = document.getElementById('length-title');
-			const newLength = newData.length;
-			lengthTitle.textContent = `${newLength} ${newLength == 1 ? 'period' : 'periods'}`;
-			const length = document.getElementById('length');
-			length.addEventListener('click', () => {
-				lengthModal.show();
-				document.getElementById('length-input').value = newLength;
-			});
-		}
-		lengthModal.formSubmit(lengthSuccess, 'classes');
-
-		const levelModal = new Modal('level-modal');
-		levelModal.content(`<h4>Update Level</h4>
-			<form id="level-form">
-				<label for="level-select"></label>
-				<select name="level" id="level-select">
-					<option value="everyone">Everyone</option>
-					<option value="beginner">Beginner</option>
-					<option value="intermediate">Intermediate</option>
-					<option value="advanced">Advanced</option>
-				</select>
-				<div class="seperator"></div>
-				<button type="submit" id="submit-level">Submit</button>
-			</form>`);
-		async function levelSuccess() {
-			const newData = await readEntry('classes', getId());
-			const levelTitle = document.getElementById('level-title');
-			const newLevel = newData.level.charAt(0).toUpperCase() + newData.level.slice(1);
-			levelTitle.textContent = newLevel;
-			const level = document.getElementById('level');
-			level.addEventListener('click', () => {
-				levelModal.show();
-				document.getElementById('level-select').value = newLevel.toLowerCase();
-			});
-		}
-		levelModal.formSubmit(levelSuccess, 'classes');
-
-		const typeModal = new Modal('type-modal');
-		typeModal.content(`<h4>Update Type</h4>
-			<form id="type-form">
-				<label for="type-select"></label>
-				<select name="type" id="type-select"></select>
-				<div class="seperator"></div>
-				<button type="submit" id="submit-type">Submit</button>
-			</form>`);
-		async function typeSuccess() {
-			const newData = await readEntry('classes', getId());
-			const typeTitle = document.getElementById('type-title');
-			const newType = newData.type_name;
-			typeTitle.textContent = newType;
-			const type = document.getElementById('type');
-			type.addEventListener('click', () => {
-				typeModal.show();
-				document.getElementById('type-select').value = newData.type;
-			});
-		}
-		typeModal.formSubmit(typeSuccess, 'classes');
-
-		const delConfModal = new Modal('delete-confirmation-modal');
-		delConfModal.content(`<h4>Remove instructor from class record?</h4>
-			<button id="delete-button" class="red">Delete</button>
-		`);
-
-		const instModal = new Modal('instructor-modal');
-		instModal.content(`<h4>Select an Instructor</h4>
-			<form id="instructor-class-form">
-			    <input name="instructor_name" type="text" id="searchable" placeholder="Search instructors">
-				<ul id="results" class="drop-down-select"></ul>
-				<div class="seperator"></div>
-				<button type="submit">Add Instructor</button>
-			</form>`);
-
-		async function populateInstructors(instClass) {
-			const instructorContainer = document.getElementById('instructors');
-			if (instClass) { instructorContainer.innerHTML = '' };
-			instClass.forEach(entry => {
-				const instRow = new Row();
-				instRow.addTitle(`${entry.instructor_name}`);
-				instRow.addSubtitle(`${entry.sponsor || 'No sponsor'}`);
-				instRow.addLink(`/instructor-info.html?id=${entry.instructor_id}`);
-				instRow.addDeleteButton();
-				instRow.deleteButton.addEventListener('click', (e) => {
-					e.stopPropagation();
-					delConfModal.show();
-					const confDel = document.getElementById('delete-button');
-
-					const newConfDel = confDel.cloneNode(true);
-					confDel.parentNode.replaceChild(newConfDel, confDel);
-
-					const id = getId();
-					newConfDel.addEventListener('click', async (e) => {
-						await deleteClassInstructorLink(id, entry.instructor_id);
-						const newData = await getInstClass(id);
-						await populateInstructors(newData);
-						document.getElementById('delete-confirmation-modal').style.display = "none";
-					});
-				})
-				
-				instructorContainer.appendChild(instRow.row);
-			});
-
-			const addInst = new Row();
-			addInst.addSubtitle(`<b>＋</b> Add instructor`);
-			addInst.row.addEventListener('click', () => { instModal.show() });
-			instructorContainer.appendChild(addInst.row);
-		}
-
-		async function instSuccess(data) {
-            try {
-				const instructorName = data.instructor_name;
-				const id = getId();
-				const instId = document.getElementById('searchable').getAttribute('row-id');
-                await linkInstructorToClass({
-                    instructor_id: instId,
-                    class_id: id
-                }); 
-
-                const instClass = await getInstClass(id);
-                await populateInstructors(instClass);
-            } catch (err) {
-                console.error('Error linking instructor to class:', err);
-            }
-		}
-		instModal.formSubmit(instSuccess, '', type = 'other');
-
-
-		try {
-			const instClass = await getInstClass(id);
-			const res = await fetch(`/api/readEntry/classes/${id}`)
-			if(!res.ok) throw new Error('Network error');
-
-			const classRecord = await res.json();
-
-			console.log(classRecord);
-
-			const title = document.getElementById('class-title');
-			title.innerHTML = `${classRecord.title} ✎`
-			title.addEventListener('click', () => {
-				titleModal.show();
-				document.getElementById('title-input').value = classRecord.title;
-			});
-
-			//instructors
-			await populateInstructors(instClass);
-			
-
-			//class length
-			const classLength = document.getElementById('length');
-			const length = new Row();
-			if (classRecord.length) {
-				classLength.innerHTML = '';
-				length.addTitle(`${classRecord.length} ${classRecord.length == 1 ? 'period' : 'periods'}`, 'length-title');
-			} else {
-				length.addTitle('No length');
-			}
-			length.row.addEventListener('click', () => {
-				lengthModal.show();
-				document.getElementById('length-input').value = classRecord.length;
-			});
-			classLength.appendChild(length.row);
-
-			//class type
-			const classType = document.getElementById('type');
-			const type = new Row();
-			classType.innerHTML = '';
-			type.addTitle(`${classRecord.type_name || 'No type'}`, 'type-title');
-			classType.addEventListener('click', () => {
-				typeModal.show();
-				document.getElementById('type-select').value = classRecord.type;
-			});
-			classType.appendChild(type.row);
-
-			//class level
-			const classLevel = document.getElementById('level');
-			const level = new Row();
-			classLevel.innerHTML = '';
-			const l = classRecord.level.charAt(0).toUpperCase() + classRecord.level.slice(1);
-			level.addTitle(l || 'No level', 'level-title');
-			level.row.addEventListener('click', () => {
-				levelModal.show();
-				document.getElementById('level-select').value = classRecord.level;
-			});
-			classLevel.appendChild(level.row);
-		} catch (err) {
-			console.error('Internal server error:', err);
-		}
-	}
-
-	async function getInstClass(class_id) {
-		try {
-			const res = await fetch(`/api/instByClass/${class_id}`);
-			if (!res.ok) throw new Error('Network error');
-
-			const instructorList = await res.json();
-
-			return instructorList;
-		} catch (err) {
-			console.error('Internal server error:', err);
-		}
-	}
-
-</script>
 </html>

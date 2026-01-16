@@ -519,3 +519,11 @@ body > h3 {
 	background-color: #d8d8d8;
 	height: 1px;
 }
+
+.class-section {
+	margin-bottom: 2rem;
+}
+
+.class-section > h3 {
+	margin-left: 5%;
+}
