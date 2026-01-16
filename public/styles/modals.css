@@ -32,23 +32,46 @@
 	display: flex;
 	flex-direction: column;
 	align-items: center;
+	gap: 10px;
 }
 
-.modal-content > form > * {
+.modal-content > form > *,
+.modal-content > .delete {
 	width: 100%;
 	box-sizing: border-box;
 }
 
 .modal-content > form > button,
-.modal-content > form > input,
+.modal-content > form input,
+.modal-content > form > select,
+.modal-content > form > textarea,
+.modal-content > .delete,
 .modal-content > p {
+	height: 2em;
 	padding: 0 5px;
 	font-size: 1em;
-	height: 30px;
+}
+
+.modal-content input[type="checkbox"] {
+	height: 1em;
+}
+
+.modal-content > form > textarea {
+	height: 4em;
+}
+
+.modal-content .bigdd {
+	height: 6em;
 }
 
 .modal-content > h3 {
 	font-size: 1.5em;
 	font-weight: bold;
 	text-align: center;
+	white-space: nowrap;
+}
+
+.modal-content > .delete:hover {
+	background-color: #a90000;
+	text-decoration: underline;
 }

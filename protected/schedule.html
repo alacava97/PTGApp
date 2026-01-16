@@ -33,7 +33,8 @@
 			<p id="period-info"></p>
 			<form id="schedule-form" class="modal-form">
 			    <input name="title" type="text" id="searchable" placeholder="Search classes">
-				<ul id="results" class="drop-down-select"></ul><br>
+				<ul id="results" class="drop-down-select"></ul>
+				<div class="seperator"></div>
 				<button type="submit">Add Class</button>
 			</form>`);
 
@@ -43,47 +44,47 @@
 			<a id="class-info">Review Form &#x1F517</a>
 			<form id="update-sched">
 				<label for="day">Day</label>
-				<select id="day" name="day" class="modal-center">
+				<select id="day" name="day">
 					<option value="3" selected>Wednesday</option>
 					<option value="4">Thursday</option>
 					<option value="5">Friday</option>
 					<option value="6">Saturday</option>
-				</select><br><br>
+				</select>
+				<div class="seperator"></div>
 				<label for="start_period">Period</label>
-				<select id="start_period" name="start_period" class="modal-center">
+				<select id="start_period" name="start_period">
 					<option value="1">Period 1</option>
 					<option value="2">Period 2</option>
 					<option value="3">Period 3</option>
 					<option value="4">Period 4</option>
 					<option value="5">Period 5</option>
-				</select><br><br>
-				<label for="room">Room</label>
-				<select name="room" id="room-select" class="modal-center"></select><br><br>
+				</select>
+				<div class="seperator"></div>
+				<label for="room_id">Room</label>
+				<select name="room_id" id="room_id"></select>
+				<div class="seperator"></div>
 				<label for="notes">Notes</label>
-				<textarea name="notes" placeholder="notes" id="notes" class="modal-center"></textarea><br>
-				<button type="submit" id="edit-sched" class="button modal-center">Update</button>
+				<textarea name="notes" placeholder="notes" id="notes"></textarea>
+				<button type="submit" id="edit-sched" class="button">Update</button>
 			</form><br>
-			<button id="confirm-delete" class="button red modal-center">Delete</button>`);
+			<button id="confirm-delete" class="red delete">Delete</button>`);
 
 		const deleteModal = new Modal('delete-confirmation-modal');
 		deleteModal.content(`<h4>Remove event from calendar?</h4>
-			<div>
-				<button id="delete-button" class="button red modal-center">Delete</button>
-			</div>`);
+			<button id="delete-button" class="red delete">Delete</button>
+		`);
 
 		setupScheduleForm();
 
 		const classData = await read('classes');
-		const titles = classData.map(item => item.title);
 		createSearchableDropdown('searchable', 'results', classData, 'title');
 
 		const rooms = await read('rooms');
-		const roomDD = document.getElementById('room-select');
-		Object.values(rooms).forEach(obj => {
+		const roomDD = document.getElementById('room_id');
+		Object.values(rooms).forEach(room => {
 			const opt = document.createElement('option');
-			const room = Object.values(obj)[1];
-			opt.value = room;
-			opt.textContent = room;
+			opt.value = room.id;
+			opt.textContent = room.name;
 			roomDD.appendChild(opt);
 		});
 	});
@@ -179,7 +180,9 @@
 					      document.getElementById('class-info').href = `/public/class-review.html?id=${periodEvent.schedule_id}`
 					      document.getElementById('day').value = periodEvent.day;
 					      document.getElementById('start_period').value = periodEvent.start_period;
-					      document.getElementById('room-select').value = periodEvent.room;
+					      document.getElementById('room_id').value = periodEvent.room_id;
+					      document.getElementById('notes').value = periodEvent.notes;
+					      console.log(periodEvent)
 
 					      const form = document.getElementById('update-sched');
 					      form.addEventListener('submit', (e) => {

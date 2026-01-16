@@ -36,31 +36,31 @@
 		const newClass = new Modal('newModal');
 		newClass.content(`<h2>New Class</h2>
 			<form id="new-class-form">
-				<label>Title:
-					<input type="text" name="title" placeholder="Class Title" autocomplete="off" required>
-				</label><br><br>
-				<label>Instructor:
-					<select id="instDropdown" name="instructor_ids" required multiple>
-						<option value="" selected disabled>Select an instructor</option>
-					</select>
-				</label><br><br>
-				<label>Length:
-					<input type="number" min="1" max="5" name="length" required>
-				</label><br><br>
-				<label>Type:
-					<Select id="typeDropdown" name="type" required>
-						<option value="" selected disabled>Select a type</option>
-					</Select>
-				</label><br><br>
-				<label>Level:
-					<select name="level" required>
-						<option value="" selected disabled>Select a level</option>
-						<option value="everyone">Everyone</option>
-						<option value="beginner">Beginner</option>
-						<option value="intermediate">Intermediate</option>
-						<option value="advanced">Advanced</option>
-					</select>
-				</label><br><br>
+				<label for="title">Title</label>
+				<input id="title" type="text" name="title" placeholder="Class Title" autocomplete="off" required>
+				<div class="seperator"></div>
+				<label for="instDropdown">Instructor<br>(Type to search, ctrl + click to select multiple)</label>
+				<select id="instDropdown" class="bigdd" name="instructor_ids" required multiple>
+					<option value="" selected disabled>Select an instructor</option>
+				</select>
+				<div class="seperator"></div>
+				<label for="length">Length</label>
+				<input id="length" type="number" min="1" max="5" name="length" required>
+				<div class="seperator"></div>
+				<label for="typeDropdown">Type</label>
+				<Select id="typeDropdown" name="type" required>
+					<option value="" selected disabled>Select a type</option>
+				</Select>
+				<div class="seperator"></div>
+				<label for="level">Level</label>
+				<select id="level" name="level" required>
+					<option value="" selected disabled>Select a level</option>
+					<option value="everyone">Everyone</option>
+					<option value="beginner">Beginner</option>
+					<option value="intermediate">Intermediate</option>
+					<option value="advanced">Advanced</option>
+				</select>
+				<div class="seperator"></div>
 				<button type="submit" class="button">Create Record</button>
 			</form>
 
@@ -81,6 +81,7 @@
 	});
 
 	function displayRecords(records) {
+		console.log(records)
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 

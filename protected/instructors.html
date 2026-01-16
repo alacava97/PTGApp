@@ -36,21 +36,28 @@
 		const newInst = new Modal('newModal');
 		newInst.content(`<h2>New Instructor</h2>
 			<form id="new-instructor-form">
-				<input type="text" name="name" placeholder="Name" autocomplete="off" required class="modal-center">
-				<br><br>
-					<input type="tel" name="phone" autocomplete="off" placeholder="Phone" class="modal-center">
-				<br><br>
-					<input type="email" name="email" autocomplete="off" placeholder="Email" class="modal-center">
-				<br><br>
-				<label class="modal-center">RPT Status
-					<input class="small-input" type="checkbox" name="rpt" class="modal-center">
-				</label><br><br>
-				<label class="modal-center">Sponsored
-					<input class="small-input" id="sponsored" type="checkbox" name="sponsored" class="modal-center">
+				<label for="name">Name</label>
+				<input id="name" type="text" name="name" placeholder="Name" autocomplete="off" required>
+				<div class="seperator"></div>
+				<label for="phone">Phone</label>
+				<input id="phone" type="tel" name="phone" autocomplete="off" placeholder="Phone">
+				<div class="seperator"></div>
+				<label for="email">Email</label>
+				<input id="email" type="email" name="email" autocomplete="off" placeholder="Email">
+				<div class="seperator"></div>
+				<label for="rpt">RPT Status
+					<input id="rpt" class="small-input" type="checkbox" name="rpt">
 				</label>
-				<label id="sponsor" class="modal-center"><br>Sponsor
-					<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center">
-				</label><br><br>
+				<div class="seperator"></div>
+				<label for="sponsored">Sponsored
+					<input class="small-input" id="sponsored" type="checkbox" name="sponsored">
+				</label>
+			    <div class="seperator"></div>
+				<div id="sponsor-div" style="display: none;">
+					<label for="sponsor">Sponsor</label>
+					<input id="sponsor" type="text" name="sponsor" autocomplete="off" placeholder="Sponsor">
+				</div>
+				<div class="seperator"></div>
 				<button type="submit" class="button modal-center">Create Record</button>
 			</form>
 
@@ -63,7 +70,7 @@
 		newInst.formSubmit(instSuccess, 'instructors', type = 'create');
 
 		const sponsored = document.getElementById('sponsored');
-		const sponsor = document.getElementById('sponsor');
+		const sponsor = document.getElementById('sponsor-div');
 
 		sponsored.addEventListener('change', () => {
 			if (sponsored.checked) {

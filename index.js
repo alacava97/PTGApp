@@ -4,6 +4,7 @@ const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
+const puppeteer = require('puppeteer');
 
 const pool = require('./db/pool');
 const { requireLogin } = require('./middleware/requireLogin');
@@ -26,7 +27,7 @@ app.use(express.json());
 app.use(
   session({
     store: new pgSession({
-      conString: process.env.DATABASE_URL,
+      pool: pool,
       createTableIfMissing: true,
     }),
     secret: process.env.SESSION_SECRET || 'supersecretkey',
@@ -216,7 +217,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       instructors.name ||
       CASE
         WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
-      THEN ', ' || RPT
+      THEN ', RPT'
       ELSE ''
       END,
       ', '
@@ -226,7 +227,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
     FROM classes
     LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
     LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
-    JOIN types ON types.id = classes.type
+    LEFT JOIN types ON types.id = classes.type
     GROUP BY classes.id, classes.title, classes.level, types.type
     ORDER BY classes.id;
   `;
@@ -236,6 +237,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
     query =
     `SELECT 
     schedule.id AS schedule_id,
+    schedule.notes AS notes,
     classes.title,
 
     CASE schedule.day
@@ -284,6 +286,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
 
   GROUP BY
     schedule.id,
+    schedule.notes,
     classes.title,
     day,
     p_start.start,
@@ -447,11 +450,13 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
         schedule.day,
         schedule.start_period,
         schedule.class_id,
+        schedule.notes,
         classes.title,
         classes.length,
         types.type,
         types.color,
         rooms.name as room,
+        rooms.id as room_id,
         COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors
       FROM
         schedule
@@ -469,11 +474,13 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
           schedule.id,
           schedule.day,
           schedule.start_period,
+          schedule.notes,
           classes.title,
           classes.length,
           types.color,
           types.type,
-          room
+          room,
+          rooms.id
       ORDER BY
         schedule.id ASC
     `);
@@ -619,7 +626,8 @@ app.post('/api/export-pdf', requireLogin, async (req, res) => {
   const content = `
     <html>
       <head>
-        <link rel="stylesheet" href="http://localhost:3000/styles.css">
+        <link rel="stylesheet" href="http://localhost:3000/public/styles/styles.css">
+        <link rel="stylesheet" href="http://localhost:3000/public/styles/schedule-styles.css">
       </head>
       <body>
       ${html}
@@ -639,7 +647,7 @@ app.post('/api/export-pdf', requireLogin, async (req, res) => {
   await browser.close();
 
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="element.pdf"');
+  res.setHeader('Content-Disposition', 'attachment; filename="colorblock.pdf"');
   res.send(pdfBuffer);
 });
 

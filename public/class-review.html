@@ -195,7 +195,7 @@
 		const classData = await readEntry('classes', getId());
 		document.getElementById('class-title').textContent = classData.title;
 		const form = document.getElementById('star-form');
-		form.addEventListener('submit', (e) => {
+		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const data = parseForm(form);
 			data['schedule_id'] = getId();

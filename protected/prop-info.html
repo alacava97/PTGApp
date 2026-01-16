@@ -85,9 +85,10 @@
 			let classId = uClass.getAttribute('row-id');
 			let instId = uInst.getAttribute('row-id');
 
-			const typeId = data.type ? (types.find(type => type.type == data.type).id) : null;
+			const foundType = types.find(t => t.type === data.type);
+			const typeId = foundType ? foundType.id : 0;
 
-			const classLevel = data.level ? data.level.toLowerCase() : null;
+			const classLevel = data.level ? data.level.toLowerCase() : 'everyone';
 
 			const classData = { 
 				title: data.title,
@@ -112,7 +113,6 @@
 			} else {
 				const newClass = await create('classes', classData);
 				classId = newClass.id;
-				console.log(classId);
 			}
 
 			const instData = {
@@ -120,7 +120,7 @@
 				phone: data.phone,
 				email: data.email,
 				rpt: data.rpt,
-				sponsored: data.sponsor ? true : null,
+				sponsored: data.sponsor ? true : false,
 				sponsor: data.sponsor
 			}
 
@@ -138,8 +138,10 @@
 			} else {
 				const newInst = await create('instructors', instData);
 				instId = newInst.id;
-				console.log(instId);
 			}
+
+			console.log(instId);
+			console.log(classId);
 
 			await linkInstructorToClass({
 				instructor_id: instId,

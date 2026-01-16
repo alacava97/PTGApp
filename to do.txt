@@ -15,7 +15,6 @@ Far Future
 	-Electronic consent to teach
 -CSS
 	-Responsive design for mobile and other devices in general
-	-Refine schedule page UI
 
 -Attendee screen/login
 	-Favorite classes

@@ -227,6 +227,7 @@ async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubm
 	e.preventDefault();
 
 	const data = parseForm(form);
+	console.log(data);
 	const message = document.getElementById('message');
 
 	try {
