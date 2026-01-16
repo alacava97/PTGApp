@@ -1,12 +1,73 @@
 -Emailing
 	-Password reset emailing
 	-Approved class emailing
-	
--Second form for approved classes
 
--Generate classroom labels as pdfs
-	-Select from list
-	-Select all button
+Fix rpt on inst info
+Include description, grands, uprights, and notes in class info
+CTE status for instructors bool
+Board status for instructors bool
+Exam committee for instructors bool
+Tuning tutoring approved for instructors bool
+Attach sponsors to classes rather than instructors
+
+Classes:
+- Last offered + review data
+	- Link to see more detailed reviews
+- Move delete to top right
+
+Convention dashboard
+- # of classes by type, level, instructor, etc. for convention
+
+Class Proposals
+- Summary of submissions by class type
+- Flag high priority classes - add initials and a note
+- Organize by type - Flag selected classes (yes/no/maybe)
+- Note number of times to offer class
+
+- Dashboard number of classes selected, grouped by total, type, level, length total per group
+
+- Send email
+	- One button to send emails to all the yes / no classes
+	- Checkbox in class prop info page "don't email"
+
+- Add class description on classprop row, remove pianos, keep the rest
+
+- Create institute member record table
+- Change "assigned" in prop info to dd of inst team members
+
+- Button to send 1st approval/decline email
+- Flag for email sent
+- Link in email to recognize approval
+
+- Fix update instructor dd
+- Arrow on toggle, not on/off
+
+- Changelog on inst team dashboard
+	-Timestamp, name of class, who changed, changed what to what (more info), table changed.
+
+- Logout button
+	
+- Button to send second form for approved classes w/ consent to teach (from home office)
+- Second form copy of shared google form
+- Column in db to mark 2nd form sent
+- Column in db to mark 2nd form received
+
+- Automatic deadline reminders 1 week before and day of
+
+- Generate classroom labels as pdfs
+	- Select from list
+	- Select all button
+
+- ONLY CORIE IS ALLOWED TO SEND EMAILS FROM THE SYSTEM
+- Option for delayed send - decide how long to delay
+
+- Schedule page
+	- Warn if repeat classes are in different rooms
+	- Check that instructors are not double booked
+	- Prevent scheduling class if overlap
+	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
+
+- Get av and piano needs attached to each class
 
 Far Future
 -Instructor login
