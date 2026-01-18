@@ -88,11 +88,10 @@
 
 		instructors.forEach(instructor => {
 			const entry = new Row();
-
 			const name = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''}`;
 
 			entry.addTitle(name);
-			entry.addSubtitle(instructor.sponsored == true ? instructor.sponsor : 'No sponsor')
+			entry.addSubtitle(instructor.sponsor == true && instructor.sponsored == true ? instructor.sponsor : 'No sponsor')
 			entry.addArrow(`/instructor-info.html?id=${instructor.id}`);
 
 			instList.appendChild(entry.row);

@@ -2,18 +2,10 @@
 	-Password reset emailing
 	-Approved class emailing
 
-Fix rpt on inst info
-Include description, grands, uprights, and notes in class info
-CTE status for instructors bool
-Board status for instructors bool
-Exam committee for instructors bool
-Tuning tutoring approved for instructors bool
-Attach sponsors to classes rather than instructors
-
 Classes:
 - Last offered + review data
 	- Link to see more detailed reviews
-- Move delete to top right
+	- Need to import review data from 2025
 
 Convention dashboard
 - # of classes by type, level, instructor, etc. for convention

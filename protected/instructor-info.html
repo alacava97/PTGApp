@@ -1,320 +1,59 @@
 <!DOCTYPE html>
-<html>
+
+<html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="public/styles/styles.css">
-	<link rel="stylesheet" href="public/styles/buttons.css">
-	<link rel="stylesheet" href="public/styles/themes.css">
-	<link rel="stylesheet" href="public/styles/modals.css">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>Instructor Info</title>
+
+<title>Instructor Info</title>
+
+<link rel="stylesheet" href="public/styles/styles.css">
+<link rel="stylesheet" href="public/styles/buttons.css">
+<link rel="stylesheet" href="public/styles/themes.css">
+<link rel="stylesheet" href="public/styles/modals.css">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+
 </head>
+
 <body>
-	<header class="clearfix">
+	<header class="page-header clearfix">
+		<nav class="header-nav">
+			<a href="/instructors.html" class="back-btn">&#9664; Instructors</a>
+		</nav>
 		<h1>Instructor Profile</h1>
-		<div id="back-btn" class="back-btn"><a href="/instructors.html">&#9664; Instructors</a></div>
 	</header>
-	<h2 id="instructor-name" class="info-header">Loading...</h2>
-	<h3>Contact</h3>
-	<div id="instructor-details">Loading...</div>
 
-	<h3>Classes</h3>
-	<div id="classes"></div>
+<main class="content">
+	<section class="profile-header">
+		<h2 id="instructor-name" class="info-header">Loading...</h2>
+	</section>
 
-	<h3>More Info</h3>
-	<div id="more-info">No Extra Info</div>
+	<section class="profile-section">
+		<h3>Contact</h3>
+		<div id="instructor-details">Loading...</div>
+	</section>
 
-	<br><br>
+	<section class="profile-section">
+		<h3>Classes</h3>
+		<div id="classes"></div>
+	</section>
 
-	<button id="delete-inst" class="delete-row">Delete Instructor</button>
+	<section class="profile-section">
+		<h3>More Info</h3>
+		<div id="more-info">No Extra Info</div>
+	</section>
+
+	<section class="danger-zone">
+		<button id="delete-instructor" class="delete-row">
+			Delete Instructor
+		</button>
+	</section>
+</main>
+
+<script src="public/js/script.js" defer></script>
+<script src="public/js/modals.js" defer></script>
+<script src="public/js/UI.js" defer></script>
+<script src="public/js/instructor-info.js" defer></script>
+
 </body>
-<script src="public/js/script.js"></script>
-<script src="public/js/modals.js"></script>
-<script src="public/js/UI.js"></script>
-<script>
-	async function getClasses(instructor_id) {
-		try {
-			const res = await fetch(`/api/classByInst/${instructor_id}`);
-			if (!res.ok) throw new Error('Network error');
-
-			const classList = await res.json();
-
-			return classList;
-		} catch (err) {
-			console.error('Internal server error:', err);
-		}
-	}
-
-	document.addEventListener('DOMContentLoaded', async () => {
-		const id = getId();
-
-		await loadInstructor(id);
-		sponsorCheck();
-
-	    document.getElementById('delete-inst-button').addEventListener('click', async () => {
-    		await deleteEntry('instructors', id);
-    		window.location.href = "/instructors.html"
-	    });
-
-		const sponsored = document.getElementById('sponsored');
-		sponsored.addEventListener('change', sponsorCheck);
-
-		const classData = await read('classes');
-		createSearchableDropdown('searchable', 'results', classData, 'title');
-	});
-
-	async function loadInstructor(id = getId()) {
-		//initialize modals
-		const deleteInst = new Modal('delete-inst-modal');
-		deleteInst.content(`<h4>Permanently delete instructor record?</h4>
-			<button id="delete-inst-button" class="red">Delete</button>
-		`);
-		document.getElementById('delete-inst').addEventListener('click', () => deleteInst.show());
-
-		const nameModal = new Modal('name-modal');
-		nameModal.content(`<h4>Update Instructor Name</h4>
-			<form id="name-form">
-				<label for="name-input"></label>
-				<input type="text" id="name-input" name="name" class="modal-center" placeholder="Instructor name">
-				<div class="seperator"></div>
-				<button type="submit" id="submit-name">Submit</button>
-			</form>`);
-		async function nameSuccess() {
-			try {
-				const res = await fetch(`/api/readEntry/instructors/${id}`);
-				if (!res.ok) throw new Error('Network error');
-
-				const instructor = await res.json();
-
-				const name = document.getElementById('instructor-name');
-				const instName = `${instructor.name}${instructor.rpt == true ? ', RPT' : '' } ✎`;
-				name.innerHTML = instName;
-				name.addEventListener('click', () => {
-					nameModal.show();
-					document.getElementById('name-input').value = instructor.name;
-				});
-				const contact = document.getElementById('instructor-details');
-				document.getElementById('contact-title').textContent = instName;
-				contact.addEventListener('click', () => {
-					contactModal.show();
-					document.getElementById('instructor-name-input').value = instructor.name;
-					document.getElementById('instructor-email').value = instructor.email;
-					document.getElementById('instructor-phone').value = instructor.phone;
-					document.getElementById('rpt-radio').checked = instructor.rpt ? true : false;
-				});
-			} catch (err) {
-				console.error('Internal server error:', err);
-			}
-		}
-		nameModal.formSubmit(nameSuccess, 'instructors');
-
-		const sponsorModal = new Modal('sponsor-modal');
-		sponsorModal.content(`<h4>Instructor Sponsor</h4>
-			<form id="edit-sponsor">
-				<label class="modal-center">Sponsored
-					<input id="sponsored" class="small-input" type="checkbox" name="sponsored" class="modal-center">
-				</label>
-				<div class="seperator"></div>
-				<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" class="modal-center" id="sponsor">
-				<button type="submit">Update Sponsor</button>
-			</form>`);
-		async function populateSponsor(instructor) {
-			const moreInfoContainer = document.getElementById('more-info');
-			moreInfoContainer.innerHTML = '';
-			const moreInfo = new Row();
-			if (instructor.sponsored === true) {
-				moreInfo.addTitle(`Sponsored Instructor`, 'sponsor-title');
-				moreInfo.addSubtitle(instructor.sponsor || 'No sponsor on record', 'sponsor-subtitle');
-			} else {
-				moreInfo.addSubtitle('No Extra Info');
-			}
-			moreInfo.editArrow();
-			moreInfo.row.addEventListener('click', () => {
-				sponsorModal.show();
-				if (instructor.sponsored === true) {
-					document.getElementById('sponsored').checked = true;
-					document.getElementById('sponsor').value = instructor.sponsor;
-					sponsorCheck();
-				}
-			});
-			moreInfoContainer.replaceChildren(moreInfo.row);
-		}
-
-		async function sponsorSuccess() {
-			try {
-				const res = await fetch(`/api/readEntry/instructors/${id}`);
-				if (!res.ok) throw new Error('Network error');
-
-				const instructor = await res.json();
-				populateSponsor(instructor);
-			} catch (err) {
-				console.error('Error loading instructor:', err);
-			}
-		}
-		sponsorModal.formSubmit(sponsorSuccess, 'instructors');
-
-		const classModal = new Modal('class-modal');
-		classModal.content(`<h4>Select a Class</h4>
-			<form id="instructor-class-form">
-			    <input name="title" type="text" id="searchable" placeholder="Search classes" class="modal-center">
-				<ul id="results" class="drop-down-select"></ul>
-				<div class="seperator"></div>
-				<button type="submit" class="button modal-center">Add Class</button>
-			</form>`);
-
-		async function populateClasses(classes) {
-			const classContainer = document.getElementById('classes');
-			if (classes) { classContainer.innerHTML = '' };
-			classes.forEach(entry => {
-				const classRow = new Row();
-				classRow.addTitle(entry.title);
-				classRow.addSubtitle(entry.type_name);
-				classRow.addSubtitle(entry.level);
-				classRow.addLink(`/class-info.html?id=${entry.class_id}`);
-				classRow.addDeleteButton();
-				classRow.deleteButton.addEventListener('click', (e) => {
-					e.stopPropagation();
-					delConfModal.show();
-					const confDel = document.getElementById('delete-button');
-
-					const newConfDel = confDel.cloneNode(true);
-					confDel.parentNode.replaceChild(newConfDel, confDel);
-
-					const id = getId();
-					newConfDel.addEventListener('click', async () => {
-						await deleteClassInstructorLink(entry.class_id, id);
-						const newData = await getClasses(id);
-						await populateClasses(newData);
-						document.getElementById('delete-confirmation-modal').style.display = "none";
-					});
-				});
-				classContainer.appendChild(classRow.row);
-			});
-			const addClass = new Row();
-			addClass.addSubtitle(`<b>＋</b> Add class`);
-			addClass.subtitle.addEventListener('click', () => classModal.show());
-			classContainer.appendChild(addClass.row);
-		}
-
-		async function classSuccess(data) {
-			try {
-				const classTitle = data.title;
-				const classId = document.getElementById('searchable').getAttribute('row-id');
-				const id = getId();
-				await linkInstructorToClass({
-					instructor_id: id,
-					class_id: classId
-				});
-
-				const instClass = await getClasses(id);
-				await populateClasses(instClass);
-			} catch (err) {
-				console.error('Error linking instructor to class:', err);
-			}
-		}
-		classModal.formSubmit(classSuccess, '', type = 'other');
-
-		const delConfModal = new Modal('delete-confirmation-modal');
-		delConfModal.content(`<h4>Remove class from instructor record?</h4>
-			<button id="delete-button" class="red">Delete</button>
-		`);
-
-		const contactModal = new Modal('contact-modal');
-		contactModal.content(`<h4>Instructor Contact</h4>
-			<form id="edit-contact">
-				<input id="instructor-name-input" type="text" name="name"required class="modal-center" placeholder="Instructor name">
-				<div class="seperator"></div>
-				<input id="instructor-email" type="email" name="email" class="modal-center" placeholder="Email">
-				<div class="seperator"></div>
-				<input id="instructor-phone" type="tel" name="phone" class="modal-center" placeholder="Phone">
-				<div class="seperator"></div>
-				<label class="modal-center">RPT Status
-					<input id="rpt-radio" class="small-input" type="checkbox" name="rpt" class="modal-center">
-				</label>
-				<div class="seperator"></div>
-				<button type="submit">Update Record</button>
-				<div id="message"></div>
-			</form>`);
-		async function contactSuccess() {
-			try {
-				const res = await fetch(`/api/readEntry/instructors/${id}`);
-				if (!res.ok) throw new Error('Network error');
-
-				const instructor = await res.json();
-				const name = document.getElementById('instructor-name');
-				const contactTitle = document.getElementById('contact-title');
-				const contactEmail = document.getElementById('contact-email');
-				const contactPhone = document.getElementById('contact-phone');
-				const instTitle = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''} ✎`;
-				name.textContent = instTitle;
-				contactTitle.textContent = instTitle;
-				contactEmail.textContent = instructor.email || 'No email on record.';
-				contactPhone.textContent = instructor.phone || 'No phone on record.';
-				const contact = document.getElementById('instructor-details');
-				contact.addEventListener('click', () => {
-					contactModal.show();
-					document.getElementById('instructor-name-input').value = instructor.name;
-					document.getElementById('instructor-email').value = instructor.email;
-					document.getElementById('instructor-phone').value = instructor.phone;
-					document.getElementById('rpt-radio').checked = instructor.rpt ? true : false;
-				});
-				name.addEventListener('click', () => {
-					nameModal.show();
-					document.getElementById('name-input').value = instructor.name;
-				})
-			} catch (err) {
-				console.error('Error loading instructor:', err);
-				document.getElementById('instructor-name').textContent = 'Error loading instructor.';
-			}
-		}
-		contactModal.formSubmit(contactSuccess, 'instructors');
-
-		try {
-			const res = await fetch(`/api/readEntry/instructors/${id}`);
-			if (!res.ok) throw new Error('Network error');
-
-			const instructor = await res.json();
-
-			const instTitle = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''} ✎`;
-
-			//set title
-			const name = document.getElementById('instructor-name');
-			name.textContent = instTitle;
-			name.addEventListener('click', () => {
-				nameModal.show();
-				document.getElementById('name-input').value = instructor.name;
-			});
-			
-			//contact section
-			const contact = new Row();
-			contact.addTitle(instTitle, 'contact-title');
-			contact.addSubtitle(instructor.email || 'No email on record.', 'contact-email');
-			contact.addSubtitle(instructor.phone || 'No phone on record.', 'contact-phone');
-			contact.editArrow();
-			contact.row.addEventListener('click', () => {
-				contactModal.show();
-				document.getElementById('instructor-name-input').value = instructor.name;
-				document.getElementById('instructor-email').value = instructor.email;
-				document.getElementById('instructor-phone').value = instructor.phone;
-				document.getElementById('rpt-radio').checked = instructor.rpt ? true : false;
-			});
-
-			const contactContainer = document.getElementById('instructor-details');
-			contactContainer.replaceChildren(contact.row);
-
-			//Classes
-			const classes = await getClasses(id);
-			populateClasses(classes);
-
-			//sponsor section
-			populateSponsor(instructor);
-
-		} catch (err) {
-			console.error('Error loading instructor:', err);
-			document.getElementById('instructor-name').textContent = 'Error loading instructor.';
-		}
-	}
-
-</script>
 </html>

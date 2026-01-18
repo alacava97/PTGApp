@@ -520,10 +520,13 @@ body > h3 {
 	height: 1px;
 }
 
-.class-section {
+.class-section,
+.profile-section {
 	margin-bottom: 2rem;
 }
 
-.class-section > h3 {
+.class-section > h3,
+.profile-section > h3 {
 	margin-left: 5%;
 }
+

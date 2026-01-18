@@ -216,7 +216,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       string_agg(
       instructors.name ||
       CASE
-        WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
+        WHEN instructors.rpt IS NOT NULL AND instructors.rpt = TRUE
       THEN ', RPT'
       ELSE ''
       END,
@@ -380,12 +380,11 @@ app.get('/api/instByClass/:id', requireLogin, async (req, res) => {
       instructors.id AS instructor_id,
     instructors.name ||
     CASE
-      WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
-    THEN ', ' || instructors.rpt
+      WHEN instructors.rpt IS NOT NULL AND instructors.rpt = TRUE
+    THEN ', RPT'
     ELSE ''
     END
     AS instructor_name,
-      instructors.sponsor,
       types.type AS type_name,
       types.id AS type_id
     FROM 
@@ -500,6 +499,50 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
       ORDER BY
         schedule.id ASC
     `);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error querying table:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(`
+      SELECT 
+        schedule.class_id,
+        classes.title,
+        COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors,
+        locations.year,
+      COUNT(schedule.id) AS times_taught
+      FROM
+        schedule
+      JOIN
+        classes ON classes.id = schedule.class_id
+      LEFT JOIN
+        class_instructors ON classes.id = class_instructors.class_id
+      LEFT JOIN
+        instructors ON class_instructors.instructor_id = instructors.id
+      LEFT JOIN
+        rooms ON schedule.room_id = rooms.id
+      LEFT JOIN
+        locations ON rooms.location_id = locations.id
+      WHERE
+        schedule.class_id = $1
+      GROUP BY 
+          schedule.class_id,
+          classes.title,
+          locations.year
+      ORDER BY
+        locations.year ASC
+    `, [id]);
 
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'Entry not found' });

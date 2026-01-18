@@ -47,7 +47,6 @@
 .modal-content button,
 .modal-content > form input,
 .modal-content > form > select,
-.modal-content > form > textarea,
 .modal-content > .delete,
 .modal-content > p {
 	height: 2em;
@@ -55,12 +54,16 @@
 	font-size: 1em;
 }
 
-.modal-content input[type="checkbox"] {
-	height: 1em;
+.modal-content > form > textarea {
+	field-sizing: content;
+	max-width: 300px;
+	min-height: 4em;
+	padding: 5px;
+	font-size: 1em;
 }
 
-.modal-content > form > textarea {
-	height: 4em;
+.modal-content input[type="checkbox"] {
+	height: 1em;
 }
 
 .modal-content .bigdd {
