@@ -5,7 +5,6 @@
 Classes:
 - Last offered + review data
 	- Link to see more detailed reviews
-	- Need to import review data from 2025
 
 Convention dashboard
 - # of classes by type, level, instructor, etc. for convention

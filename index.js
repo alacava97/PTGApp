@@ -520,8 +520,8 @@ app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
         schedule.class_id,
         classes.title,
         COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors,
-        locations.year,
-      COUNT(schedule.id) AS times_taught
+        conventions.year,
+        COUNT(schedule.id) AS times_taught
       FROM
         schedule
       JOIN
@@ -534,14 +534,16 @@ app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
         rooms ON schedule.room_id = rooms.id
       LEFT JOIN
         locations ON rooms.location_id = locations.id
+      LEFT JOIN
+        conventions ON locations.id = conventions.location_id
       WHERE
         schedule.class_id = $1
       GROUP BY 
           schedule.class_id,
           classes.title,
-          locations.year
+          conventions.year
       ORDER BY
-        locations.year ASC
+        conventions.year ASC
     `, [id]);
 
     if (result.rows.length === 0) {
@@ -560,9 +562,14 @@ app.get('/api/getRooms/:id', async (req, res) => {
     const id = req.params.id;
 
     const result = await pool.query(`
-      SELECT * 
-      FROM rooms 
-      WHERE location_id = $1
+      SELECT
+        rooms.*,
+        conventions.year AS year
+      FROM rooms
+      LEFT JOIN
+        conventions ON conventions.location_id = rooms.location_id
+      WHERE
+        rooms.location_id = $1
     `, [id])
 
     if (result.rows.length === 0) {
