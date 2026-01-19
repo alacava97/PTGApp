@@ -393,7 +393,6 @@ function setupHistory(classHistory) {
 	container.innerHTML = '';
 
 	let history = classHistory;
-	console.log(history)
 
 	const row = new Row();
 	row.addTitle('Class History');
