@@ -246,7 +246,7 @@ function setupDetails(classRecord) {
 	let details = {
 		length: classRecord.length,
 		type: classRecord.type_name,
-		typeId: classRecord.type,
+		typeId: classRecord.type || 'No type',
 		level: classRecord.level,
 		uprights: classRecord.uprights || 0,
 		grands: classRecord.grands || 0
@@ -260,7 +260,7 @@ function setupDetails(classRecord) {
 	row.addTitle('Details', 'details-title');
 	row.addSubtitle(`Length: ${lengthValue}`, 'length-subtitle');
 	row.addSubtitle(`Type: ${details.type || 'No type'}`, 'type-subtitle');
-	row.addSubtitle(`Level: ${details.level.charAt(0).toUpperCase() + details.level.slice(1)}`, 'level-subtitle');
+	row.addSubtitle(`Level: ${details.level?details.level.charAt(0).toUpperCase() + details.level.slice(1):'No level'}`, 'level-subtitle');
 	row.addSubtitle(`Uprights: ${details.uprights}`, 'upright-subtitle');
 	row.addSubtitle(`Grands: ${details.grands}`, 'grand-subtitle');
 
@@ -391,7 +391,7 @@ function setupSponsor(classRecord) {
 function setupHistory(classHistory) {
 	const container = document.getElementById('history');
 	container.innerHTML = '';
-
+	console.log(classHistory)
 	let history = classHistory;
 
 	const row = new Row();
@@ -400,7 +400,7 @@ function setupHistory(classHistory) {
 		row.addSubtitle('No history');
 	}
 	history.forEach(year => {
-		row.addSubtitle(`Taught ${year.times_taught}${year.times_taught == 1?' time':' times'} in ${year.year}`);
+		row.addSubtitle(`Taught ${year.times_taught}${year.times_taught == 1?' time':' times'} in ${year.year} - ${formatRating(year.rating) || 'No data'}/5 ★`);
 	});
 
 	container.appendChild(row.row);
@@ -437,4 +437,20 @@ async function setupDropdowns() {
 	if (typeDD) {
 		await populateDropdown(typeDD, 'types', 'type');
 	}
+}
+
+function formatRating(rating) {
+	if (rating === null || rating === undefined) return 'No data';
+
+	const num = Number(rating);
+
+	if (Number.isNaN(num)) return 'No data';
+
+	// Whole number → no decimal
+	if (Number.isInteger(num)) {
+		return num;
+	}
+
+	// Decimal → 1 place
+	return num.toFixed(1);
 }

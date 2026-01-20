@@ -519,9 +519,10 @@ app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
       SELECT 
         schedule.class_id,
         classes.title,
-        COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors,
+        COALESCE(string_agg(DISTINCT instructors.name, ', '), 'No instructors') as instructors,
         conventions.year,
-        COUNT(schedule.id) AS times_taught
+        COUNT(DISTINCT schedule.id) AS times_taught,
+        ROUND(AVG((reviews.q1 + reviews.q2 + reviews.q3 + reviews.q4 + reviews.q5 + reviews.q6 + reviews.q7 + reviews.q8)::numeric / 8), 1) AS rating
       FROM
         schedule
       JOIN
@@ -536,6 +537,8 @@ app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
         locations ON rooms.location_id = locations.id
       LEFT JOIN
         conventions ON locations.id = conventions.location_id
+      LEFT JOIN
+        reviews ON schedule.id = reviews.schedule_id
       WHERE
         schedule.class_id = $1
       GROUP BY 
@@ -545,10 +548,6 @@ app.get('/api/classFromSchedule/:id', requireLogin, async (req, res) => {
       ORDER BY
         conventions.year ASC
     `, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Entry not found' });
-    }
 
     res.json(result.rows);
   } catch (err) {
@@ -579,6 +578,30 @@ app.get('/api/getRooms/:id', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(`Error getting rooms:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/getPropTypes', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        type,
+        COUNT(DISTINCT id),
+        approved
+      FROM class_proposals
+      GROUP BY
+        type,
+        approved
+    `)
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error:`, err);
     res.status(500).json({ error: 'Database query failed' });
   }
 });

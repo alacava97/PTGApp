@@ -38,18 +38,44 @@
 <script src="public/js/UI.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		const proposals = await read('class_proposals');
-		displayRecords(proposals);
-		searchBar(proposals);
+	document.addEventListener('DOMContentLoaded', initProposalPage)
 
-		const checks = document.querySelectorAll('input[type="checkbox"]');
-		checks.forEach(check => {
-			check.addEventListener('change', () => {
-				displayRecords(proposals);
+	async function initProposalPage() {
+		await loadProposals();
+	}
+
+	/* -----------------------------
+		Fetch Data
+	----------------------------- */
+
+	async function fetchProposals() {
+		const res = await fetch(`/api/read/class_proposals`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}
+
+	/* -----------------------------
+	   Page Setup
+	----------------------------- */
+
+	async function loadProposals() {
+		try {
+			const [proposals] = await Promise.all([
+				fetchProposals()
+			]);
+
+			displayRecords(proposals)
+			searchBar(proposals);
+			const checks = document.querySelectorAll('input[type="checkbox"]');
+			checks.forEach(check => {
+				check.addEventListener('change', () => {
+					displayRecords(proposals);
+				});
 			});
-		});
-	});
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
 
 	function displayRecords(data) {
 		const propList = document.getElementById('list');
@@ -67,11 +93,13 @@
 
 		filteredData.forEach(entry => {
 			const row = new Row();
-			row.addTitle(`${entry.title || 'No Title'} - ${entry.approved == true ? 'approved' : entry.approved == false ? 'declined' : 'pending'}`);
-			row.addSubtitle(entry.name || 'No Instructor');
-			row.addSubtitle((entry.type || 'No type') + ', ' + (entry.level || 'No level'));
-			row.addSubtitle(`${entry.length || 0} ${entry.length == 1 ? 'period' : 'periods'}, ${entry.uprights || 0} ${entry.uprights == 1 ? 'upright' : 'uprights'}, ${entry.grands || 0} ${entry.grands == 1 ? 'grand' : 'grands'}`);
-			row.addSubtitle(`${entry.assigned ? `Assigned to ${entry.assigned}` : 'Not assigned'}`);
+			row.addSubtitle(`<b>Title:</b> ${entry.title || 'No Title'} <b>- ${entry.approved || 'pending review'}</b>`);
+			row.addSubtitle(`<b>Instructor:</b> ${entry.name || 'No Instructor'}`);
+			row.addSubtitle(`<b>Type:</b> ${entry.type || 'No type'}`);
+			row.addSubtitle(`<b>Level:</b> ${entry.level || 'No level'}`);
+			row.addSubtitle(`<b>Length:</b> ${entry.length || 0} ${entry.length == 1 ? 'period' : 'periods'}`);
+			row.addSubtitle(`<b>Institute Contact:</b> ${entry.assigned ? `Assigned to ${entry.assigned}` : 'Not assigned'}`);
+			row.addSubtitle(`<b>Description:</b> ${entry.description || 'No description'}`)
 			row.addArrow(`/prop-info.html?id=${entry.id}`);
 			propList.appendChild(row.row);
 		});

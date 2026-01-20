@@ -1,37 +1,23 @@
 -Emailing
 	-Password reset emailing
 	-Approved class emailing
+	-Yes/no class proposals - only Corie has permission - delay send option
+		-"don't email" option in prop-info page
+		-mark "email sent" in db
+		-page to link in email that marks email received "click here to accept your acceptance"
+		-Automatic deadline reminders 1 week before and day of
 
-Classes:
-- Last offered + review data
-	- Link to see more detailed reviews
+Create class review page with details about class reviews
+	-Average rating for each question, open response answers
 
 Convention dashboard
-- # of classes by type, level, instructor, etc. for convention
+- # of classes by type, level, instructor, etc. for convention - See Cories "Class & Period Counts" doc
+- Should draw # of periods taught from the class prop table
 
 Class Proposals
-- Summary of submissions by class type
+- Summary of submissions by class type - on homepage dashboard - stacked bar graph w/ yes and maybe
+	-dd to select type, level, length
 - Flag high priority classes - add initials and a note
-- Organize by type - Flag selected classes (yes/no/maybe)
-- Note number of times to offer class
-
-- Dashboard number of classes selected, grouped by total, type, level, length total per group
-
-- Send email
-	- One button to send emails to all the yes / no classes
-	- Checkbox in class prop info page "don't email"
-
-- Add class description on classprop row, remove pianos, keep the rest
-
-- Create institute member record table
-- Change "assigned" in prop info to dd of inst team members
-
-- Button to send 1st approval/decline email
-- Flag for email sent
-- Link in email to recognize approval
-
-- Fix update instructor dd
-- Arrow on toggle, not on/off
 
 - Changelog on inst team dashboard
 	-Timestamp, name of class, who changed, changed what to what (more info), table changed.
@@ -43,14 +29,9 @@ Class Proposals
 - Column in db to mark 2nd form sent
 - Column in db to mark 2nd form received
 
-- Automatic deadline reminders 1 week before and day of
-
 - Generate classroom labels as pdfs
 	- Select from list
 	- Select all button
-
-- ONLY CORIE IS ALLOWED TO SEND EMAILS FROM THE SYSTEM
-- Option for delayed send - decide how long to delay
 
 - Schedule page
 	- Warn if repeat classes are in different rooms

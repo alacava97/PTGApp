@@ -18,237 +18,80 @@
 		<h1>Class Proposal</h1>
 		<div id="back-btn" class="back-btn"><a href="/class-proposals.html">&#9664; Classes</a></div>
 	</header>
-	<h3>Approval Status</h3>
-	<div id="approved">Loading...</div>
-	<h3>Class</h3>
-	<div id="class-info">Loading...</div>
-	<h3>Instructor</h3>
-	<div id="instructor-info">Loading...</div>
-	<h3>Sponsor</h3>
-	<div id="sponsor-info">Loading...</div>
-	<h3>Assigned To</h3>
-	<div id="assigned">Loading...</div>
-
+	<main class="prop-main">
+		<h2>Class Details</h2>
+		<h3>Class</h3>
+		<div id="class-info">Loading...</div>
+		<h3>Instructor</h3>
+		<div id="instructor-info">Loading...</div>
+		<h3>Sponsor</h3>
+		<div id="sponsor-info">Loading...</div>
+		<h2>Options</h2>
+		<h3>Approval Status</h3>
+		<div id="approved">Loading...</div>
+		<h3>Assigned To</h3>
+		<div id="assigned">Loading...</div>
+		<h3>Number of Sessions</h3>
+		<div id="periods">Loading...</div>
+	</main>
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
 <script src="public/js/UI.js"></script>
 <script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		const data = await readEntry('class_proposals', getId());
-		displayRecord(data);
-		console.log(data);
+	document.addEventListener('DOMContentLoaded', initPropPage);
 
-		const classes = await read('classes');
+	async function initPropPage() {
+		const proposalId = getId();
 
-		const instructors = await read('instructors');
+		await loadProposalData(proposalId);
+	}
 
-		createSearchableDropdown('class-dd', 'class-dd-result', classes, 'title');
-		createSearchableDropdown('inst-dd', 'inst-dd-result', instructors, 'instructor_name');
-	});
+	/* -----------------------------
+	   Data Fetching
+	----------------------------- */
 
-	function displayRecord(data) {
-		const approveModal = new Modal();
-		approveModal.content(`
-			<h2 class="center" >Approve Class?</h2>
-			<div class="grid3">
-				<span id="new-class" class="bold">Create new<br>class record.</span>
-				<label class="switch">
-					<input type="checkbox" id="class-switch">
-					<span class="slider"></span>
-				</label>
-				<span id="update-class">Update existing class record.<input id="class-dd" class="class-dd-input" autocomplete="off"><ul id="class-dd-result" class="dd"></ul></span>
-				<span class="grid-border"></span>
-				<span id="new-inst" class="bold">Create new<br>instructor record.</span>
-					<label class="switch">
-						<input type="checkbox" id="inst-switch">
-						<span class="slider"></span>
-					</label>
-					<span id="update-inst">Update existing instructor record.<input id="inst-dd" class="class-dd-input"><ul id="inst-dd-result" class="dd"></ul></span>
-				<span class="grid-border"></span>
-			</div>
-			<br>
-			<button id="approve-class" class="green button modal-center">Approve</button>
-			<button id="decline-class" class="red button modal-center">Decline</button>
-			<div id="message"></div>
-		`);
+	async function fetchProposals(proposalId) {
+		const res = await fetch(`/api/readEntry/class_proposals/${proposalId}`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}
 
-		document.getElementById('approve-class').addEventListener('click', async (e) => {
-			e.preventDefault();
-			const types = await read('types');
-			await updateRecord('class_proposals', getId(), {approved:true});
-			const cSwitch = document.getElementById('class-switch');
-			const iSwitch = document.getElementById('inst-switch');
-			const message = document.getElementById('message');
-			const uClass = document.getElementById('class-dd');
-			const uInst = document.getElementById('inst-dd');
-			const data = await readEntry('class_proposals', getId());
-			let classId = uClass.getAttribute('row-id');
-			let instId = uInst.getAttribute('row-id');
+	/* -----------------------------
+	   Page Setup
+	----------------------------- */
 
-			const foundType = types.find(t => t.type === data.type);
-			const typeId = foundType ? foundType.id : 20;
+	async function loadProposalData(proposalId) {
+		try {
+			const [proposalData] = await Promise.all([
+				fetchProposals(proposalId)
+			]);
 
-			const classLevel = data.level ? data.level.toLowerCase() : 'everyone';
-
-			const classData = { 
-				title: data.title,
-				level: classLevel,
-				type: typeId,
-				length: data.length,
-				description: data.description,
-				grands: data.grands,
-				uprights: data.uprights
-			}
-			if (cSwitch.checked) {
-				if (uClass.value) {
-					if (!classId) {
-						message.textContent = 'Please select a class from the dropdown list';
-						return;
-					}
-					await updateRecord('classes', classId, classData);
-				} else {
-					message.textContent = 'Please select a class to update';
-					return;
-				}
-			} else {
-				const newClass = await create('classes', classData);
-				classId = newClass.id;
-			}
-
-			const instData = {
-				name: data.name,
-				phone: data.phone,
-				email: data.email,
-				rpt: data.rpt,
-				sponsored: data.sponsor ? true : false,
-				sponsor: data.sponsor
-			}
-
-			if (iSwitch.checked) {
-				if (uInst.value) {
-					if (!instId) {
-						message.textContent = 'Please select an instructor from the dropdown list';
-						return;
-					}
-					await updateRecord('instructors', instId, instData);
-				} else {
-					message.textContent = 'Please select an instructor to update';
-					return;
-				}
-			} else {
-				const newInst = await create('instructors', instData);
-				instId = newInst.id;
-			}
-
-			console.log(instId);
-			console.log(classId);
-
-			await linkInstructorToClass({
-				instructor_id: instId,
-				class_id: classId
-			});
-
-			approveModal.close();
-			document.getElementById('status-subtitle').textContent = 'Approved';
-			document.getElementById('approved').addEventListener('click', () => {
-				approveModal.show();
-			});
-		});
-
-		document.getElementById('class-switch').addEventListener('change', (e) => {
-			const nClass = document.getElementById('new-class');
-			const uClass = document.getElementById('update-class');
-
-			if (e.target.checked) {	
-				nClass.classList.remove('bold');
-				uClass.classList.add('bold');
-			} else {
-				uClass.classList.remove('bold');
-				nClass.classList.add('bold');
-			}
-		});
-
-		document.getElementById('inst-switch').addEventListener('change', (e) => {
-			const nInst = document.getElementById('new-inst');
-			const uInst = document.getElementById('update-inst');	
-
-			if (e.target.checked) {
-				nInst.classList.remove('bold');
-				uInst.classList.add('bold');
-			} else {
-				uInst.classList.remove('bold');
-				nInst.classList.add('bold');
-			}
-		});
-
-
-		document.getElementById('decline-class').addEventListener('click', async (e) => {
-			e.preventDefault();
-			await updateRecord('class_proposals', getId(), {approved:false});
-			approveModal.close();
-			document.getElementById('status-subtitle').textContent = 'Declined';
-			document.getElementById('approved').addEventListener('click', () => {
-				approveModal.show();
-			});
-		});
-
-		const assignModal = new Modal();
-		assignModal.content(`
-			<h4>Assign</h4>
-			<form>
-				<input id="assign-input" name="assigned" type="text" class="modal-center">
-				<button type="submit" class="button modal-center">Assign</button>
-			</form>
-		`);
-
-		async function assignSuccess() {
-			const newData = await readEntry('class_proposals', getId());
-			document.getElementById('assign-subtitle').textContent = newData.assigned || 'Not assigned';
-			document.getElementById('assigned').addEventListener('click', () => {
-				assignModal.show();
-				document.getElementById('assign-input').value = newData.assigned;
-			});
+			setupClassInfo(proposalData);
+			setupInstructorInfo(proposalData);
+			setupSponsorInfo(proposalData);
+			setupApprove(proposalData);
+			setupAssign(proposalData);
+			setupPeriods(proposalData);
+		} catch (err) {
+			console.error('Internal server error:', err);
 		}
-		assignModal.formSubmit(assignSuccess, 'class_proposals');
+	}
 
-		const status = document.getElementById('approved');
-		const statusRow = new Row();
-		statusRow.addSubtitle(`${data.approved == true ? 'Approved' : data.approved == false ? 'Declined' : 'Pending'}`, 'status-subtitle');
-		statusRow.editArrow();
-		statusRow.row.addEventListener('click', async () => {
-			approveModal.show();
-			const data = await readEntry('class_proposals', getId());
-			const classes = await read('classes');
-			const instructors = await read('instructors');
-			const uClass = document.getElementById('class-dd');
-			const uInst = document.getElementById('inst-dd');
-			const classTitle = data.title ? classes.find(entry => entry.title == data.title) : null;
-			const instName = data.name ? instructors.find(entry => entry.name == data.name) : null;
+	/* -----------------------------
+	   Class Info
+	----------------------------- */
 
-			if (classTitle) {				
-				uClass.value = classTitle.title;
-				uClass.setAttribute('row-id', classTitle.id);
-				document.getElementById('class-switch').checked = true;
-				document.getElementById('new-class').classList.remove('bold');
-				document.getElementById('update-class').classList.add('bold');
-			}
-
-			if (instName) {
-				uInst.value = instName.name;
-				uInst.setAttribute('row-id', instName.id);
-				document.getElementById('inst-switch').checked = true;
-				document.getElementById('new-inst').classList.remove('bold');
-				document.getElementById('update-inst').classList.add('bold');
-			}
-		});
-		status.replaceChildren(statusRow.row);
-
+	function setupClassInfo(data) {
+		const container = document.getElementById('class-info');
+		container.innerHTML = '';
+		console.log(data)
+		const row = new Row();
 		const classInfo = document.getElementById('class-info');
 		const classRow = new Row();
 		classRow.addTitle(data.title || 'No Title');
-		classRow.addSubtitle(`${data.type || 'No type'}`);
-		classRow.addSubtitle(`${data.level || 'No level'}`);
+		classRow.addSubtitle(`<b>Type:</b> ${data.type || 'No type'}`);
+		classRow.addSubtitle(`<b>Level:</b> ${data.level || 'No level'}`);
 		classInfo.replaceChildren(classRow.row);
 
 		const descRow = new Row();
@@ -257,33 +100,155 @@
 		classInfo.appendChild(descRow.row);
 
 		const moreRow = new Row();
-		moreRow.addSubtitle(`${data.length || 0} ${data.length == 1 ? 'period' : 'periods'}`);
-		moreRow.addSubtitle(`${data.uprights || 0} ${data.uprights == 1 ? 'upright' : 'uprights'}`);
-		moreRow.addSubtitle(`${data.grands || 0} ${data.grands == 1 ? 'grand' : 'grands'}`);
+		moreRow.addSubtitle(`<b>Length:</b> ${data.length || 0} ${data.length == 1 ? 'period' : 'periods'}`);
+		moreRow.addSubtitle(`<b>Uprights:</b> ${data.uprights || 0} ${data.uprights == 1 ? 'upright' : 'uprights'}`);
+		moreRow.addSubtitle(`<b>Grands:</b> ${data.grands || 0} ${data.grands == 1 ? 'grand' : 'grands'}`);
 		classInfo.appendChild(moreRow.row);
+	}
 
+	/* -----------------------------
+	   Instructor Info
+	----------------------------- */
+
+	function setupInstructorInfo(data) {
 		const instInfo = document.getElementById('instructor-info');
 		const instRow = new Row();
 		instRow.addTitle(`${data.name || 'No Instructor'}`);
-		instRow.addSubtitle(`${data.email || 'No email'}`);
-		instRow.addSubtitle(`${data.phone || 'No phone'}`);
+		instRow.addSubtitle(`<b>Email:</b> ${data.email || 'No email'}`);
+		instRow.addSubtitle(`<b>Phone:</b> ${data.phone || 'No phone'}`);
 		instInfo.replaceChildren(instRow.row);
+	}
 
+	/* -----------------------------
+	   Sponsor Info
+	----------------------------- */
+
+	function setupSponsorInfo(data) {
 		const sponsorInfo = document.getElementById('sponsor-info');
 		const sponsorRow = new Row();
 		sponsorRow.addSubtitle(`${data.sponsor || 'No Sponsor'}`);
 		sponsorInfo.replaceChildren(sponsorRow.row);
+	}
 
-		const assignInfo = document.getElementById('assigned');
+	/* -----------------------------
+	   Approval Status
+	----------------------------- */
+
+	function setupApprove(data) {
+		const container = document.getElementById('approved');
+
+		const modal = new Modal('approve-modal');
+		modal.content(`
+			<h4>Update Class Details</h4>
+			<form>
+				<select name="approved" id="approve-select">
+					<option value="yes">Yes</option>
+					<option value="maybe">Maybe</option>
+					<option value="no">No</option>
+				</select>
+				<div class="seperator"></div>
+				<button type="submit">Submit</button>
+			</form>
+		`);
+
+		let approved = data.approved;
+
+		const approveRow = new Row();
+		approveRow.addSubtitle(`${approved || 'Pending review'}`, 'approve-subtitle');
+		approveRow.editArrow();
+
+		approveRow.row.addEventListener('click', () => {
+			modal.show();
+			document.getElementById('approve-select').value = approved;
+		})
+
+		container.replaceChildren(approveRow.row);
+
+		modal.formSubmit(async () => {
+			const updated = await fetchProposals(data.id);
+			approved = updated.approved;
+
+			document.getElementById('approve-subtitle').innerHTML = `${approved || 'Pending review'}`
+		}, 'class_proposals');
+	}
+
+	/* -----------------------------
+	   Team Assignment
+	----------------------------- */
+
+	function setupAssign(data) {
+		const container = document.getElementById('assigned');
+
+		const modal = new Modal('approve-modal');
+		modal.content(`
+			<h4>Assign</h4>
+			<form>
+				<select id="assign-select" name="assigned">
+					<option value=''>Select a Team Member</option>
+				</select>
+				<button type="submit" class="button">Assign</button>
+			</form>
+		`);
+
+		const teamDD = document.getElementById('assign-select');
+		populateDropdown(teamDD, 'institute_team', 'name')
+
+		let teamMember = data.assigned;
+
 		const assignRow = new Row();
-		assignRow.addTitle('Institute Team Member');
-		assignRow.addSubtitle(`${data.assigned || 'Not assigned'}`, 'assign-subtitle');
+		assignRow.addSubtitle(`${teamMember || 'Not assigned'}`, 'assign-subtitle')
 		assignRow.editArrow();
+
 		assignRow.row.addEventListener('click', () => {
-			assignModal.show();
-			document.getElementById('assign-input').value = data.assigned;
+			modal.show();
+			document.getElementById('assign-select').value = teamMember || '';
+		})
+
+		container.replaceChildren(assignRow.row);
+
+		modal.formSubmit(async () => {
+			const updated = await fetchProposals(data.id);
+			teamMember = updated.assigned;
+
+			document.getElementById('assign-subtitle').innerHTML = `${teamMember || 'Not assigned'}`;
+		}, 'class_proposals');
+	}
+
+	/* -----------------------------
+	   Periods to Teach
+	----------------------------- */
+
+	function setupPeriods(data) {
+		const container = document.getElementById('periods');
+
+		const modal = new Modal('period-modal');
+		modal.content(`
+			<h4>Sessions to Teach</h4>
+			<form>
+				<input type="number" id="session-input" name="sessions">
+				<button type="submit" class="button">Assign</button>
+			</form>
+		`);
+
+		let sessions = data.sessions;
+
+		const sessionRow = new Row();
+		sessionRow.addSubtitle(`${sessions || 0}`, 'session-subtitle')
+		sessionRow.editArrow();
+
+		sessionRow.row.addEventListener('click', () => {
+			modal.show();
+			document.getElementById('session-input').value = sessions || 0;
 		});
-		assignInfo.replaceChildren(assignRow.row);
+
+		container.replaceChildren(sessionRow.row);
+
+		modal.formSubmit(async () => {
+			const updated = await fetchProposals(data.id);
+			sessions = updated.sessions;
+
+			document.getElementById('session-subtitle').innerHTML = `${sessions || 0}`;
+		}, 'class_proposals');
 	}
 
 	function loadNavs(role) {

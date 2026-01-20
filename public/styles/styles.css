@@ -530,3 +530,7 @@ body > h3 {
 	margin-left: 5%;
 }
 
+main > h2,
+main > h3 {
+	margin-left: 5%;
+}

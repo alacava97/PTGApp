@@ -18,19 +18,141 @@
 		<h1>Resources</h1>
 		<a href="/public/class-proposal-form.html">Class Proposal Form</a>
 		<a href="/class-proposals.html">Review Class Proposals</a>
+		<div id="sub-summary">
+			<h1>Summary of Class Proposal Submissions</h1>
+			<canvas id="sub-bar"></canvas>
+			<canvas id="sub-bar-approved"></canvas>
+		</div>
 	</div>
 </body>
 <script src="public/js/script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		const res = await fetch('/auth/session', { credentials: 'include' });
 		const user = await res.json();
 
 		console.log(user.role);
+
+		initHomePage()
 	});
 
 	function loadNavs(role) {
 		const institute = document.createElement('span');
+	}
+
+	async function initHomePage() {
+		await loadData();
+	}
+
+	/* -----------------------------
+	   Data Fetching
+	----------------------------- */
+
+	async function fetchProposalTypes() {
+		const res = await fetch(`/api/getPropTypes`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}
+
+	/* -----------------------------
+	   Page Setup
+	----------------------------- */
+
+	async function loadData() {
+		try {
+			const proposals = await fetchProposalTypes();
+
+			proposalChart(proposals);
+			approvedChart(proposals);
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
+
+	/* -----------------------------
+	   Chart
+	----------------------------- */
+
+	function proposalChart(proposals) {
+		const data = sortEntries(proposals);
+
+		const propChart = new Chart("sub-bar", {
+			type: "bar",
+			data: {
+				labels: data.X,
+				datasets: [{
+					backgroundColor: "blue",
+					label: "2026",
+					data: data.Y
+				}]
+			},
+			options: {
+				title: {
+					display: true,
+					text: "Class Proposals by Type"
+				},
+
+			}
+		});
+	}
+
+	function approvedChart(proposals) {
+		const data = sortEntries(proposals.filter(row => row.approved == true))
+		const propChart = new Chart("sub-bar-approved", {
+			type: "bar",
+			data: {
+				labels: data.X,
+				datasets: [{
+					backgroundColor: "green",
+					label: "2026",
+					data: data.Y
+				}]
+			},
+			options: {
+				scales: {
+					y: {
+						beginAtZero: true,
+						min: 0,
+						ticks: {
+							stepSize: 1
+						}
+					}
+				},
+				title: {
+					display: true,
+					text: "Approved Class Proposals by Type"
+				}				
+			}
+		});
+	}
+
+	/* -----------------------------
+		Helpers
+	----------------------------- */
+
+	function sortEntries(proposals) {
+		const types = Object.values(proposals).map(row => row.type || 'No Type');
+		const counts = Object.values(proposals).map(row => row.count || 0);
+
+		const typeCounts = types.map(function(d, i) {
+			return {
+				label: d,
+				data: counts[i] || 0
+			};
+		});
+
+		const sortedArray = typeCounts.sort(function(a, b) {
+			return b.data - a.data;
+		});
+
+		const xValues = [];
+		const yValues =[];
+		sortedArray.forEach(function(d){
+			xValues.push(d.label);
+			yValues.push(d.data);
+		})
+
+		return {X: xValues, Y: yValues};
 	}
 </script>
