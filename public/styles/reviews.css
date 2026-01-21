@@ -63,3 +63,31 @@ form > button {
   padding: 0 5px;
   font-size: 1em;
 }
+
+.rating-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.rating-row > * {
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 5px;
+}
+
+.row {
+  gap: 10px;
+  padding: 20px;
+  overflow: visible;
+  width: 800px;
+}
+
+.row:hover {
+  
+}
+
+.seperator {
+  margin: 10px auto;
+  width: 90%;
+}

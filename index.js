@@ -307,11 +307,6 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   }
 });
 
-app.get('/api/getSchedule', requireLogin, async (req, res) => {
-    const result = await pool.query('SELECT * FROM getschedule()');
-    res.json(result.rows);
-});
-
 app.get('/api/classByInst/:id', requireLogin, async (req, res) => {
   const id = req.params.id;
 
@@ -606,6 +601,103 @@ app.get('/api/getPropTypes', async (req, res) => {
   }
 });
 
+app.get('/api/getReviews/:id', async (req, res) => {
+  const id = req.params.id;
+
+  try {
+    const result = await pool.query(`
+      SELECT 
+        schedule.id as schedule_id,
+        schedule.class_id,
+        schedule.start_period AS period,
+        rooms.name,
+        classes.title,
+        COALESCE(string_agg(DISTINCT instructors.name, ', '), 'No instructors') as instructors,
+        conventions.year,
+        ROUND(AVG((reviews.q1)::numeric), 1) AS q1,
+        ROUND(AVG((reviews.q2)::numeric), 1) AS q2,
+        ROUND(AVG((reviews.q3)::numeric), 1) AS q3,
+        ROUND(AVG((reviews.q4)::numeric), 1) AS q4,
+        ROUND(AVG((reviews.q5)::numeric), 1) AS q5,
+        ROUND(AVG((reviews.q6)::numeric), 1) AS q6,
+        ROUND(AVG((reviews.q7)::numeric), 1) AS q7,
+        ROUND(AVG((reviews.q8)::numeric), 1) AS q8,
+        CASE
+          WHEN schedule.day = 3 THEN 'Wednesday'
+          WHEN schedule.day = 4 THEN 'Thursday'
+          WHEN schedule.day = 5 THEN 'Friday'
+          WHEN schedule.day = 6 THEN 'Saturday'
+          WHEN schedule.day = 7 THEN 'Sunday'
+          ELSE NULL
+        END AS day,
+        locations.location_name
+      FROM
+        schedule
+      JOIN
+        classes ON classes.id = schedule.class_id
+      LEFT JOIN
+        class_instructors ON classes.id = class_instructors.class_id
+      LEFT JOIN
+        instructors ON class_instructors.instructor_id = instructors.id
+      LEFT JOIN
+        rooms ON schedule.room_id = rooms.id
+      LEFT JOIN
+        locations ON rooms.location_id = locations.id
+      LEFT JOIN
+        conventions ON locations.id = conventions.location_id
+      LEFT JOIN
+        reviews ON schedule.id = reviews.schedule_id
+      WHERE
+        schedule.class_id = $1
+      GROUP BY 
+          schedule.id,
+          schedule.class_id,
+          schedule.day,
+          rooms.name,
+          schedule.start_period,
+          classes.title,
+          conventions.year,
+          locations.location_name
+      ORDER BY
+        conventions.year ASC
+    `, [id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/getOpenResponse/:id', async (req, res) => {
+  const id = req.params.id;
+  
+  try {
+    const result = await pool.query(`
+      SELECT 
+        schedule.id as schedule_id,
+        schedule.class_id,
+        reviews.q9
+      FROM
+        schedule
+      LEFT JOIN
+        reviews ON schedule.id = reviews.schedule_id
+      WHERE
+        schedule.class_id = $1
+      GROUP BY 
+          schedule.id,
+          schedule.class_id,
+          reviews.q9
+      ORDER BY
+        schedule_id ASC
+    `, [id]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
 //end read
 
 //update

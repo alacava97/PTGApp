@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/public/styles/styles.css">
+	<link rel="stylesheet" href="/public/styles/buttons.css">
+	<link rel="stylesheet" href="/public/styles/themes.css">
+	<link rel="stylesheet" href="/public/styles/modals.css">
+	<link rel="stylesheet" href="/public/styles/reviews.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>Class Review</title>
+</head>
+<body>
+	<main class="main-content">
+		<h1 id="class-title"></h1>
+		<div id="reviews"></div>
+	</main>
+	
+</body>
+<script src="/public/js/script.js"></script>
+<script src="/public/js/UI.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', reviewInit);
+
+	async function reviewInit() {
+		const classId = getId();
+
+		await loadReviewData(classId);
+	}
+
+	/* -----------------------------
+	   Data Fetching
+	----------------------------- */
+
+	async function fetchReviews(classId) {
+		const res = await fetch(`/api/getReviews/${classId}`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}
+
+	async function fetchOpenResponse(classId) {
+		const res = await fetch(`/api/getOpenResponse/${classId}`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}	
+
+	/* -----------------------------
+	   Page Setup
+	----------------------------- */	
+
+	async function loadReviewData(classId) {
+		const [reviewData, openResponse] = await Promise.all([
+			fetchReviews(classId),
+			fetchOpenResponse(classId)
+		]);
+
+		setupClassInfo(reviewData, openResponse)
+	}
+
+	/* -----------------------------
+	   Class Info
+	----------------------------- */
+
+	function setupClassInfo(reviewData, orData) {
+		const title = document.getElementById('class-title');
+		title.innerHTML = `${reviewData[0].title}`
+
+		reviewData.reverse().forEach(event => {
+			const or = orData.filter(orData => event.schedule_id == orData.schedule_id)
+			const row = new Row();
+			row.addTitle(`${event.location_name} - ${event.year}`);
+			row.addSubtitle(`${event.day} - Period ${event.period} - ${event.name}`);
+			row.addSubtitle(`${or.length} reviews`)
+			let q = []
+			const questions = {
+				1: 'I would recommend this class to a colleague.',
+				2: 'I would take another class from this instructor.',
+				3: 'The subject matter matched the class description.',
+				4: 'The class level matched the class description.',
+				5: 'I could see and hear the instructor clearly.',
+				6: 'The presentation was well-organized and easy to follow.',
+				7: 'The audio/visual aids were used well.',
+				8: 'This class will be a standout favorite from the convention.'
+			}
+			const ratings = document.createElement('div');
+			ratings.classList.add('rating-row');
+			for (let i = 1; i < 9; i++) {
+				q[i] = document.createElement('div');
+				q[i].classList.add('tooltip');
+				const tooltip = document.createElement('span');
+				tooltip.classList.add('tooltiptext');
+				tooltip.textContent = questions[i];
+				q[i].innerHTML = `${event[`q${i}`]}`;
+				q[i].appendChild(tooltip);
+				ratings.appendChild(q[i]);
+			}
+			row.row.appendChild(ratings);
+
+			const sep = document.createElement('div');
+			sep.classList.add('seperator');
+
+			or.forEach(response => {
+				if (response.q9) {
+					const sep = document.createElement('div');
+					sep.classList.add('seperator');
+					row.row.appendChild(sep);
+					row.addSubtitle(response.q9);
+				}
+			});
+
+			document.getElementById('reviews').appendChild(row.row);
+			document.getElementById('reviews').appendChild(sep);
+		});
+	}
+</script>

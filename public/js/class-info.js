@@ -47,7 +47,7 @@ async function loadClassData(classId) {
 		setupDetails(classRecord);
 		setupSponsor(classRecord);
 		setupNotes(classRecord);
-		setupHistory(classHistory);
+		setupHistory(classHistory, classId);
 		await setupInstructors(instructors, classId);
 
 	} catch (err) {
@@ -388,7 +388,7 @@ function setupSponsor(classRecord) {
    History
 ----------------------------- */
 
-function setupHistory(classHistory) {
+function setupHistory(classHistory, classId) {
 	const container = document.getElementById('history');
 	container.innerHTML = '';
 	console.log(classHistory)
@@ -398,11 +398,12 @@ function setupHistory(classHistory) {
 	row.addTitle('Class History');
 	if (history.length < 1) {
 		row.addSubtitle('No history');
+	} else {
+		history.forEach(year => {
+			row.addSubtitle(`Taught ${year.times_taught}${year.times_taught == 1?' time':' times'} in ${year.year} - ${formatRating(year.rating) || 'No data'}/5 ★`);
+		});
+		row.addArrow(`/public/review-info.html?id=${classId}`);
 	}
-	history.forEach(year => {
-		row.addSubtitle(`Taught ${year.times_taught}${year.times_taught == 1?' time':' times'} in ${year.year} - ${formatRating(year.rating) || 'No data'}/5 ★`);
-	});
-
 	container.appendChild(row.row);
 }
 

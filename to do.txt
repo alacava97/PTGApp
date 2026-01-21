@@ -7,9 +7,6 @@
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 
-Create class review page with details about class reviews
-	-Average rating for each question, open response answers
-
 Convention dashboard
 - # of classes by type, level, instructor, etc. for convention - See Cories "Class & Period Counts" doc
 - Should draw # of periods taught from the class prop table
