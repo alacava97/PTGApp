@@ -328,26 +328,6 @@ function getId() {
 	return new URLSearchParams(window.location.search).get('id');
 }
 
-function checkOverlap(events) {
-  const overlaps = [];
-
-  for (let i = 0; i < events.length; i++) {
-    for (let j = i + 1; j < events.length; j++) {
-      const a = events[i];
-      const b = events[j];
-
-      const aEnd = Number(a.start_period) + Number(a.length) - 1;
-      const bEnd = Number(b.start_period) + Number(b.length) - 1;
-
-      if (a.start_period <= bEnd && b.start_period <= aEnd) {
-        overlaps.push({ eventA: a, eventB: b });
-      }
-    }
-  }
-
-  return overlaps;
-}
-
 async function downloadElementAsPDF(element) {
 	const html = element.outerHTML;
 

@@ -1,8 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<title>Convention Schedule</title>
+
 	<link rel="stylesheet" href="public/styles/styles.css">
 	<link rel="stylesheet" href="public/styles/buttons.css">
 	<link rel="stylesheet" href="public/styles/themes.css">
@@ -11,23 +14,24 @@
 	<link rel="stylesheet" href="public/styles/schedule-styles.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>PTG Convention Web App</title>
 </head>
+
 <body>
 	<div id="navbar"></div>
+
 	<header>
 		<h1>Schedule</h1>
 	</header>
-	<div id="color-key" class="key"></div>
-	<div id="color-block" class="schedule"></div>
-</body>
-<script src="public/js/script.js"></script>
-<script src="public/js/modals.js"></script>
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		await populateKey();
-		await renderSchedule();
 
+	<section id="color-key" class="key"></section>
+	<main id="color-block" class="schedule"></main>
+</body>
+<script src="public/js/script.js" defer></script>
+<script src="public/js/modals.js" defer></script>
+<script>
+	document.addEventListener('DOMContentLoaded', initSchedule);
+
+	async function initSchedule() {
 		const classModal = new Modal('class-modal');
 		classModal.content(`<h3>Select a Class</h3>
 			<p id="period-info"></p>
@@ -74,7 +78,14 @@
 			<button id="delete-button" class="red delete">Delete</button>
 		`);
 
-		setupScheduleForm();
+		try {
+			const data = await ScheduleAPI.load();
+			await renderKey(data.types, data.conventions);
+			await renderSchedule(data.schedule, data.rooms);
+			setupScheduleForm(data.classes, data.schedule);
+		} catch (err) {
+			console.error('Failed to initialize schedule:', err);
+		}
 
 		const classData = await read('classes');
 		createSearchableDropdown('searchable', 'results', classData, 'title');
@@ -87,19 +98,87 @@
 			opt.textContent = room.name;
 			roomDD.appendChild(opt);
 		});
-	});
+	}
 
-	async function renderSchedule() {
+	/* -----------------------------
+	   Data Fetching
+	----------------------------- */
+
+	async function fetchJSON(url, options = {}) {
+	  	const res = await fetch(url, options);
+		if (!res.ok) throw new Error(await res.text());
+		return res.json();
+	}
+
+	const ScheduleAPI = {
+		load: async () => {
+			const [schedule, rooms, types, conventions, classes] = await Promise.all([
+				fetchJSON('/api/schedule'),
+				fetchJSON('/api/read/rooms'),
+				fetchJSON('/api/read/types'),
+				fetchJSON('/api/read/conventions'),
+				fetchJSON('/api/read/classes')
+			]);
+			return { schedule, rooms, types, conventions, classes };
+		},
+
+		updateTypeColor: (id, color) =>
+		    fetchJSON(`/api/update/types/${id}`, {
+		      	method: 'PATCH',
+		      	headers: { 'Content-Type': 'application/json' },
+		      	body: JSON.stringify({ color })
+		    }),
+
+	 	addSchedule: data =>
+		    fetchJSON('/api/addSchedule', {
+		      	method: 'POST',
+		      	headers: { 'Content-Type': 'application/json' },
+		      	body: JSON.stringify(data)
+		    }),
+
+		deleteSchedule: id =>
+		    fetchJSON(`/api/delete/schedule/${id}`, { method: 'DELETE' })
+	};
+
+
+	/* -----------------------------
+	   State
+	----------------------------- */
+
+	const ScheduleState = {
+		selectedLocation: null
+	};
+
+	/* -----------------------------
+	   Page Setup
+	----------------------------- */
+
+	function renderSchedulePage({ schedule, rooms, types, conventions }) {
+		renderKey(types, conventions);
+		renderSchedule(schedule, rooms);
+	}
+
+	/* -----------------------------
+	   Schedule Setup
+	----------------------------- */
+
+	async function renderSchedule(schedule, rooms) {
 		//render headers
 		const calendar = document.getElementById('color-block');
 		calendar.innerHTML = '';
 
+		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
+		const periods = [1, 2, 3, 4, 5];
+
+		renderDayHeaders(calendar, days, periods);
+		renderRooms(calendar, schedule, rooms, days, periods);
+	}
+
+	function renderDayHeaders(calendar, days, periods) {
 		const roomCol = document.createElement('div');
 		roomCol.classList.add('cal-col', 'blank');
 		calendar.appendChild(roomCol);
 
-		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		const periods = [1, 2, 3, 4, 5];
 		days.forEach(day => {
 			const calDay = document.createElement('div');
 			const dayLabel = document.createElement('div');
@@ -116,350 +195,365 @@
 			})
 			calendar.appendChild(calDay);
 		});
+	}
 
-		try {
-			const schedRes = await fetch(`/api/schedule`, { credentials: 'include' });
-			const schedule = await schedRes.json();
+	function renderRooms(calendar, schedule, rooms, days, periods) {
+		const loc_id = document.getElementById('year-select').value;
 
-			const loc_id = document.getElementById('year-select').value;
-			const roomRes = await fetch(`/api/getRooms/${loc_id}`);
-			if (!roomRes.ok) {
-				calendar.innerHTML = `No rooms on record`;
-				calendar.style.backgroundColor = 'white';
-				return
-			}
-			calendar.style.backgroundColor = '#333'
-			const rooms = await roomRes.json();
+		if (!rooms) {
+			calendar.innerHTML = `No rooms on record`;
+			calendar.style.backgroundColor = 'white';
+			return
+		}
+		calendar.style.backgroundColor = '#333'
 
-			for (const key in rooms) {
-				const room = document.createElement('div');
-				const roomName = rooms[key]['name'];
-				const roomId = rooms[key].id;
-				room.textContent = roomName
-				room.classList.add('cal-col');
-				calendar.appendChild(room);
-				days.forEach((day, index) => {
-				  	const roomDay = document.createElement('div');
-				  	roomDay.classList.add('cal-day');
+		for (const key in rooms) {
+			const room = document.createElement('div');
+			const roomName = rooms[key]['name'];
+			const roomId = rooms[key].id;
+			room.textContent = roomName
+			room.classList.add('cal-col');
+			calendar.appendChild(room);
+			days.forEach((day, index) => {
+			  	const roomDay = document.createElement('div');
+			  	roomDay.classList.add('cal-day');
 
-					const events = schedule.filter(e => e.day == (index + 3) && e.room == roomName);
+				const events = schedule.filter(e => e.day == (index + 3) && e.room == roomName);
 
-					// check for overlaps
-					const overlaps = checkOverlap(events);
-					if (overlaps.length > 0) {
-					  overlaps.forEach(o => {
-					    console.warn(`Overlap detected in room "${roomName}" on ${day}: "${o.eventA.title}" at period ${o.eventA.start_period} overlaps with "${o.eventB.title}" at period ${o.eventB.start_period}`);
-					  });
-					}
+				// check for overlaps
+				const overlaps = checkOverlap(events);
+				if (overlaps.length > 0) {
+				  overlaps.forEach(o => {
+				    console.warn(`Overlap detected in room "${roomName}" on ${day}: "${o.eventA.title}" at period ${o.eventA.start_period} overlaps with "${o.eventB.title}" at period ${o.eventB.start_period}`);
+				  });
+				}
 
-				  // --- grid rendering with dummy cells ---
-					let p = 1;
-					while (p <= periods.length) {
-					  const periodEvent = events.find(ev => ev.start_period == p);
+			  // --- grid rendering with dummy cells ---
+				let p = 1;
+				while (p <= periods.length) {
+				  const periodEvent = events.find(ev => ev.start_period == p);
 
-					  if (periodEvent) {
-					    const eventDiv = document.createElement('div');
-					    eventDiv.classList.add('room-period');
-					    eventDiv.textContent = periodEvent.title;
-					    eventDiv.style.backgroundColor = periodEvent.color;
+				  if (periodEvent) {
+				    const eventDiv = document.createElement('div');
+				    eventDiv.classList.add('room-period');
+				    eventDiv.textContent = periodEvent.title;
+				    eventDiv.style.backgroundColor = periodEvent.color;
 
-					    const start = Number(periodEvent.start_period);
-					    const end = start + Number(periodEvent.length) - 1; // compute end from length
-					    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
-					    eventDiv.id = periodEvent.schedule_id;
+				    const start = Number(periodEvent.start_period);
+				    const end = start + Number(periodEvent.length) - 1; // compute end from length
+				    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
+				    eventDiv.id = periodEvent.schedule_id;
 
-					    eventDiv.addEventListener('click', () => {
-					      const eventModal = document.getElementById('event-modal');
-					      eventModal.style.display = 'flex';
+				    eventDiv.addEventListener('click', () => {
+				      const eventModal = document.getElementById('event-modal');
+				      eventModal.style.display = 'flex';
 
-					      const eventTitle = document.getElementById('class-title')
-					      eventTitle.innerHTML = `${periodEvent.title} &#9998;`;
-					      eventTitle.href = `/class-info.html?id=${periodEvent.class_id}`
+				      const eventTitle = document.getElementById('class-title')
+				      eventTitle.innerHTML = `${periodEvent.title} &#9998;`;
+				      eventTitle.href = `/class-info.html?id=${periodEvent.class_id}`
 
-					      document.getElementById('inst').textContent = periodEvent.instructors;
-					      document.getElementById('class-info').href = `/public/class-review.html?id=${periodEvent.schedule_id}`
-					      document.getElementById('day').value = periodEvent.day;
-					      document.getElementById('start_period').value = periodEvent.start_period;
-					      document.getElementById('room_id').value = periodEvent.room_id;
-					      document.getElementById('notes').value = periodEvent.notes;
-					      console.log(periodEvent)
+				      document.getElementById('inst').textContent = periodEvent.instructors;
+				      document.getElementById('class-info').href = `/public/class-review.html?id=${periodEvent.schedule_id}`
+				      document.getElementById('day').value = periodEvent.day;
+				      document.getElementById('start_period').value = periodEvent.start_period;
+				      document.getElementById('room_id').value = periodEvent.room_id;
+				      document.getElementById('notes').value = periodEvent.notes;
+				      console.log(periodEvent)
 
-					      const form = document.getElementById('update-sched');
-					      form.addEventListener('submit', (e) => {
-					      	e.preventDefault();
-					      	const id = periodEvent.schedule_id;
-					      	handleFormSubmission(e, form, `/api/update/schedule/${id}`, 'PATCH', async () => {
-								renderSchedule();
-							});
-					      })
+				      const form = document.getElementById('update-sched');
+				      const cleanForm = form.cloneNode(true);
+				      form.parentNode.replaceChild(cleanForm, form);
+				      cleanForm.addEventListener('submit', (e) => {
+				      	e.preventDefault();
+				      	const id = periodEvent.schedule_id;
+				      	handleFormSubmission(e, form, `/api/update/schedule/${id}`, 'PATCH', async () => {
+							const updated = await ScheduleAPI.load();
+	      					await renderSchedule(updated.schedule, updated.rooms);
+						});
+				      })
 
-					      const delButton = document.getElementById('confirm-delete');
-					      delButton.addEventListener('click', () => {
-					      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
-					      	deleteButton(periodEvent.schedule_id, renderSchedule);
-					      });
-					    });
+				      const delButton = document.getElementById('confirm-delete');
+				      const cleanDelButton = delButton.cloneNode(true);
+				      delButton.parentNode.replaceChild(cleanDelButton, delButton);
+				      cleanDelButton.addEventListener('click', () => {
+				      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
+				      	deleteButton(periodEvent.schedule_id);
+				      });
+				    });
 
-					    roomDay.appendChild(eventDiv);
+				    roomDay.appendChild(eventDiv);
 
-					    p = end + 1; // skip past this event
-					  } else {
-					    const dummy = document.createElement('div');
-					    dummy.classList.add('room-period', 'empty');
-					    dummy.textContent = p; 
-					    dummy.id = 0;
-					    const currentPeriod = p;
+				    p = end + 1; // skip past this event
+				  } else {
+				    const dummy = document.createElement('div');
+				    dummy.classList.add('room-period', 'empty');
+				    dummy.textContent = p; 
+				    dummy.id = 0;
+				    const currentPeriod = p;
 
-					    dummy.addEventListener('click', async () => {
-					    	const form = document.getElementById('schedule-form');
-					      	document.getElementById('searchable').value = '';
-					     	 document.getElementById('results').innerHTML = '';
-					     	 document.getElementById('class-modal').style.display = 'flex';
-					     	 document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
+				    dummy.addEventListener('click', async () => {
+				    	const form = document.getElementById('schedule-form');
+				      	document.getElementById('searchable').value = '';
+				     	 document.getElementById('results').innerHTML = '';
+				     	 document.getElementById('class-modal').style.display = 'flex';
+				     	 document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
 
-					      	form.dataset.day = index + 3;
-					      	form.dataset.period = currentPeriod;
-					      	form.dataset.room = parseInt(roomId);
-					    });
+				      	form.dataset.day = index + 3;
+				      	form.dataset.period = currentPeriod;
+				      	form.dataset.room = parseInt(roomId);
+				    });
 
-					    roomDay.appendChild(dummy);
-					    p++;
-					  }
-					}
-				  calendar.appendChild(roomDay);
-				});
-			}
-		} catch (err) {
-			console.error('Error loading schedule:', err);
+				    roomDay.appendChild(dummy);
+				    p++;
+				  }
+				}
+			  calendar.appendChild(roomDay);
+			});
 		}
 	}
 
-	function setupScheduleForm() {
-	  const form = document.getElementById('schedule-form');
-	  if (!form) return; // guard
-
-	  form.addEventListener('submit', async (e) => {
-	    e.preventDefault();
-
-	    const day = parseInt(form.dataset.day);
-	    const start_period = parseInt(form.dataset.period);
-	    const room = form.dataset.room;
-	    const title = document.getElementById('searchable').value;
-
-	    try {
-	      // Fetch class info to get length
-	      const classRes = await fetch('/api/read/classes');
-	      const classes = await classRes.json();
-	      const selectedClass = classes.find(c => c.title == title);
-
-	      if (!selectedClass) {
-	        alert(`Class "${title}" not found`);
-	        return;
-	      }
-
-	      const length = selectedClass.length;
-	      const newEnd = start_period + length - 1;
-
-	      // Check period limit (cannot exceed 5)
-	      if (newEnd > 5) {
-	        alert(`Cannot schedule "${title}" after period 5`);
-	        return;
-	      }
-
-	      // Fetch current schedule
-	      const schedRes = await fetch('/api/schedule');
-	      const schedule = await schedRes.json();
-
-	      // Existing events in this room/day
-	      const roomEvents = schedule.filter(e => e.day == day && e.room == room);
-
-	      // Check for overlap
-	      const newEvent = { start_period, length, day, room, title };
-	      const allEvents = [...roomEvents, newEvent];
-
-	      const overlaps = checkOverlap(allEvents);
-
-	      const hasOverlap = overlaps.some(o =>
-	        o.eventA == newEvent || o.eventB == newEvent
-	      );
-
-	      if (hasOverlap) {
-			alert(`Cannot add "${title}" because it overlaps with "${overlap.title}" at period ${overlap.start_period}`);
+	function setupScheduleForm(classes, schedule) {
+		const form = document.getElementById('schedule-form');
+		if (!form) {
+			console.error('form not found');
 			return;
-	      }
+		} // guard
 
-	      // No conflicts → submit to backend
-	      const data = {
-	      	class_id: parseInt(document.getElementById('searchable').getAttribute('row-id')),
-	      	day: day,
-	      	start_period: start_period,
-	      	room: parseInt(room)
-	      };
+		form.addEventListener('submit', async (e) => {
+		    e.preventDefault();
 
-	      console.log(data);
+		    const day = parseInt(form.dataset.day);
+		    const start_period = parseInt(form.dataset.period);
+		    const room = form.dataset.room;
+		    const title = document.getElementById('searchable').value;
 
-	      const res = await fetch('/api/addSchedule', {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'application/json' },
-	        body: JSON.stringify(data)
-	      });
+	        const selectedClass = classes.find(c => c.title == title);
 
-	      if (!res.ok) throw new Error(await res.text());
+		    if (!selectedClass) {
+		    	alert(`Class "${title}" not found`);
+		        return;
+		    }
 
-	      alert('Class added!');
-	      document.getElementById('class-modal').style.display = 'none';
+		    const length = selectedClass.length;
+		    const newEnd = start_period + length - 1;
 
-	      // Refresh schedule display
-	      await renderSchedule();
+		    // Check period limit (cannot exceed 5)
+		    if (newEnd > 5) {
+		        alert(`Cannot schedule "${title}" after period 5`);
+		        return;
+		    }
 
-	      // Clear form
-	      form.dataset.day = '';
-	      form.dataset.period = '';
-	      form.dataset.room = '';
-	      document.getElementById('searchable').value = '';
-	      document.getElementById('results').innerHTML = '';
+	      	// Existing events in this room/day
+	      	const roomEvents = schedule.filter(e => e.day == day && e.room == room);
 
-	    } catch (err) {
-	      console.error('Error adding class:', err);
-	      alert('Failed to add class.');
-	    }
-	  });
+	      	// Check for overlap
+	      	const newEvent = { start_period, length, day, room, title };
+	      	const allEvents = [...roomEvents, newEvent];
+
+	      	const overlaps = checkOverlap(allEvents);
+
+	      	const hasOverlap = overlaps.some(o =>
+		        o.eventA == newEvent || o.eventB == newEvent
+	      	);
+
+	      	if (hasOverlap) {
+				const conflict = overlaps.find(o =>
+					o.eventA === newEvent || o.eventB === newEvent
+				);
+
+				const other = conflict.eventA === newEvent
+					? conflict.eventB
+					: conflict.eventA;
+
+				alert(
+					`Cannot add "${title}" because it overlaps with "${other.title}" at period ${other.start_period}`
+				);
+				return;
+			}
+
+
+	      	// No conflicts → submit to backend
+	      	const data = {
+		      	class_id: parseInt(document.getElementById('searchable').getAttribute('row-id')),
+		      	day: day,
+		      	start_period: start_period,
+		      	room: parseInt(room)
+	      	};
+
+	      	await ScheduleAPI.addSchedule(data);
+
+	      	alert('Class added!');
+	      	document.getElementById('class-modal').style.display = 'none';
+
+	      	// Refresh schedule display
+	      	const updated = await ScheduleAPI.load();
+	      	await renderSchedule(updated.schedule, updated.rooms);
+
+	      	// Clear form
+	      	form.dataset.day = '';
+	      	form.dataset.period = '';
+	      	form.dataset.room = '';
+	      	document.getElementById('searchable').value = '';
+	      	document.getElementById('results').innerHTML = '';
+		})
 	}
 
-	function deleteButton(id, onSuccess) {
+	function deleteButton(id) {
 		const button = document.getElementById('delete-button');
 		const freshButton = button.cloneNode(true);
 		button.parentNode.replaceChild(freshButton, button);
 
 		freshButton.addEventListener('click', async () => {
-			try {
-				const res = await fetch(`/api/delete/schedule/${id}`, { 
-						method: 'DELETE'
-					});
+			await ScheduleAPI.deleteSchedule(id);	
 
-				const data = await res.json();
-
-				if (!res.ok) {
-					alert(`Error: ${data.error}`);
-					return;
-				}
-
-				if (typeof onSuccess == "function") {
-					onSuccess();
-				}
-				alert('event deleted');
-				document.querySelectorAll('.modal').forEach(modal => {
-					modal.style.display = 'none';
-				})
-			} catch (err) {
-				console.error(err);
-				alert('Failed to delete entry');
-			}
+			const updated = await ScheduleAPI.load();
+      		await renderSchedule(updated.schedule, updated.rooms);
+      		
+			alert('event deleted');
+			document.querySelectorAll('.modal').forEach(modal => {
+				modal.style.display = 'none';
+			})
 		})
 	}
 
-	async function populateKey() {
+	/* -----------------------------
+	   	Type Legend
+	----------------------------- */
+
+	async function renderKey(types, conventions) {
+		const key = document.getElementById('color-key');
+		key.innerHTML = '';
+
+		types.forEach(type => key.appendChild(renderTypeKey(type)));
+
+		const spacer = document.createElement('span');
+		spacer.classList.add('spacer');
+		spacer.textContent = "Select Convention";
+		key.appendChild(spacer);
+
+		key.appendChild(await renderYearSelect());
+		key.appendChild(renderPrintButton(types));
+	}
+
+	async function updateTypeColor(id, val) {
+		const data = { 'color': val };
 		try {
-			const res = await fetch('/api/read/types');
-			const data = await res.json();
-
-			if (!res.ok) {
-				console.error(`Error: ${data.error}`);
-				return;
-			}
-
-			const key = document.getElementById('color-key');
-
-			data.forEach(type => {
-				const keyType = document.createElement('div');
-				keyType.style.backgroundColor = type.color;
-				keyType.classList.add('key-item');
-
-				keySelect = document.createElement('input');
-				keySelect.type = 'color';
-				keySelect.value = type.color;
-				keySelect.dataset = type.id;
-				keySelect.classList.add('color-select');
-				keySelect.addEventListener('blur', async (event) => {
-					const val = event.target.value;
-					const id = type.id;
-					const data = { 'color': val };
-					try {
-						const res = await fetch(`/api/update/types/${id}`, {
-							method: 'PATCH',
-							headers: { 'Content-Type': 'application/json' },
-							body: JSON.stringify(data)
-						});
-
-						const result = await res.json();
-						console.log(result.message || result.error || 'Unknown response');
-
-						renderSchedule();
-
-					} catch (err) {
-						console.error('Key update failed:', err);
-					}
-				});
-				keyType.appendChild(keySelect);
-
-				addTooltip(keyType, type.type);
-
-				key.appendChild(keyType);
+			const res = await fetch(`/api/update/types/${id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
 			});
 
-			const spacer = document.createElement('span');
-			spacer.classList.add('spacer');
-			spacer.textContent = "Select Convention";
-			key.appendChild(spacer);
+			const result = await res.json();
+			console.log(result.message || result.error || 'Unknown response');
 
-			const yearDd = document.createElement('select');
-			yearDd.classList.add('year-select');
-			yearDd.id = 'year-select';
-			await populateYearDropdown(yearDd);
-			yearDd.addEventListener('blur', async() => {
-				renderSchedule();
-			});
-			key.appendChild(yearDd);
-
-			const printBtn = document.createElement('button');
-			printBtn.classList.add("fa", "fa-print");
-			printBtn.id = "print-schedule";
-
-			const loading = document.createElement('div');
-			loading.classList.add('loading');
-
-			printBtn.appendChild(loading);
-			printBtn.addEventListener('click', async (e) => {
-				e.target.disabled = true;
-				loading.style.display = 'flex';
-				const types = data
-				const colorBlock = document.getElementById('color-block');
-				const blockWKey = colorBlock.cloneNode(true);
-				const toPrint = document.createElement('div');
-
-				const colorKey = document.createElement('div');
-				colorKey.classList.add('flex-row', 'print-key-container');
-				types.forEach(type => {
-					const key = document.createElement('div');
-					key.textContent = type.type;
-					key.style.backgroundColor = type.color;
-					key.classList.add('print-key');
-					colorKey.appendChild(key);
-				});
-
-				toPrint.appendChild(colorKey);
-				toPrint.appendChild(blockWKey);
-
-				await downloadElementAsPDF(toPrint);
-				loading.style.display = "none";
-				e.target.disabled = false;
-			});
-
-			key.appendChild(printBtn);
-
+			const updated = await ScheduleAPI.load();;
+  			await renderSchedule(updated.schedule, updated.rooms);
 		} catch (err) {
-			console.error(err);
+			console.error('Error updating schedule:', err);
 		}
 	}
+
+	function renderTypeKey(type) {
+		const wrapper = document.createElement('div');
+		wrapper.className = 'key-item';
+		wrapper.style.backgroundColor = type.color;
+
+		const input = document.createElement('input');
+		input.type = 'color';
+		input.value = type.color;
+
+		input.classList.add('color-select');
+		input.addEventListener('change', async (event) => {
+			const input = event.target;
+			await updateTypeColor(type.id, input.value);
+		});
+
+		wrapper.appendChild(input);
+		addTooltip(wrapper, type.type);
+		return wrapper;
+	}
+
+	function renderPrintButton(types) {
+		const printBtn = document.createElement('button');
+		printBtn.classList.add("fa", "fa-print");
+		printBtn.id = "print-schedule";
+
+		const loading = document.createElement('div');
+		loading.classList.add('loading');
+
+		printBtn.appendChild(loading);
+		printBtn.addEventListener('click', async (e) => {
+			e.target.disabled = true;
+			loading.style.display = 'flex';
+			const colorBlock = document.getElementById('color-block');
+			const blockWKey = colorBlock.cloneNode(true);
+			const toPrint = document.createElement('div');
+
+			const colorKey = document.createElement('div');
+			colorKey.classList.add('flex-row', 'print-key-container');
+			types.forEach(type => {
+				const key = document.createElement('div');
+				key.textContent = type.type;
+				key.style.backgroundColor = type.color;
+				key.classList.add('print-key');
+				colorKey.appendChild(key);
+			});
+
+			toPrint.appendChild(colorKey);
+			toPrint.appendChild(blockWKey);
+
+			await downloadElementAsPDF(toPrint);
+			loading.style.display = "none";
+			e.target.disabled = false;
+		});
+
+		return printBtn;
+	}
+
+	async function renderYearSelect() {
+		const yearDd = document.createElement('select');
+		yearDd.classList.add('year-select');
+		yearDd.id = 'year-select';
+
+		await populateYearDropdown(yearDd);
+
+		yearDd.addEventListener('change', async () => {
+			const updated = await ScheduleAPI.load();
+      		await renderSchedule(updated.schedule, updated.rooms);
+		});
+
+		return yearDd;
+	}
+
+	/* -----------------------------
+	 	Business Rules
+	----------------------------- */
+
+	function checkOverlap(events) {
+	  const overlaps = [];
+
+	  for (let i = 0; i < events.length; i++) {
+	    for (let j = i + 1; j < events.length; j++) {
+	      const a = events[i];
+	      const b = events[j];
+
+	      const aEnd = Number(a.start_period) + Number(a.length) - 1;
+	      const bEnd = Number(b.start_period) + Number(b.length) - 1;
+
+	      if (a.start_period <= bEnd && b.start_period <= aEnd) {
+	        overlaps.push({ eventA: a, eventB: b });
+	      }
+	    }
+	  }
+
+	  return overlaps;
+	}
+
+	function hasOverlap(events) {
+		return checkOverlap(events).length > 0;
+	}
+
+
 </script>
 </html>
