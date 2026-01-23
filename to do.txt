@@ -26,16 +26,14 @@ Class Proposals
 - Column in db to mark 2nd form sent
 - Column in db to mark 2nd form received
 
-- Generate classroom labels as pdfs
-	- Select from list
-	- Select all button
-
 - Schedule page
 	- Warn if repeat classes are in different rooms
 	- Check that instructors are not double booked
 	- Prevent scheduling class if overlap
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
-	- Fix room dd to only show rooms for that year
+	- Generate classroom labels as pdfs
+		- Select all/none button
+		- Checkboxes on schedule events
 
 - Get av and piano needs attached to each class
 

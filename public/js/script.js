@@ -381,12 +381,15 @@ function addTooltip(el, text) {
 }
 
 
-async function populateYearDropdown(dd) {
+async function populateYearDropdown(dd, selected) {
 	const conventions = await read('conventions');
 	conventions.forEach(convention => {
 		const option = document.createElement('option');
 		option.textContent = convention.year;
 		option.value = convention.location_id;
+		if (convention.location_id == selected) {
+			option.selected = true;
+		}
 		dd.appendChild(option);
 	});
 }

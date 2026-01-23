@@ -452,7 +452,9 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
   }
 });
 
-app.get('/api/schedule', requireLogin, async (req, res) => {
+app.get('/api/schedule/:year', requireLogin, async (req, res) => {
+  const year = req.params.year;
+
   try {
     const result = await pool.query(`
       SELECT 
@@ -480,6 +482,10 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
         class_instructors ON classes.id = class_instructors.class_id
       LEFT JOIN
         instructors ON class_instructors.instructor_id = instructors.id
+      LEFT JOIN 
+        locations ON locations.id = rooms.location_id
+      WHERE
+        locations.id = $1
       GROUP BY 
           schedule.id,
           schedule.day,
@@ -493,11 +499,7 @@ app.get('/api/schedule', requireLogin, async (req, res) => {
           rooms.id
       ORDER BY
         schedule.id ASC
-    `);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Entry not found' });
-    }
+    `, [year]);
 
     res.json(result.rows);
   } catch (err) {
@@ -704,6 +706,7 @@ app.get('/api/getOpenResponse/:id', async (req, res) => {
 app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const updates = req.body;
+  console.log(updates);
 
   try {
     const allowedFields = await getAllowedFields(table, pool);

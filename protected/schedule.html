@@ -92,14 +92,21 @@
 			day: document.getElementById('day'),
 			period: document.getElementById('start_period'),
 			notes: document.getElementById('notes'),
-			colorKey: document.getElementById('color-key')
+			colorKey: document.getElementById('color-key'),
 		}
 
 		try {
-			const data = await ScheduleAPI.load();
+			const data = await ScheduleAPI.load(1);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms);
 			setupScheduleForm(data.classes, data.schedule);
+
+			attachEventModalHandlers();
+		    const delButton = document.getElementById('confirm-delete');
+		    delButton.addEventListener('click', () => {
+		      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
+		      	handleDelete();
+		    });
 
 			createSearchableDropdown('searchable', 'results', data.classes, 'title');
 
@@ -125,10 +132,11 @@
 	}
 
 	const ScheduleAPI = {
-		load: async () => {
+		load: async (locationId) => {
+			locationId = 1;
 			const [schedule, rooms, types, conventions, classes] = await Promise.all([
-				fetchJSON('/api/schedule'),
-				fetchJSON('/api/read/rooms'),
+				fetchJSON(`/api/schedule/${locationId}`),
+				fetchJSON(`/api/getRooms/${locationId}`),
 				fetchJSON('/api/read/types'),
 				fetchJSON('/api/read/conventions'),
 				fetchJSON('/api/read/classes')
@@ -159,8 +167,9 @@
 	   State
 	----------------------------- */
 
-	const ScheduleState = {
-		selectedLocation: null
+	let ScheduleState = {
+		selectedLocation: null,
+		activeEvent: null
 	};
 
 	/* -----------------------------
@@ -359,8 +368,7 @@
 	      	DOM.classModal.style.display = 'none';
 
 	      	// Refresh schedule display
-	      	const updated = await ScheduleAPI.load();
-	      	await renderSchedule(updated.schedule, updated.rooms);
+	      	refreshSchedule();
 
 	      	// Clear form
 	      	DOM.scheduleForm.dataset.day = '';
@@ -376,8 +384,8 @@
 	----------------------------- */
 
 	function openEventModal(periodEvent) {
+		activeEvent = periodEvent;
 		fillEventModal(periodEvent);
-		attachEventModalHandlers(periodEvent);
 		showModal('event-modal');
 	}
 
@@ -399,43 +407,29 @@
 	}
 
 	function attachEventModalHandlers(periodEvent) {
-		const form = document.getElementById('update-sched');
-	    const cleanForm = form.cloneNode(true);
-	    form.parentNode.replaceChild(cleanForm, form);
-	    cleanForm.addEventListener('submit', (e) => {
-	      	e.preventDefault();
-	      	const id = periodEvent.schedule_id;
-	      	handleFormSubmission(e, form, `/api/update/schedule/${id}`, 'PATCH', async () => {
-				const updated = await ScheduleAPI.load();
-					await renderSchedule(updated.schedule, updated.rooms);
-			});
-	    })
-
-	    const delButton = document.getElementById('confirm-delete');
-	    const cleanDelButton = delButton.cloneNode(true);
-	    delButton.parentNode.replaceChild(cleanDelButton, delButton);
-	    cleanDelButton.addEventListener('click', () => {
-	      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
-	      	deleteButton(periodEvent.schedule_id);
-	    });
+		document.getElementById('update-sched').addEventListener('submit', handleUpdateSubmit);
+		document.getElementById('delete-button').addEventListener('click', handleDelete);
 	}
 
-	function deleteButton(id) {
-		const button = document.getElementById('delete-button');
-		const freshButton = button.cloneNode(true);
-		button.parentNode.replaceChild(freshButton, button);
+	async function handleUpdateSubmit(e) {
+		e.preventDefault();
 
-		freshButton.addEventListener('click', async () => {
-			await ScheduleAPI.deleteSchedule(id);	
+		if (!activeEvent) return;
 
-			const updated = await ScheduleAPI.load();
-      		await renderSchedule(updated.schedule, updated.rooms);
-      		
-			alert('event deleted');
-			document.querySelectorAll('.modal').forEach(modal => {
-				modal.style.display = 'none';
-			})
-		})
+		await fetch(`api/update/schedule/${activeEvent.schedule_id}`, {
+			method: 'PATCH',
+			body: parseForm(e.target)
+		});
+
+		await refreshSchedule();
+	}
+
+	async function handleDelete() {
+		if (!activeEvent) return;
+
+		await ScheduleAPI.deleteSchedule(activeEvent.schedule_id);
+
+		await refreshSchedule();
 	}
 
 	/* -----------------------------
@@ -468,8 +462,7 @@
 			const result = await res.json();
 			console.log(result.message || result.error || 'Unknown response');
 
-			const updated = await ScheduleAPI.load();;
-  			await renderSchedule(updated.schedule, updated.rooms);
+			refreshSchedule();
 		} catch (err) {
 			console.error('Error updating schedule:', err);
 		}
@@ -536,18 +529,17 @@
 		yearDd.classList.add('year-select');
 		yearDd.id = 'year-select';
 
-		await populateYearDropdown(yearDd);
+		await populateYearDropdown(yearDd, 1);
 
-		yearDd.addEventListener('change', async () => {
-			const updated = await ScheduleAPI.load();
-      		await renderSchedule(updated.schedule, updated.rooms);
+		yearDd.addEventListener('change', async (e) => {
+			refreshSchedule();
 		});
 
 		return yearDd;
 	}
 
 	/* -----------------------------
-	 	Business Rules
+	 	Utilities
 	----------------------------- */
 
 	function checkOverlap(events) {
@@ -574,6 +566,11 @@
 		return checkOverlap(events).length > 0;
 	}
 
+	async function refreshSchedule() {
+		const updated = await ScheduleAPI.load();
+		const { schedule, rooms } = await ScheduleAPI.load();
+  		await renderSchedule(schedule, rooms);
+	}
 
 </script>
 </html>
