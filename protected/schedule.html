@@ -65,7 +65,7 @@
 				</select>
 				<div class="seperator"></div>
 				<label for="room_id">Room</label>
-				<select name="room_id" id="room_id"></select>
+				<select name="room_id" id="room-dropdown"></select>
 				<div class="seperator"></div>
 				<label for="notes">Notes</label>
 				<textarea name="notes" placeholder="notes" id="notes"></textarea>
@@ -78,26 +78,40 @@
 			<button id="delete-button" class="red delete">Delete</button>
 		`);
 
+		window.DOM = {
+			classModal: document.getElementById('class-modal'),
+			roomDropdown: document.getElementById('room-dropdown'),
+			colorBlock: document.getElementById('color-block'),
+			scheduleForm: document.getElementById('schedule-form'),
+			searchable: document.getElementById('searchable'),
+			results: document.getElementById('results'),
+			periodInfo: document.getElementById('period-info'),
+			classTitle: document.getElementById('class-title'),
+			instructor: document.getElementById('inst'),
+			classInfo: document.getElementById('class-info'),
+			day: document.getElementById('day'),
+			period: document.getElementById('start_period'),
+			notes: document.getElementById('notes'),
+			colorKey: document.getElementById('color-key')
+		}
+
 		try {
 			const data = await ScheduleAPI.load();
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms);
 			setupScheduleForm(data.classes, data.schedule);
+
+			createSearchableDropdown('searchable', 'results', data.classes, 'title');
+
+			Object.values(data.rooms).forEach(room => {
+				const opt = document.createElement('option');
+				opt.value = room.id;
+				opt.textContent = room.name;
+				DOM.roomDropdown.appendChild(opt);
+			});
 		} catch (err) {
 			console.error('Failed to initialize schedule:', err);
 		}
-
-		const classData = await read('classes');
-		createSearchableDropdown('searchable', 'results', classData, 'title');
-
-		const rooms = await read('rooms');
-		const roomDD = document.getElementById('room_id');
-		Object.values(rooms).forEach(room => {
-			const opt = document.createElement('option');
-			opt.value = room.id;
-			opt.textContent = room.name;
-			roomDD.appendChild(opt);
-		});
 	}
 
 	/* -----------------------------
@@ -164,42 +178,39 @@
 
 	async function renderSchedule(schedule, rooms) {
 		//render headers
-		const calendar = document.getElementById('color-block');
-		calendar.innerHTML = '';
+		DOM.colorBlock.innerHTML = '';
 
 		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
 		const periods = [1, 2, 3, 4, 5];
 
-		renderDayHeaders(calendar, days, periods);
-		renderRooms(calendar, schedule, rooms, days, periods);
+		renderDayHeaders(DOM.colorBlock, days, periods);
+		renderRooms(DOM.colorBlock, schedule, rooms, days, periods);
 	}
 
 	function renderDayHeaders(calendar, days, periods) {
-		const roomCol = document.createElement('div');
-		roomCol.classList.add('cal-col', 'blank');
-		calendar.appendChild(roomCol);
+		const roomRow = document.createElement('div');
+		roomRow.classList.add('cal-col', 'blank');
+		calendar.appendChild(roomRow);
 
 		days.forEach(day => {
-			const calDay = document.createElement('div');
+			const dayHeader = document.createElement('div');
 			const dayLabel = document.createElement('div');
 			dayLabel.textContent = day;
 			dayLabel.classList.add('day-label');
-			calDay.appendChild(dayLabel);
-			calDay.classList.add('cal-day', 'day-period');
+			dayHeader.appendChild(dayLabel);
+			dayHeader.classList.add('cal-day', 'day-period');
 
 			periods.forEach(period => {
 				const block = document.createElement('div');
 				block.textContent = period;
 				block.classList.add('period');
-				calDay.appendChild(block);
+				dayHeader.appendChild(block);
 			})
-			calendar.appendChild(calDay);
+			calendar.appendChild(dayHeader);
 		});
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
-		const loc_id = document.getElementById('year-select').value;
-
 		if (!rooms) {
 			calendar.innerHTML = `No rooms on record`;
 			calendar.style.backgroundColor = 'white';
@@ -208,17 +219,17 @@
 		calendar.style.backgroundColor = '#333'
 
 		for (const key in rooms) {
-			const room = document.createElement('div');
+			const roomLabel = document.createElement('div');
 			const roomName = rooms[key]['name'];
 			const roomId = rooms[key].id;
-			room.textContent = roomName
-			room.classList.add('cal-col');
-			calendar.appendChild(room);
+			roomLabel.textContent = roomName
+			roomLabel.classList.add('cal-col');
+			calendar.appendChild(roomLabel);
 			days.forEach((day, index) => {
 			  	const roomDay = document.createElement('div');
 			  	roomDay.classList.add('cal-day');
 
-				const events = schedule.filter(e => e.day == (index + 3) && e.room == roomName);
+				const events = schedule.filter(e => e.day == (index + 3) && e.room_id == roomId);
 
 				// check for overlaps
 				const overlaps = checkOverlap(events);
@@ -244,42 +255,7 @@
 				    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
 				    eventDiv.id = periodEvent.schedule_id;
 
-				    eventDiv.addEventListener('click', () => {
-				      const eventModal = document.getElementById('event-modal');
-				      eventModal.style.display = 'flex';
-
-				      const eventTitle = document.getElementById('class-title')
-				      eventTitle.innerHTML = `${periodEvent.title} &#9998;`;
-				      eventTitle.href = `/class-info.html?id=${periodEvent.class_id}`
-
-				      document.getElementById('inst').textContent = periodEvent.instructors;
-				      document.getElementById('class-info').href = `/public/class-review.html?id=${periodEvent.schedule_id}`
-				      document.getElementById('day').value = periodEvent.day;
-				      document.getElementById('start_period').value = periodEvent.start_period;
-				      document.getElementById('room_id').value = periodEvent.room_id;
-				      document.getElementById('notes').value = periodEvent.notes;
-				      console.log(periodEvent)
-
-				      const form = document.getElementById('update-sched');
-				      const cleanForm = form.cloneNode(true);
-				      form.parentNode.replaceChild(cleanForm, form);
-				      cleanForm.addEventListener('submit', (e) => {
-				      	e.preventDefault();
-				      	const id = periodEvent.schedule_id;
-				      	handleFormSubmission(e, form, `/api/update/schedule/${id}`, 'PATCH', async () => {
-							const updated = await ScheduleAPI.load();
-	      					await renderSchedule(updated.schedule, updated.rooms);
-						});
-				      })
-
-				      const delButton = document.getElementById('confirm-delete');
-				      const cleanDelButton = delButton.cloneNode(true);
-				      delButton.parentNode.replaceChild(cleanDelButton, delButton);
-				      cleanDelButton.addEventListener('click', () => {
-				      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
-				      	deleteButton(periodEvent.schedule_id);
-				      });
-				    });
+				    eventDiv.addEventListener('click', () => openEventModal(periodEvent));
 
 				    roomDay.appendChild(eventDiv);
 
@@ -292,15 +268,13 @@
 				    const currentPeriod = p;
 
 				    dummy.addEventListener('click', async () => {
-				    	const form = document.getElementById('schedule-form');
-				      	document.getElementById('searchable').value = '';
-				     	 document.getElementById('results').innerHTML = '';
-				     	 document.getElementById('class-modal').style.display = 'flex';
-				     	 document.getElementById('period-info').textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
-
-				      	form.dataset.day = index + 3;
-				      	form.dataset.period = currentPeriod;
-				      	form.dataset.room = parseInt(roomId);
+				      	DOM.searchable.value = '';
+				     	DOM.results.innerHTML = '';
+				     	DOM.classModal.style.display = 'flex';
+				     	DOM.periodInfo.textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
+				      	DOM.scheduleForm.dataset.day = index + 3;
+				      	DOM.scheduleForm.dataset.period = currentPeriod;
+				      	DOM.scheduleForm.dataset.room = parseInt(roomId);
 				    });
 
 				    roomDay.appendChild(dummy);
@@ -313,19 +287,18 @@
 	}
 
 	function setupScheduleForm(classes, schedule) {
-		const form = document.getElementById('schedule-form');
-		if (!form) {
+		if (!DOM.scheduleForm) {
 			console.error('form not found');
 			return;
 		} // guard
 
-		form.addEventListener('submit', async (e) => {
+		DOM.scheduleForm.addEventListener('submit', async (e) => {
 		    e.preventDefault();
 
-		    const day = parseInt(form.dataset.day);
-		    const start_period = parseInt(form.dataset.period);
-		    const room = form.dataset.room;
-		    const title = document.getElementById('searchable').value;
+		    const day = parseInt(DOM.scheduleForm.dataset.day);
+		    const start_period = parseInt(DOM.scheduleForm.dataset.period);
+		    const room = DOM.scheduleForm.dataset.room;
+		    const title = DOM.searchable.value;
 
 	        const selectedClass = classes.find(c => c.title == title);
 
@@ -374,7 +347,7 @@
 
 	      	// No conflicts → submit to backend
 	      	const data = {
-		      	class_id: parseInt(document.getElementById('searchable').getAttribute('row-id')),
+		      	class_id: parseInt(DOM.searchable.getAttribute('row-id')),
 		      	day: day,
 		      	start_period: start_period,
 		      	room: parseInt(room)
@@ -383,19 +356,68 @@
 	      	await ScheduleAPI.addSchedule(data);
 
 	      	alert('Class added!');
-	      	document.getElementById('class-modal').style.display = 'none';
+	      	DOM.classModal.style.display = 'none';
 
 	      	// Refresh schedule display
 	      	const updated = await ScheduleAPI.load();
 	      	await renderSchedule(updated.schedule, updated.rooms);
 
 	      	// Clear form
-	      	form.dataset.day = '';
-	      	form.dataset.period = '';
-	      	form.dataset.room = '';
-	      	document.getElementById('searchable').value = '';
-	      	document.getElementById('results').innerHTML = '';
+	      	DOM.scheduleForm.dataset.day = '';
+	      	DOM.scheduleForm.dataset.period = '';
+	      	DOM.scheduleForm.dataset.room = '';
+	      	DOM.searchable.value = '';
+	      	DOM.results.innerHTML = '';
 		})
+	}
+
+	/* -----------------------------
+	 	Modal Functions
+	----------------------------- */
+
+	function openEventModal(periodEvent) {
+		fillEventModal(periodEvent);
+		attachEventModalHandlers(periodEvent);
+		showModal('event-modal');
+	}
+
+	function showModal(modalId) {
+		const eventModal = document.getElementById(modalId);
+	    eventModal.style.display = 'flex';
+	}
+
+	function fillEventModal(periodEvent) {
+	    DOM.classTitle.innerHTML = `${periodEvent.title} &#9998;`;
+	    DOM.classTitle.href = `/class-info.html?id=${periodEvent.class_id}`
+
+	    DOM.instructor.textContent = periodEvent.instructors;
+	    DOM.classInfo.href = `/public/class-review.html?id=${periodEvent.schedule_id}`
+	    DOM.day.value = periodEvent.day;
+	    DOM.period.value = periodEvent.start_period;
+	    DOM.roomDropdown.value = periodEvent.room_id;
+	    DOM.notes.value = periodEvent.notes;
+	}
+
+	function attachEventModalHandlers(periodEvent) {
+		const form = document.getElementById('update-sched');
+	    const cleanForm = form.cloneNode(true);
+	    form.parentNode.replaceChild(cleanForm, form);
+	    cleanForm.addEventListener('submit', (e) => {
+	      	e.preventDefault();
+	      	const id = periodEvent.schedule_id;
+	      	handleFormSubmission(e, form, `/api/update/schedule/${id}`, 'PATCH', async () => {
+				const updated = await ScheduleAPI.load();
+					await renderSchedule(updated.schedule, updated.rooms);
+			});
+	    })
+
+	    const delButton = document.getElementById('confirm-delete');
+	    const cleanDelButton = delButton.cloneNode(true);
+	    delButton.parentNode.replaceChild(cleanDelButton, delButton);
+	    cleanDelButton.addEventListener('click', () => {
+	      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
+	      	deleteButton(periodEvent.schedule_id);
+	    });
 	}
 
 	function deleteButton(id) {
@@ -421,18 +443,17 @@
 	----------------------------- */
 
 	async function renderKey(types, conventions) {
-		const key = document.getElementById('color-key');
-		key.innerHTML = '';
+		DOM.colorKey.innerHTML = '';
 
-		types.forEach(type => key.appendChild(renderTypeKey(type)));
+		types.forEach(type => DOM.colorKey.appendChild(renderTypeKey(type)));
 
 		const spacer = document.createElement('span');
 		spacer.classList.add('spacer');
 		spacer.textContent = "Select Convention";
-		key.appendChild(spacer);
+		DOM.colorKey.appendChild(spacer);
 
-		key.appendChild(await renderYearSelect());
-		key.appendChild(renderPrintButton(types));
+		DOM.colorKey.appendChild(await renderYearSelect());
+		DOM.colorKey.appendChild(renderPrintButton(types));
 	}
 
 	async function updateTypeColor(id, val) {
@@ -486,8 +507,7 @@
 		printBtn.addEventListener('click', async (e) => {
 			e.target.disabled = true;
 			loading.style.display = 'flex';
-			const colorBlock = document.getElementById('color-block');
-			const blockWKey = colorBlock.cloneNode(true);
+			const blockWKey = DOM.colorBlock.cloneNode(true);
 			const toPrint = document.createElement('div');
 
 			const colorKey = document.createElement('div');

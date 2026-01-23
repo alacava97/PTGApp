@@ -35,6 +35,7 @@ Class Proposals
 	- Check that instructors are not double booked
 	- Prevent scheduling class if overlap
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
+	- Fix room dd to only show rooms for that year
 
 - Get av and piano needs attached to each class
 
