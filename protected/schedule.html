@@ -101,8 +101,6 @@
 			const data = await ScheduleAPI.load(ScheduleState.year_id);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms);
-			setupScheduleForm();
-			console.log(data.schedule);
 
 			attachEventModalHandlers();
 		    const delButton = document.getElementById('confirm-delete');
@@ -255,6 +253,13 @@
 				    const end = start + Number(periodEvent.length) - 1; // compute end from length
 				    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
 				    eventDiv.id = periodEvent.schedule_id;
+				    const checkbox = document.createElement('input');
+				    checkbox.type = 'checkbox';
+				    checkbox.value = periodEvent.schedule_id;
+				    checkbox.classList.add('bottom-right');
+				    checkbox.checked = true;
+				    checkbox.addEventListener('click', (e) => { e.stopPropagation() });
+				    eventDiv.appendChild(checkbox);
 
 				    eventDiv.addEventListener('click', () => openEventModal(periodEvent));
 
@@ -287,15 +292,6 @@
 		}
 	}
 
-	function setupScheduleForm() {
-		if (!DOM.scheduleForm) {
-			console.error('form not found');
-			return;
-		} // guard
-
-		DOM.scheduleForm.addEventListener('submit', handleCreateSubmit);
-	}
-
 	/* -----------------------------
 	 	Modal Functions
 	----------------------------- */
@@ -326,6 +322,7 @@
 	function attachEventModalHandlers(periodEvent) {
 		document.getElementById('update-sched').addEventListener('submit', handleUpdateSubmit);
 		document.getElementById('delete-button').addEventListener('click', handleDelete);
+		DOM.scheduleForm.addEventListener('submit', handleCreateSubmit);
 	}
 
 	async function handleCreateSubmit(e) {

@@ -30,7 +30,6 @@ Class Proposals
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
 		- Select all/none button
-		- Checkboxes on schedule events
 
 - Get av and piano needs attached to each class
 

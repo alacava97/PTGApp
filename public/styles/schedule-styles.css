@@ -99,6 +99,7 @@
 	min-height: 75px;
 	min-width: 75px;
 	font-size: 10px;
+	position: relative;
 }
 
 .room-period:hover {
@@ -128,4 +129,10 @@
     border-radius: 6px;
     margin: auto 15px;
     padding: 0 5px;
+}
+
+.bottom-right {
+	position: absolute;
+	right: 0;
+	bottom: 0;
 }
