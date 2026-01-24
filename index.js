@@ -223,7 +223,10 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       ', '
     ),
     'No instructors'
-    )AS instructor_name
+    )AS instructor_name,
+    array_agg(DISTINCT instructors.id)
+        FILTER (WHERE instructors.id IS NOT NULL)
+        AS instructor_ids
     FROM classes
     LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
     LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
@@ -260,14 +263,18 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       string_agg(
         instructors.name ||
         CASE
-          WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> ''
-          THEN ', ' || instructors.rpt
+          WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
+          THEN ', RPT'
           ELSE ''
         END,
         ', '
       ),
       'No instructors'
-    ) AS instructor_name
+    ) AS instructor_name,
+    
+    array_agg(DISTINCT instructors.id)
+      FILTER (WHERE instructors.id IS NOT NULL)
+      AS instructor_ids
 
   FROM schedule
   JOIN classes ON schedule.class_id = classes.id
@@ -469,7 +476,21 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         types.color,
         rooms.name as room,
         rooms.id as room_id,
-        COALESCE(string_agg(instructors.name, ', '), 'No instructors') as instructors
+        COALESCE(
+          string_agg(
+            instructors.name ||
+            CASE
+              WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
+              THEN ', RPT'
+              ELSE ''
+            END,
+            ', '
+          ),
+          'No instructors'
+        ) AS instructor_name,
+        array_agg(DISTINCT instructors.id)
+          FILTER (WHERE instructors.id IS NOT NULL)
+          AS instructor_ids
       FROM
         schedule
       JOIN
@@ -706,7 +727,6 @@ app.get('/api/getOpenResponse/:id', async (req, res) => {
 app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const updates = req.body;
-  console.log(updates);
 
   try {
     const allowedFields = await getAllowedFields(table, pool);

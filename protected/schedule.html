@@ -80,6 +80,7 @@
 
 		window.DOM = {
 			classModal: document.getElementById('class-modal'),
+			eventModal: document.getElementById('event-modal'),
 			roomDropdown: document.getElementById('room-dropdown'),
 			colorBlock: document.getElementById('color-block'),
 			scheduleForm: document.getElementById('schedule-form'),
@@ -93,20 +94,19 @@
 			period: document.getElementById('start_period'),
 			notes: document.getElementById('notes'),
 			colorKey: document.getElementById('color-key'),
+			deleteConfirmation: document.getElementById('delete-confirmation-modal')
 		}
 
 		try {
-			const data = await ScheduleAPI.load(1);
+			const data = await ScheduleAPI.load(ScheduleState.year_id);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms);
-			setupScheduleForm(data.classes, data.schedule);
+			setupScheduleForm();
+			console.log(data.schedule);
 
 			attachEventModalHandlers();
 		    const delButton = document.getElementById('confirm-delete');
-		    delButton.addEventListener('click', () => {
-		      	document.getElementById('delete-confirmation-modal').style.display = 'flex';
-		      	handleDelete();
-		    });
+		    delButton.addEventListener('click', () => { document.getElementById('delete-confirmation-modal').style.display = 'flex' });
 
 			createSearchableDropdown('searchable', 'results', data.classes, 'title');
 
@@ -133,7 +133,6 @@
 
 	const ScheduleAPI = {
 		load: async (locationId) => {
-			locationId = 1;
 			const [schedule, rooms, types, conventions, classes] = await Promise.all([
 				fetchJSON(`/api/schedule/${locationId}`),
 				fetchJSON(`/api/getRooms/${locationId}`),
@@ -169,7 +168,8 @@
 
 	let ScheduleState = {
 		selectedLocation: null,
-		activeEvent: null
+		activeEvent: null,
+		year_id: 1
 	};
 
 	/* -----------------------------
@@ -240,14 +240,6 @@
 
 				const events = schedule.filter(e => e.day == (index + 3) && e.room_id == roomId);
 
-				// check for overlaps
-				const overlaps = checkOverlap(events);
-				if (overlaps.length > 0) {
-				  overlaps.forEach(o => {
-				    console.warn(`Overlap detected in room "${roomName}" on ${day}: "${o.eventA.title}" at period ${o.eventA.start_period} overlaps with "${o.eventB.title}" at period ${o.eventB.start_period}`);
-				  });
-				}
-
 			  // --- grid rendering with dummy cells ---
 				let p = 1;
 				while (p <= periods.length) {
@@ -295,88 +287,13 @@
 		}
 	}
 
-	function setupScheduleForm(classes, schedule) {
+	function setupScheduleForm() {
 		if (!DOM.scheduleForm) {
 			console.error('form not found');
 			return;
 		} // guard
 
-		DOM.scheduleForm.addEventListener('submit', async (e) => {
-		    e.preventDefault();
-
-		    const day = parseInt(DOM.scheduleForm.dataset.day);
-		    const start_period = parseInt(DOM.scheduleForm.dataset.period);
-		    const room = DOM.scheduleForm.dataset.room;
-		    const title = DOM.searchable.value;
-
-	        const selectedClass = classes.find(c => c.title == title);
-
-		    if (!selectedClass) {
-		    	alert(`Class "${title}" not found`);
-		        return;
-		    }
-
-		    const length = selectedClass.length;
-		    const newEnd = start_period + length - 1;
-
-		    // Check period limit (cannot exceed 5)
-		    if (newEnd > 5) {
-		        alert(`Cannot schedule "${title}" after period 5`);
-		        return;
-		    }
-
-	      	// Existing events in this room/day
-	      	const roomEvents = schedule.filter(e => e.day == day && e.room == room);
-
-	      	// Check for overlap
-	      	const newEvent = { start_period, length, day, room, title };
-	      	const allEvents = [...roomEvents, newEvent];
-
-	      	const overlaps = checkOverlap(allEvents);
-
-	      	const hasOverlap = overlaps.some(o =>
-		        o.eventA == newEvent || o.eventB == newEvent
-	      	);
-
-	      	if (hasOverlap) {
-				const conflict = overlaps.find(o =>
-					o.eventA === newEvent || o.eventB === newEvent
-				);
-
-				const other = conflict.eventA === newEvent
-					? conflict.eventB
-					: conflict.eventA;
-
-				alert(
-					`Cannot add "${title}" because it overlaps with "${other.title}" at period ${other.start_period}`
-				);
-				return;
-			}
-
-
-	      	// No conflicts → submit to backend
-	      	const data = {
-		      	class_id: parseInt(DOM.searchable.getAttribute('row-id')),
-		      	day: day,
-		      	start_period: start_period,
-		      	room: parseInt(room)
-	      	};
-
-	      	await ScheduleAPI.addSchedule(data);
-
-	      	alert('Class added!');
-	      	DOM.classModal.style.display = 'none';
-
-	      	// Refresh schedule display
-	      	refreshSchedule();
-
-	      	// Clear form
-	      	DOM.scheduleForm.dataset.day = '';
-	      	DOM.scheduleForm.dataset.period = '';
-	      	DOM.scheduleForm.dataset.room = '';
-	      	DOM.searchable.value = '';
-	      	DOM.results.innerHTML = '';
-		})
+		DOM.scheduleForm.addEventListener('submit', handleCreateSubmit);
 	}
 
 	/* -----------------------------
@@ -411,24 +328,145 @@
 		document.getElementById('delete-button').addEventListener('click', handleDelete);
 	}
 
+	async function handleCreateSubmit(e) {
+		e.preventDefault();
+
+	    const { schedule, classes } = await ScheduleAPI.load(ScheduleState.year_id);
+
+	    const dpr = e.target.dataset
+	    const cId = DOM.searchable.getAttribute('row-id');
+
+        const selectedClass = classes.find(c => c.id == parseInt(cId));
+	    if (!selectedClass) {
+	    	alert(`Class "${selectedClass.title}" not found`);
+	        return;
+	    }
+
+	    const length = selectedClass.length;
+	    const end = Number(dpr.period) + length - 1;
+
+	    if (end > 5) {
+	        alert(`Cannot schedule "${selectedClass.title}" after period 5`);
+	        return;
+	    }
+
+      	const r = schedule.filter(e => e.day == dpr.day && e.room_id == dpr.room);
+
+
+		const conflict = findScheduleConflict(
+			{
+				day: dpr.day,
+				room: dpr.room,
+				period: dpr.period,
+				length
+			},
+			schedule
+		);
+
+		if (conflict) {
+		  	alert(
+		    	`Cannot add "${selectedClass.title}" because it overlaps with "${conflict.title}" at period ${conflict.start_period}`
+		  	);
+		  	return;
+		}
+
+		const instConflict = findInstructorConflict(
+			{
+				day: dpr.day,
+				instructorId: selectedClass.instructor_ids,
+				period: dpr.period,
+				length: selectedClass.length
+			},
+				schedule
+		);
+
+		console.log(instConflict)
+
+		if (instConflict) {
+			alert(
+				`Cannot schedule "${selectedClass.title}" because ${instConflict.instructor_name} is already scheduled in ${instConflict.room}`
+			);
+			return
+		}
+
+      	await ScheduleAPI.addSchedule({
+	      	class_id: cId,
+	      	day: dpr.day,
+	      	start_period: dpr.period,
+	      	room: dpr.room
+      	});
+
+      	alert('Class added!');
+      	DOM.classModal.style.display = 'none';
+      	refreshSchedule();
+
+      	e.target.dataset.day = '';
+      	e.target.dataset.period = '';
+      	e.target.dataset.room = '';
+      	DOM.searchable.value = '';
+      	DOM.results.innerHTML = '';
+	}
+
 	async function handleUpdateSubmit(e) {
 		e.preventDefault();
 
 		if (!activeEvent) return;
 
+		const updated = parseForm(e.target);
+		const { schedule } = await ScheduleAPI.load(ScheduleState.year_id)
+
+		const conflict = findScheduleConflict(
+		  	{
+			    day: updated.day,
+			    room: updated.room_id,
+			    period: updated.start_period,
+			    length: activeEvent.length
+		  	},
+			  	schedule,
+		  	{ ignoreId: activeEvent.schedule_id }
+		);
+
+		if (conflict) {
+		  	alert(
+		    	`Cannot move "${activeEvent.title}" because it overlaps with "${conflict.title}"`
+		  	);
+		  	return;
+		}
+
+		const instConflict = findInstructorConflict(
+			{
+				day: updated.day,
+				period: updated.start_period,
+				length: activeEvent.length,
+				instructorId: activeEvent.instructor_id
+			},
+				schedule,
+			{ ignoreId: activeEvent.schedule_id }
+		);
+
+		if (instConflict) {
+			alert(
+				`Cannot move "${activeEvent.title}" because ${instConflict.instructor_name} is already scheduled in ${instConflict.room}`
+			);
+			return
+		}
+
 		await fetch(`api/update/schedule/${activeEvent.schedule_id}`, {
 			method: 'PATCH',
-			body: parseForm(e.target)
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(updated)
 		});
+
+		DOM.eventModal.style.display = 'none';
 
 		await refreshSchedule();
 	}
 
 	async function handleDelete() {
 		if (!activeEvent) return;
-
 		await ScheduleAPI.deleteSchedule(activeEvent.schedule_id);
-
+		DOM.eventModal.style.display = 'none';
+		DOM.deleteConfirmation.style.display = 'none';
 		await refreshSchedule();
 	}
 
@@ -532,6 +570,7 @@
 		await populateYearDropdown(yearDd, 1);
 
 		yearDd.addEventListener('change', async (e) => {
+			ScheduleState.year_id = e.target.value;
 			refreshSchedule();
 		});
 
@@ -541,34 +580,56 @@
 	/* -----------------------------
 	 	Utilities
 	----------------------------- */
+	function findScheduleConflict(
+		{ day, room, period, length },
+		schedule,
+		{ ignoredId = null } = {}
+	) {
+		const newStart = Number(period);
+		const newEnd = newStart + Number(length) - 1;
 
-	function checkOverlap(events) {
-	  const overlaps = [];
+		return schedule
+			.filter(e =>
+				e.day == day &&
+				e.room_id == room &&
+				e.id !== ignoredId
+			)
+			.find(event => {
+				const start = Number(event.start_period);
+				const end = start + Number(event.length) - 1;
 
-	  for (let i = 0; i < events.length; i++) {
-	    for (let j = i + 1; j < events.length; j++) {
-	      const a = events[i];
-	      const b = events[j];
-
-	      const aEnd = Number(a.start_period) + Number(a.length) - 1;
-	      const bEnd = Number(b.start_period) + Number(b.length) - 1;
-
-	      if (a.start_period <= bEnd && b.start_period <= aEnd) {
-	        overlaps.push({ eventA: a, eventB: b });
-	      }
-	    }
-	  }
-
-	  return overlaps;
+				return newStart <= end && start <= newEnd;
+			});
 	}
 
-	function hasOverlap(events) {
-		return checkOverlap(events).length > 0;
+	function findInstructorConflict(
+		{ day, instructorId, period, length },
+		schedule,
+		{ ignoredId = null } = {}
+	) {
+		const newStart = Number(period);
+		const newEnd = newStart + Number(length) - 1;
+
+		return schedule
+			.filter(e =>
+				e.day == day &&
+				e.id !== ignoredId &&
+				(
+					Array.isArray(e.instructor_ids)
+						? e.instructor_ids.some(id => instructorId.includes(id))
+						: e.instructor_ids.includes(event.instructor_ids)
+				)
+			)
+			.find(event => {
+				const start = Number(event.start_period);
+				const end = start + Number(event.length) - 1;
+
+				return newStart <= end && start <= newEnd;
+			});
 	}
 
 	async function refreshSchedule() {
-		const updated = await ScheduleAPI.load();
-		const { schedule, rooms } = await ScheduleAPI.load();
+		const { schedule, rooms } = await ScheduleAPI.load(ScheduleState.year_id);
   		await renderSchedule(schedule, rooms);
 	}
 
