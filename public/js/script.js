@@ -328,13 +328,13 @@ function getId() {
 	return new URLSearchParams(window.location.search).get('id');
 }
 
-async function downloadElementAsPDF(element) {
-	const html = element.outerHTML;
+async function downloadElementAsPDF(element, title) {
+	const htmlList = [element.outerHTML];
 
-	const res = await fetch('/api/export-pdf', {
+	const res = await fetch(`/api/export-pdf/${title}`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ html })
+		body: JSON.stringify({ htmlList })
 	});
 
 	const blob = await res.blob();

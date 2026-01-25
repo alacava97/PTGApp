@@ -10,6 +10,8 @@ function requireLogin(req, res, next) {
   if (req.session.user.role != 'admin') {
     return res.redirect('public/login.html');
   }
+
+  req.user = req.session.user;
   
   next();  
 }

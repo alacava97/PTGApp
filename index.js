@@ -5,6 +5,7 @@ const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 const path = require('path');
 const puppeteer = require('puppeteer');
+const { PDFDocument } = require('pdf-lib');
 
 const pool = require('./db/pool');
 const { requireLogin } = require('./middleware/requireLogin');
@@ -55,6 +56,7 @@ app.use((err, req, res, next) => {
 //create
 app.post('/api/create/:table', requireLogin, async (req, res) => {
   const table = req.params.table;
+  const userId = req.user.id;
 
   let allowedFields;
   try {
@@ -95,8 +97,6 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       );
       record = rows[0];
 
-      await client.query('COMMIT');
-      return res.json(record);
     } else if (table === 'rooms') { 
       const { name, location_id } = req.body;
       const { rows } = await client.query(
@@ -107,24 +107,38 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       );
       record = rows[0];
 
-      await client.query('COMMIT');
-      return res.json(record);
     } else {
-      record = await createRecord({ table, data, returning: ['id'] }, client);
+      record = await createRecord({ table, data, returning: ['*'] }, client);
   
-      if (table === 'classes' && Array.isArray(instructorIds) && instructorIds.length > 0) {
-        const insertPromises = instructorIds.map((instId) => {
-          return client.query(
+      if (table === 'classes' &&
+        Array.isArray(instructorIds) &&
+        instructorIds.length > 0
+      ) {
+        for (const instId of instructorIds) {
+          await client.query(
             'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
             [record.id, instId]
           );
-        });
-        await Promise.all(insertPromises);
+        }
       }
     }
-    
+    await client.query(
+     `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, new_data)
+      VALUES
+        ($1, 'INSERT', $2, $3, $4)
+      `,
+      [userId, table, record.id, record]
+    );
+
     await client.query('COMMIT');
-    return res.json({ message: `Created record in ${table}`, id: record.id });
+
+    return res.json({ 
+      message: `Created record in ${table}`,
+      id: record.id,
+      record
+    });
   } catch (err) {
     await client.query('ROLLBACK');
 
@@ -143,44 +157,93 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 
 app.post('/api/addSchedule', requireLogin, async (req, res) => {
   const { class_id, day, start_period, room } = req.body;
+  const userId = req.user.id;
+  const client = await pool.connect();
+
   try {
-    await pool.query(
-      `INSERT INTO schedule (class_id, day, start_period, room_id)
-       VALUES ($1, $2, $3, $4)`,
+    await client.query('BEGIN');
+
+    const { rows } = await pool.query(
+    `
+      INSERT INTO schedule (class_id, day, start_period, room_id)
+      VALUES ($1, $2, $3, $4)
+      RETURNING *
+    `,
       [class_id, day, start_period, room]
     );
+    const record = rows[0];
 
-    res.json({ success: true });
+    await client.query(
+      `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, new_data)
+      VALUES
+        ($1, 'INSERT', 'schedule', $2, $3)
+      `,
+      [userId, record.id, record]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      message: `Created record in Schedule table`,
+      id: record.id,
+      record,
+      success: true
+    });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: 'Failed to insert schedule' });
+  } finally {
+    client.release();
   }
 });
 
 app.post('/api/addInstructorClassById', requireLogin, async (req, res) => {
   const { instructor_id, class_id } = req.body;
+  const userId = req.user.id;
 
   if (!instructor_id || !class_id) {
     return res.status(400).json({ error: 'Missing instructor_id or class_id' });
   }
 
+  const client = await pool.connect();
+
   try {
-    const result = await pool.query(
+    await client.query('BEGIN');
+    const { rows } = await pool.query(
       `INSERT INTO class_instructors (instructor_id, class_id)
        VALUES ($1, $2)
        ON CONFLICT DO NOTHING
        RETURNING *`,
       [instructor_id, class_id]
     );
+    const record = rows[0];
 
-    if (result.rowCount === 0) {
+    await client.query(
+      `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, new_data)
+      VALUES
+        ($1, 'INSERT', 'class_instructors', $2, $3)
+      `,
+      [userId, record.id, record]
+    );
+
+    await client.query('COMMIT');
+
+    if (record.rowCount === 0) {
       return res.status(404).json({ error: 'Class not found' });
     }
 
-    res.json({ success: true, link: result.rows[0] });
+    res.json({ success: true, record });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 
@@ -727,6 +790,9 @@ app.get('/api/getOpenResponse/:id', async (req, res) => {
 app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const updates = req.body;
+  const userId = req.user.id;
+
+  const client = await pool.connect();
 
   try {
     const allowedFields = await getAllowedFields(table, pool);
@@ -739,6 +805,22 @@ app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
       return res.status(400).json({ error: 'No valid fields to update' });
     }
 
+    //begin transaction
+    await client.query('BEGIN');
+
+    //store old data
+    const oldResult = await client.query(
+      `SELECT * FROM ${table} WHERE id = $1`, [id]
+    );
+
+    if (oldResult.rows.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    const oldRow = oldResult.rows[0];
+
+    //update
     const setClauses = keys.map((key, i) => `${key} = $${i + 1}`);
     const values = keys.map(k => updates[k]);
     values.push(id);
@@ -752,14 +834,31 @@ app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
 
     const result = await pool.query(query, values);
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Entry not found' });
-    }
+    //get new data and insert it into the audit log
+    const newRow = result.rows[0];
 
-    res.json({ message: 'Entry updated', entry: result.rows[0] });
+    await client.query(
+      `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, old_data, new_data)
+      VALUES  
+        ($1, 'UPDATE', $2, $3, $4, $5)
+      `,
+      [userId, table, id, oldRow, newRow]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({
+      message: 'Entry updated',
+      entry: newRow
+    });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Error updating entry:', err);
     res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
   }
 });
 
@@ -767,92 +866,160 @@ app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
 
 //delete
 app.delete('/api/deleteInstructorClass', requireLogin, async (req, res) => {
+  
+  const { class_id, instructor_id } = req.body;
+  const userId = req.user.id;
+
+  if (!class_id || !instructor_id) {
+    return res.status(400).json({ error: 'Missing class_id or instructor_id' });
+  }
+
+  const client = await pool.connect();
+
   try {
-    const { class_id, instructor_id } = req.body;
+    await client.query('BEGIN');
 
-    if (!class_id || !instructor_id) {
-      return res.status(400).json({ error: 'Missing class_id or instructor_id' });
-    }
-
-    const result = await pool.query(
-      `DELETE FROM class_instructors WHERE class_id = $1 AND instructor_id = $2`,
+    const { rows } = await client.query(
+      `DELETE FROM class_instructors WHERE class_id = $1 AND instructor_id = $2 RETURNING *;`,
       [class_id, instructor_id]
     );
 
-    if (result.rowCount === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Link not found' });
     }
 
-    res.json({ success: true });
+    const record = rows[0];
+
+    await client.query(
+      `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, old_data)
+      VALUES
+        ($1, 'INSERT', 'class_instructors', $2, $3)
+      `,
+      [userId, record.id, record]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({ success: true, record });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error(err);
     res.status(500).json({ error: 'Server error' });
+  } finally {
+    client.release();
   }
 });
 
 app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
+  const userId = req.user.id;
+  const client = await pool.connect();
+    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms'];
+  if (!allowedTables.includes(table)) {
+    return res.status(400).json({ error: 'Invalid table name' });
+  }
 
   try {
+    await client.query('BEGIN');
 
-    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms'];
-    if (!allowedTables.includes(table)) {
-      return res.status(400).json({ error: 'Invalid table name' });
-    }
-    
-    const query = `
+    const { rows } = await client.query(`
       DELETE FROM ${table}
       WHERE id = $1
       RETURNING *;
-    `;
+    `, [id]);
 
-    const result = await pool.query(query, [id]);
-
-    if (result.rows.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: 'Entry not found' });
     }
 
-    res.json({ message: 'Entry deleted', entry: result.rows[0] });
+    const record = rows[0];
+
+    await client.query(
+      `
+      INSERT INTO audit_log
+        (user_id, action, table_name, record_id, old_data)
+      VALUES
+        ($1, 'DELETE', $2, $3, $4)
+      `,
+      [userId, table, record.id, record]
+    );
+
+    await client.query('COMMIT');
+
+    res.json({ message: 'Entry deleted', record });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Error deleting entry:', err);
     res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
   }
 });
 
 //generate pdf of page
-app.post('/api/export-pdf', requireLogin, async (req, res) => {
-  const { html } = req.body;
-  if (!html) return res.status(400).send('No HTML provided');
+app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
+  const { filename } = req.params;
+  const { htmlList } = req.body;
+
+  if (!Array.isArray(htmlList) || htmlList.length === 0) {
+    return res.status(400).send('No HTML provided');
+  }
 
   const browser = await puppeteer.launch({ headless: true });
-  const page = await browser.newPage();
+  const mergedPdf = await PDFDocument.create();
+  const pdfConfigs = {
+    'colorblock': {
+      height: '2000px',
+      width: '2810px',
+      margin: { top: 20, right: 20, bottom: 20, left: 20 }
+    },
+    'classroom-labels': {
+      format: 'letter',
+      preferCSSPageSize: true,
+      margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+    }
+  };
 
-  const content = `
-    <html>
-      <head>
-        <link rel="stylesheet" href="http://localhost:3000/public/styles/styles.css">
-        <link rel="stylesheet" href="http://localhost:3000/public/styles/schedule-styles.css">
-      </head>
-      <body>
-      ${html}
-      </body>
-    </html>
-  `;
 
-  await page.setContent(content, { waitUntil: 'networkidle0' });
+  for (const html of htmlList) {
+    const page = await browser.newPage();
 
-  const pdfBuffer = await page.pdf({
-    height: '2000px',
-    width: '2810px',
-    printBackground: true,
-    margin: { top: 20, right: 20, bottom: 20, left: 20},
-  });
+    const content = `
+      <html>
+        <head>
+          <link rel="stylesheet" href="http://localhost:3000/public/styles/styles.css">
+          <link rel="stylesheet" href="http://localhost:3000/public/styles/schedule-styles.css">
+          <link rel="stylesheet" href="http://localhost:3000/public/styles/class-labels.css">
+        </head>
+        <body>
+        ${html}
+        </body>
+      </html>
+    `;
+
+    await page.setContent(content, { waitUntil: 'networkidle0' });
+
+    const pdfBuffer = await page.pdf({
+      printBackground: true,
+      ...(pdfConfigs[filename] ?? {})
+    })
+
+    await page.close();
+
+    const pdf = await PDFDocument.load(pdfBuffer);
+    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+    copiedPages.forEach(p => mergedPdf.addPage(p));
+  }
 
   await browser.close();
 
+  const finalPdf = await mergedPdf.save();
+
   res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'attachment; filename="colorblock.pdf"');
-  res.send(pdfBuffer);
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
+  res.send(Buffer.from(finalPdf));
 });
 
 app.patch('/api/update-order', requireLogin, async (req, res) => {

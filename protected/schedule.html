@@ -474,15 +474,55 @@
 	async function renderKey(types, conventions) {
 		DOM.colorKey.innerHTML = '';
 
-		types.forEach(type => DOM.colorKey.appendChild(renderTypeKey(type)));
-
-		const spacer = document.createElement('span');
-		spacer.classList.add('spacer');
+		const spacer = document.createElement('label');
+		spacer.classList.add('key-label');
 		spacer.textContent = "Select Convention";
+		spacer.appendChild(await renderYearSelect());
+		const vertSep = document.createElement('div');
+		vertSep.classList.add('vertical-seperator');
+		spacer.appendChild(vertSep);
 		DOM.colorKey.appendChild(spacer);
 
-		DOM.colorKey.appendChild(await renderYearSelect());
+		
+
+		const ddLabel = document.createElement('label');
+		ddLabel.classList.add('key-label');
+		ddLabel.textContent = "Print Labels";
+
+		const allNone = document.createElement('select');
+		allNone.classList.add('year-select');
+		const allNoneOptions = ['Select All', 'Deselect All'];
+		allNoneOptions.forEach((option, index) => {
+			const selectOption = document.createElement('option');
+			selectOption.textContent = option;
+			selectOption.value = index;
+			allNone.appendChild(selectOption);
+		});
+		allNone.addEventListener('change', (e) => {
+			const checks = document.querySelectorAll('input[type=checkbox]');
+			checks.forEach(check => {
+				if (e.target.value == 0) {
+					check.checked = true;
+				} else if (e.target.value == 1) {
+					check.checked = false;
+				}
+			})
+		})
+		ddLabel.appendChild(allNone);
+		ddLabel.appendChild(vertSep.cloneNode(false));
+		DOM.colorKey.appendChild(ddLabel);
+
+		const cbLabel = document.createElement('label');
+		cbLabel.classList.add('key-label');
+		cbLabel.textContent = "Print Color Block";
+		DOM.colorKey.appendChild(cbLabel);
 		DOM.colorKey.appendChild(renderPrintButton(types));
+
+		const flexSpace = document.createElement('span');
+		flexSpace.classList.add('spacer');
+		DOM.colorKey.appendChild(flexSpace);
+
+		types.forEach(type => DOM.colorKey.appendChild(renderTypeKey(type)));
 	}
 
 	async function updateTypeColor(id, val) {
@@ -551,7 +591,31 @@
 			toPrint.appendChild(colorKey);
 			toPrint.appendChild(blockWKey);
 
-			await downloadElementAsPDF(toPrint);
+			await downloadElementAsPDF(toPrint, 'colorblock');
+			loading.style.display = "none";
+			e.target.disabled = false;
+		});
+
+		return printBtn;
+	}
+
+	function renderPrintLabelsButton() {
+		const printBtn = document.createElement('button');
+		printBtn.classList.add("fa", "fa-print");
+		printBtn.id = "print-schedule";
+
+		const loading = document.createElement('div');
+		loading.classList.add('loading');
+
+		printBtn.appendChild(loading);
+		printBtn.addEventListener('click', async (e) => {
+			e.target.disabled = true;
+			loading.style.display = 'flex';
+			const toPrint = document.createElement('div');
+
+			//get labels here
+
+			await downloadElementAsPDF(toPrint, 'colorblock');
 			loading.style.display = "none";
 			e.target.disabled = false;
 		});

@@ -16,8 +16,7 @@ Class Proposals
 	-dd to select type, level, length
 - Flag high priority classes - add initials and a note
 
-- Changelog on inst team dashboard
-	-Timestamp, name of class, who changed, changed what to what (more info), table changed.
+- create a page to view audit log
 
 - Logout button
 	
@@ -29,7 +28,6 @@ Class Proposals
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
-		- Select all/none button
 
 - Get av and piano needs attached to each class
 

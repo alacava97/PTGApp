@@ -122,40 +122,6 @@ body > h3 {
 
 /* End forms/inputs */
 
-/* print */
-#print-schedule {
-	position: relative;
-	float: right;
-	text-align: right;
-	font-size: 32px;
-	padding: 2px 5px;
-	cursor: pointer;
-	box-sizing: border-box;
-	background-color: transparent;
-	border: none;
-}
-
-#print-schedule:hover {
-	background-color: #BEBEBE;
-}
-
-.print-key {
-	aspect-ratio: 1/1;
-	width: 140px;
-	white-space: normal;
-	border: 1px solid black;
-	margin: 0 5px;
-	padding: 5px;
-	font-size: 24px;
-	font-weight: bold;
-}
-
-.print-key-container {
-	margin: 25px 5%;
-	justify-content: space-between;
-}
-/* end print */
-
 /* tooltips */
 .tooltip {
 	position: relative;
@@ -186,8 +152,6 @@ body > h3 {
 	opacity: 1;
 }
 /* end tooltips */
-
-
 
 .row:hover, .flex-row:hover {
 	background-color: #E0E0E0;
@@ -518,6 +482,14 @@ body > h3 {
 	width: 80%;
 	background-color: #d8d8d8;
 	height: 1px;
+}
+
+.vertical-seperator {
+	width: 1px;
+	height: 30px;
+	margin: auto 0;
+	background-color: #999999;
+	display: inline-block;
 }
 
 .class-section,
