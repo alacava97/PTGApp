@@ -1,3 +1,15 @@
+Convention dashboard
+- # of classes by type, level, instructor, etc. for convention - See Cories "Class & Period Counts" doc
+- Should draw # of periods taught from the class prop table
+
+- Logout button
+
+- Schedule page
+	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
+	- Generate classroom labels as pdfs
+
+- Get av and piano needs attached to each class
+
 -Emailing
 	-Password reset emailing
 	-Approved class emailing
@@ -7,31 +19,18 @@
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 
-Convention dashboard
-- # of classes by type, level, instructor, etc. for convention - See Cories "Class & Period Counts" doc
-- Should draw # of periods taught from the class prop table
+Next year:
+-Class Proposals
+	- Summary of submissions by class type - on homepage dashboard - stacked bar graph w/ yes and maybe
+		-dd to select type, level, length
+	- Flag high priority classes - add initials and a note
+	- Button to send second form for approved classes w/ consent to teach (from home office)
+	- Second form copy of shared google form
+	- Column in db to mark 2nd form sent
+	- Column in db to mark 2nd form received
 
-Class Proposals
-- Summary of submissions by class type - on homepage dashboard - stacked bar graph w/ yes and maybe
-	-dd to select type, level, length
-- Flag high priority classes - add initials and a note
+	- create a page to view audit log
 
-- create a page to view audit log
-
-- Logout button
-	
-- Button to send second form for approved classes w/ consent to teach (from home office)
-- Second form copy of shared google form
-- Column in db to mark 2nd form sent
-- Column in db to mark 2nd form received
-
-- Schedule page
-	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
-	- Generate classroom labels as pdfs
-
-- Get av and piano needs attached to each class
-
-Far Future
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year
 	-Dashboard for class reviews can be viewed in real time
