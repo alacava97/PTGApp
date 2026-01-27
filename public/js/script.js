@@ -1,25 +1,51 @@
 //dynamically insert the navbar into the document, highlighting the active link
-const navbar = document.getElementById('navbar');
-	if (navbar) {
-		fetch('navbar.html')
-			.then(response => response.text())
-			.then(html => {
-				navbar.innerHTML = html;
+document.addEventListener('DOMContentLoaded', () => {
+    const navbar = document.getElementById('navbar');
+    if (navbar) {
+        fetch('navbar.html')
+            .then(response => response.text())
+            .then(html => {
+                navbar.innerHTML = html;
 
-				const currentPath = window.location.pathname.split('/').pop();
-				const links = navbar.querySelectorAll('a');
+                const currentPath = window.location.pathname.split('/').pop();
+                const links = navbar.querySelectorAll('a');
 
-				links.forEach(link => {
-					const href = link.getAttribute('href');
-					if (href === ('/' + currentPath) || (href === 'index.html' && currentPath === '')) {
-						link.classList.add('active');
-					}
-				});
-			})
-			.catch(err => {
-				console.error('Failed to load navbar:', err)
-			});
-	}
+                links.forEach(link => {
+                    const href = link.getAttribute('href');
+                    if (href === ('/' + currentPath) || (href === 'index.html' && currentPath === '')) {
+                        link.classList.add('active');
+                    }
+                });
+
+                const logoutBtn = document.getElementById('logoutBtn');
+                if (logoutBtn) {
+                    logoutBtn.addEventListener('click', async () => {
+                        try {
+                            const res = await fetch('/auth/logout', {
+                                method: 'POST',
+                                credentials: 'include'
+                            });
+                            const data = await res.json();
+
+                            if (res.ok) {
+                                alert(data.message);
+                                window.location.href = '/public/login.html';
+                            } else {
+                                alert('Logout failed: ' + data.error);
+                            }
+                        } catch (err) {
+                            console.error(err);
+                            alert('An error occurred while logging out.');
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                console.error('Failed to load navbar:', err);
+            });
+    }
+});
+
 	
 async function create(table, data) {
 	try {
@@ -393,3 +419,4 @@ async function populateYearDropdown(dd, selected) {
 		dd.appendChild(option);
 	});
 }
+

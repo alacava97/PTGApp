@@ -29,7 +29,8 @@ app.use(
   session({
     store: new pgSession({
       pool: pool,
-      createTableIfMissing: true,
+      tableName: 'session',
+      createTableIfMissing: true
     }),
     secret: process.env.SESSION_SECRET || 'supersecretkey',
     resave: false,
@@ -669,11 +670,19 @@ app.get('/api/getPropTypes', async (req, res) => {
       SELECT 
         type,
         COUNT(DISTINCT id),
-        approved
+        approved,
+        year,
+        sessions,
+        level,
+        length
       FROM class_proposals
       GROUP BY
         type,
-        approved
+        approved,
+        year,
+        sessions,
+        level,
+        length
     `)
 
     if (result.rows.length === 0) {

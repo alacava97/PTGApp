@@ -1,0 +1,31 @@
+.graph {
+	margin-bottom: 20px;
+	width: 800px;
+	height: 500px;
+}
+
+.chart-options {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+	background-color: #eeeeee;
+	width: 100%;
+	padding: 10px;
+	border-radius: 5px;
+	border: 1px solid #eeeeee;
+	flex-wrap: wrap;
+}
+
+.spacer {
+	flex: 100%;
+}
+
+.year-select {
+  	width: fit-content;
+    height: 25px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    margin: auto 15px;
+    padding: 0 5px;
+}

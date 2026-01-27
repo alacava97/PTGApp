@@ -1,14 +1,10 @@
-Convention dashboard
-- # of classes by type, level, instructor, etc. for convention - See Cories "Class & Period Counts" doc
-- Should draw # of periods taught from the class prop table
-
-- Logout button
+- Get av and piano needs attached to each class
 
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
 
-- Get av and piano needs attached to each class
+- Class and Instructor pages don't update properly when creating new records
 
 -Emailing
 	-Password reset emailing
@@ -21,8 +17,6 @@ Convention dashboard
 
 Next year:
 -Class Proposals
-	- Summary of submissions by class type - on homepage dashboard - stacked bar graph w/ yes and maybe
-		-dd to select type, level, length
 	- Flag high priority classes - add initials and a note
 	- Button to send second form for approved classes w/ consent to teach (from home office)
 	- Second form copy of shared google form
@@ -42,7 +36,3 @@ Next year:
 	-Favorite classes
 	-Build custom ittinerary
 	-Comments/reviews
-
--refactoring
-	-Make everything comply with best practices better
-	-reduce repetetive logic and DOM queries

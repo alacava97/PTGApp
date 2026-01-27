@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
 	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/charts.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Home</title>
@@ -18,10 +19,43 @@
 		<h1>Resources</h1>
 		<a href="/public/class-proposal-form.html">Class Proposal Form</a>
 		<a href="/class-proposals.html">Review Class Proposals</a>
-		<div id="sub-summary">
-			<h1>Summary of Class Proposal Submissions</h1>
+		<h1 >Summary of Class Proposal Submissions</h1>
+		<div class="chart-options span2">
+			<label>Year
+				<select id="year-select" class="year-select"></select>
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>Group By
+				<select id="group-by" class="year-select">
+					<option value="type">Type</option>
+					<option value="level">Level</option>
+					<option value="sessions">Sessions</option>
+					<option value="length">Length</option>
+				</select>
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>Sort A-Z
+				<input type="checkbox" id="sort-alpha">
+			</label>
+			<div class="spacer"></div>
+			<label>Yes
+				<input type="checkbox" id="yes" checked="true">
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>Maybe
+				<input type="checkbox" id="maybe" checked="true">
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>No
+				<input type="checkbox" id="no" checked="true">
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>Undecided
+				<input type="checkbox" id="undecided" checked="true">
+			</label>
+		</div>
+		<div class="graph">
 			<canvas id="sub-bar"></canvas>
-			<canvas id="sub-bar-approved"></canvas>
 		</div>
 	</div>
 </body>
@@ -32,8 +66,6 @@
 		const res = await fetch('/auth/session', { credentials: 'include' });
 		const user = await res.json();
 
-		console.log(user.role);
-
 		initHomePage()
 	});
 
@@ -42,6 +74,7 @@
 	}
 
 	async function initHomePage() {
+		await populateYearDropdown(document.getElementById('year-select'), 2);
 		await loadData();
 	}
 
@@ -63,66 +96,53 @@
 		try {
 			const proposals = await fetchProposalTypes();
 
-			proposalChart(proposals);
-			approvedChart(proposals);
+			let props = proposalChart(proposals);
+			bindChartToggles(props);
+
+			document.getElementById('year-select').addEventListener('change', () => { refreshChart(proposals, props) });
+			document.getElementById('group-by').addEventListener('change', () => { refreshChart(proposals, props) });
+			document.getElementById('sort-alpha').addEventListener('change', () => { refreshChart(proposals, props) });
+
 		} catch (err) {
 			console.error('Internal server error:', err);
 		}
 	}
+	
 
 	/* -----------------------------
 	   Chart
 	----------------------------- */
 
-	function proposalChart(proposals) {
-		const data = sortEntries(proposals);
+	function proposalChart(proposals, existingChart = null) {
+		const groupBy = document.getElementById('group-by').value;
 
-		const propChart = new Chart("sub-bar", {
+		const rows = sortRows(aggregateTotals(proposals, groupBy), groupBy);
+
+		const labels = rows.map(r => r.label);
+
+		const datasets = [
+			{ label: 'Yes', backgroundColor: '#04AA6D', data: rows.map(r => r.yes) },
+			{ label: 'Maybe', backgroundColor: '#FFC107', data: rows.map(r => r.maybe) },
+			{ label: 'No', backgroundColor: 'red', data: rows.map(r => r.no) },
+			{ label: 'Undecided', backgroundColor: 'blue', data: rows.map(r => r.undecided) }
+		];
+
+		if (existingChart) {
+			existingChart.data.labels = labels;
+			existingChart.data.datasets.forEach((ds, i) => {
+				ds.data = datasets[i].data;
+			});
+			existingChart.update();
+			return existingChart;
+		}
+
+		return new Chart("sub-bar", {
 			type: "bar",
-			data: {
-				labels: data.X,
-				datasets: [{
-					backgroundColor: "blue",
-					label: "2026",
-					data: data.Y
-				}]
-			},
+			data: { labels, datasets},
 			options: {
-				title: {
-					display: true,
-					text: "Class Proposals by Type"
-				},
-
-			}
-		});
-	}
-
-	function approvedChart(proposals) {
-		const data = sortEntries(proposals.filter(row => row.approved == true))
-		const propChart = new Chart("sub-bar-approved", {
-			type: "bar",
-			data: {
-				labels: data.X,
-				datasets: [{
-					backgroundColor: "green",
-					label: "2026",
-					data: data.Y
-				}]
-			},
-			options: {
-				scales: {
-					y: {
-						beginAtZero: true,
-						min: 0,
-						ticks: {
-							stepSize: 1
-						}
-					}
-				},
-				title: {
-					display: true,
-					text: "Approved Class Proposals by Type"
-				}				
+				scales: { x: { stacked: true }, y: { stacked: true } },
+				responsive: true,
+				maintainAspectRatio: false
 			}
 		});
 	}
@@ -130,29 +150,121 @@
 	/* -----------------------------
 		Helpers
 	----------------------------- */
+	function refreshChart(proposals, chart) {
+		const yearSelect = document.getElementById('year-select');
+		const selectedYear = yearSelect.options[yearSelect.selectedIndex].text;
+		const filteredProposals = proposals.filter(p => p.year == selectedYear);
 
-	function sortEntries(proposals) {
-		const types = Object.values(proposals).map(row => row.type || 'No Type');
-		const counts = Object.values(proposals).map(row => row.count || 0);
+		proposalChart(filteredProposals, chart);
+	}
 
-		const typeCounts = types.map(function(d, i) {
-			return {
-				label: d,
-				data: counts[i] || 0
-			};
+	function isNumeric(value) {
+		return value !== null && value !== '' && !isNaN(value);
+	}
+
+	function sortRows(rows, groupBy) {
+		const sortAlpha = document.getElementById('sort-alpha')?.checked;
+
+		if (sortAlpha) {
+			if (groupBy === 'level') {
+				return sortByOrderArray(rows, [
+					'No Level',
+					'Everyone',
+					'Beginner',
+					'Intermediate',
+					'Advanced'
+				]);
+			}
+
+			return rows.sort((a, b) => {
+				const aNum = !isNaN(a.label);
+				const bNum = !isNaN(b.label);
+
+				if (aNum && bNum) {
+					return Number(a.label) - Number(b.label);
+				}
+
+				return String(a.label).localeCompare(String(b.label), undefined, {
+					numeric: true,
+					sensitivity: 'base'
+				});
+			});
+		}
+
+		// default: volume
+		return rows.sort((a, b) => b.total - a.total);
+	}
+
+
+	function sortByOrderArray(rows, order) {
+		const index = new Map(order.map((v, i) => [String(v), i]));
+
+		return rows.sort((a, b) => {
+			const aKey = index.get(String(a.label));
+			const bKey = index.get(String(b.label));
+
+			// both found → ordered list wins
+			if (aKey !== undefined && bKey !== undefined) {
+				return aKey - bKey;
+			}
+
+			// only one found → known values first
+			if (aKey !== undefined) return -1;
+			if (bKey !== undefined) return 1;
+
+			// fallback: natural sort
+			return String(a.label).localeCompare(String(b.label), undefined, {
+				numeric: true,
+				sensitivity: 'base'
+			});
+		});
+	}
+
+
+
+	function aggregateTotals(proposals, groupBy) {
+		const year = document.getElementById('year-select').selectedOptions[0].text;
+		const data = proposals.filter(p => p.year == year);
+
+		const map = {};
+
+		data.forEach(p => {
+			const key = p[groupBy];
+			if (!map[key]) {
+				map[key] = {
+					label: key,
+					yes: 0,
+					maybe: 0,
+					no: 0,
+					undecided: 0,
+					total: 0
+				};
+			}
+
+			const count = Number(p.count) || 0;
+			const state = p.approved ?? 'undecided';
+
+			map[key][state] += count;
+			map[key].total += count;
 		});
 
-		const sortedArray = typeCounts.sort(function(a, b) {
-			return b.data - a.data;
+		return Object.values(map);
+	}
+
+
+	function bindChartToggles(chart) {
+		const map = {
+			yes: 0,
+			maybe: 1,
+			no: 2,
+			undecided: 3
+		};
+
+		Object.entries(map).forEach(([id, index]) => {
+			document.getElementById(id).addEventListener('change', e => {
+				chart.data.datasets[index].hidden = !e.target.checked;
+				chart.update();
+			});
 		});
-
-		const xValues = [];
-		const yValues =[];
-		sortedArray.forEach(function(d){
-			xValues.push(d.label);
-			yValues.push(d.data);
-		})
-
-		return {X: xValues, Y: yValues};
 	}
 </script>

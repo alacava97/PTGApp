@@ -57,10 +57,11 @@
 	background-color: #333;
 	padding: 1px;
 	width: -webkit-fill-available;
-	height: -webkit-fill-available;
+	max-height: -webkit-fill-available;
 	overflow: scroll;
 	border: #333 solid 1px;
 	border-radius: 5px;
+	align-content: start;
 }
 
 .cal-day {
