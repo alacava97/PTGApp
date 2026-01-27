@@ -1,4 +1,4 @@
-- Get av and piano needs attached to each class
+- Update class info page to reflect new columns in db
 
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
