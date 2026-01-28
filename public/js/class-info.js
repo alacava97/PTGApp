@@ -42,9 +42,13 @@ async function loadClassData(classId) {
 			fetchClassHistory(classId)
 		]);
 
+		console.log(classRecord)
+
 		setupTitle(classRecord, classId);
 		setupDescription(classRecord);
 		setupDetails(classRecord);
+		setupClassSetup(classRecord);
+		pianoSetup(classRecord);
 		setupSponsor(classRecord);
 		setupNotes(classRecord);
 		setupHistory(classHistory, classId);
@@ -222,10 +226,10 @@ function setupDetails(classRecord) {
 			<label for="length-input">Length</label>
 			<input type="number" min="1" max="5" name="length" id="length-input">
 			<div class="seperator"></div>
-			<label for="type-select"></label>
+			<label for="type-select">Type</label>
 			<select name="type" id="type-select"></select>
 			<div class="seperator"></div>
-			<label for="level-select"></label>
+			<label for="level-select">Level</label>
 			<select name="level" id="level-select">
 				<option value="everyone">Everyone</option>
 				<option value="beginner">Beginner</option>
@@ -233,11 +237,8 @@ function setupDetails(classRecord) {
 				<option value="advanced">Advanced</option>
 			</select>
 			<div class="seperator"></div>
-			<label for="uprights">Uprights</label>
-			<input id="uprights" name="uprights" type="number">
-			<div class="seperator"></div>
-			<label for="grands">Grands</label>
-			<input id="grands" name="grands" type="number">
+			<label for="sessions">Sessions</label>
+			<input id="sessions" name="sessions" type="number">
 			<div class="seperator"></div>
 			<button type="submit">Submit</button>
 		</form>
@@ -248,8 +249,7 @@ function setupDetails(classRecord) {
 		type: classRecord.type_name,
 		typeId: classRecord.type || 'No type',
 		level: classRecord.level,
-		uprights: classRecord.uprights || 0,
-		grands: classRecord.grands || 0
+		sessions: classRecord.sessions || 0
 	}
 
 	let lengthValue = details.length
@@ -259,18 +259,19 @@ function setupDetails(classRecord) {
 	const row = new Row();
 	row.addTitle('Details', 'details-title');
 	row.addSubtitle(`Length: ${lengthValue}`, 'length-subtitle');
+	row.addSeparator();
 	row.addSubtitle(`Type: ${details.type || 'No type'}`, 'type-subtitle');
+	row.addSeparator();
 	row.addSubtitle(`Level: ${details.level?details.level.charAt(0).toUpperCase() + details.level.slice(1):'No level'}`, 'level-subtitle');
-	row.addSubtitle(`Uprights: ${details.uprights}`, 'upright-subtitle');
-	row.addSubtitle(`Grands: ${details.grands}`, 'grand-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Sessions: ${details.sessions}`, 'session-subtitle');
 
 	row.row.addEventListener('click', () => {
 		modal.show();
 		document.getElementById('length-input').value = details.length;
 		document.getElementById('type-select').value = details.typeId;
 		document.getElementById('level-select').value = details.level;
-		document.getElementById('uprights').value = details.uprights;
-		document.getElementById('grands').value = details.grands;
+		document.getElementById('sessions').value = details.sessions;
 	});
 
 	container.appendChild(row.row);
@@ -282,15 +283,385 @@ function setupDetails(classRecord) {
 			type: updated.type_name,
 			typeId: updated.type,
 			level: updated.level,
-			uprights: updated.uprights || 0,
-			grands: updated.grands || 0	
+			sessions: updated.sessions || 0
 		}
 
 		document.getElementById('length-subtitle').textContent = `Length: ${details.length} ${details.length === 1 ? 'period' : 'periods'}`;
 		document.getElementById('type-subtitle').textContent = `Type: ${details.type}`;
 		document.getElementById('level-subtitle').textContent = `Level: ${details.level.charAt(0).toUpperCase() + details.level.slice(1)}`;
-		document.getElementById('upright-subtitle').textContent = `Uprights: ${details.uprights}`;
-		document.getElementById('grand-subtitle').textContent = `Grands: ${details.grands}`;
+		document.getElementById('session-subtitle').textContent = `Sessions: ${details.sessions}`;
+	}, 'classes');
+}
+
+/* -----------------------------
+   Class Setup
+----------------------------- */
+
+function setupClassSetup(classRecord) {
+	const container = document.getElementById('setup');
+	container.innerHTML = '';
+
+	const modal = new Modal('setup-modal');
+	modal.content(`
+		<h4>Update Class Setup</h4>
+		<form>
+			<label for="conflict">Conflicts</label>
+			<textarea id="conflicts" name="conflicts"></textarea>
+			<div class="seperator"></div>
+			<label for="preferences">Preferences</label>
+			<textarea name="preferences" id="preferences"></textarea>
+			<div class="seperator"></div>
+			<label for="class_requirements">Class Requirements</label>
+			<textarea name="class_requirements" id="class_requirements"></textarea>
+			<div class="seperator"></div>
+			<label for="prep_time">Prep Time</label>
+			<select id="prep_time" name="prep_time">
+				<option value="10 minutes">10 Minutes</option>
+				<option value="15 minutes">15 Minutes</option>
+				<option value="30 minutes">30 Minutes</option>
+				<option value="1 hour">1 hour</option>
+				<option value="More than 1 hour">More than 1 hour</option>
+			</select>
+			<div class="seperator"></div>
+			<label for="seating">Seating</label>
+			<select id="seating" name="seating">
+				<option value="either">Either</option>
+				<option value="theater">Theater</option>
+				<option value="classroom">Classroom</option>
+			</select>
+			<div class="seperator"></div>
+			<label for="extra_tables">Extra Tables</label>
+			<input id="extra_tables" name="extra_tables" type="number">
+			<div class="seperator"></div>
+			<label for="av">AV Needs</label>
+			<textarea name="av" id="av"></textarea>
+			<div class="seperator"></div>
+			<label for="special_equipment">Special Equipment</label>
+			<textarea name="special_equipment" id="special_equipment"></textarea>
+			<div class="seperator"></div>
+			<button type="submit">Submit</button>
+		</form>
+	`);
+
+	let setup = {
+		conflicts: classRecord.conflicts || '',
+		preferences: classRecord.preferences || '',
+		class_requirements: classRecord.class_requirements || '',
+		prep_time: classRecord.prep_time,
+		seating: classRecord.seating,
+		extra_tables: classRecord.extra_tables || '',
+		av: classRecord.av || '',
+		special_equipment: classRecord.special_equipment || ''
+	}
+
+	const row = new Row();
+	row.addTitle('Class Setup', 'setup-title');
+	row.addSubtitle(`Conflicts: ${setup.conflicts}`, 'conflict-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Preferences: ${setup.preferences}`, 'preference-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Requirements: ${setup.class_requirements}`, 'requirement-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Prep Time: ${setup.prep_time}`, 'preptime-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Seating: ${setup.seating}`, 'seating-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Extra Tables: ${setup.extra_tables}`, 'extratable-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`AV Needs: ${setup.av}`, 'av-subtitle');
+	row.addSeparator();
+	row.addSubtitle(`Special Equipment: ${setup.special_equipment}`, 'equipment-subtitle');
+
+	row.row.addEventListener('click', () => {
+		modal.show();
+		document.getElementById('conflicts').value = setup.conflicts;
+		document.getElementById('preferences').value = setup.preferences;
+		document.getElementById('class_requirements').value = setup.class_requirements;
+		document.getElementById('prep_time').value = setup.prep_time;
+		document.getElementById('seating').value = setup.seating;
+		document.getElementById('extra_tables').value = setup.extra_tables;
+		document.getElementById('av').value = setup.av;
+		document.getElementById('special_equipment').value = setup.special_equipment;
+	});
+
+	container.appendChild(row.row);
+
+	modal.formSubmit(async () => {
+		const updated = await fetchClass(classRecord.id);
+		setup = {
+			conflicts: updated.conflicts || '',
+			preferences: updated.preferences || '',
+			class_requirements: updated.class_requirements || '',
+			prep_time: updated.prep_time,
+			seating: updated.seating,
+			extra_tables: updated.extra_tables || '',
+			av: updated.av || '',
+			special_equipment: updated.special_equipment || ''
+		}
+
+		document.getElementById('conflict-subtitle').textContent = `Conflicts: ${setup.conflicts}`;
+		document.getElementById('preference-subtitle').textContent = `Preferences: ${setup.preferences}`;
+		document.getElementById('requirement-subtitle').textContent = `Requirements: ${setup.class_requirements}`;
+		document.getElementById('preptime-subtitle').textContent = `Prep Time: ${setup.prep_time}`;
+		document.getElementById('seating-subtitle').textContent = `Seating: ${setup.seating}`;
+		document.getElementById('extratable-subtitle').textContent = `Extra Tables: ${setup.extra_tables}`;
+		document.getElementById('av-subtitle').textContent = `AV Needs: ${setup.av}`;
+		document.getElementById('equipment-subtitle').textContent = `Special Equipment: ${setup.special_equipment}`;
+	}, 'classes');
+}
+
+/* -----------------------------
+   Piano Setup
+----------------------------- */
+
+function pianoSetup(classRecord) {
+	const container = document.getElementById('pianos');
+	container.innerHTML = '';
+
+	const modal = new Modal('setup-modal');
+	modal.content(`
+		<h4>Update Piano Setup</h4>
+		<form>
+			<label for="piano">Pianos Needed</label>
+			<input name="piano" id="piano" type="number" min="0" max="2">
+			<div class="seperator"></div>
+			<div class="flex-cols">
+				<div id="piano1" class="sub-form">
+					<span><b>Piano 1</b></span>
+					<div class="seperator"></div>
+
+					<label for="piano-1-type">Type</label>
+					<input id="piano-1-type" name="piano_1_type" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-1-quality">Quality</label>
+					<textarea id="piano-1-quality" name="quality"></textarea>
+					<div class="seperator"></div>
+
+					<label for="piano-1-size">Size</label>
+					<input id="piano-1-size" name="size" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-1-supplier">Supplier</label>
+					<textarea id="piano-1-supplier" name="supplier"></textarea>
+					<div class="seperator"></div>
+
+					<label for="piano-1-manufacturer">Manufacturer</label>
+					<input id="piano-1-manufacturer" name="manufacturer" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-1-share">Shared
+						<input id="piano-1-share" name="share" type="checkbox">
+					</label>
+					<div class="seperator"></div>
+
+					<label for="piano-1-requirements">Requirements</label>
+					<input id="piano-1-requirements" name="requirements" type="text">
+					<div class="seperator"></div>
+				</div>
+
+				<div id="piano2" class="sub-form">
+					<span><b>Piano 2</b></span>
+					<div class="seperator"></div>
+
+					<label for="piano-2-type">Type</label>
+					<input id="piano-2-type" name="piano_1_type" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-2-quality">Quality</label>
+					<textarea id="piano-2-quality" name="quality"></textarea>
+					<div class="seperator"></div>
+
+					<label for="piano-2-size">Size</label>
+					<input id="piano-2-size" name="size" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-2-supplier">Supplier</label>
+					<textarea id="piano-2-supplier" name="supplier"></textarea>
+					<div class="seperator"></div>
+
+					<label for="piano-2-manufacturer">Manufacturer</label>
+					<input id="piano-2-manufacturer" name="manufacturer" type="text">
+					<div class="seperator"></div>
+
+					<label for="piano-2-share">Shared
+						<input id="piano-2-share" name="share" type="checkbox">
+					</label>
+					<div class="seperator"></div>
+
+					<label for="piano-2-requirements">Requirements</label>
+					<input id="piano-2-requirements" name="requirements" type="text">
+					<div class="seperator"></div>
+				</div>
+			</div>
+			<button type="submit">Submit</button>
+		</form>
+	`);
+
+	document.getElementById('piano').addEventListener('change', () => {
+		const piano1 = document.getElementById('piano1');
+		const piano2 = document.getElementById('piano2');
+		const pianoInput = document.getElementById('piano').value;
+
+		if (pianoInput == 0) {
+			piano1.style.display = 'none';
+			piano2.style.display = 'none';
+		}
+
+		if (pianoInput >= 1) {
+			piano1.style.display = 'flex';
+			piano2.style.display = 'none';
+		}
+
+		if (pianoInput >= 2) {
+			piano1.style.display = 'flex';
+			piano2.style.display = 'flex';
+		}
+	});
+
+	let pianos = {
+		piano: classRecord.piano,
+		piano1: {
+			type: classRecord.piano_1_type || '',
+			quality: classRecord.piano_1_quality || '',
+			size: classRecord.piano_1_size || '',
+			supplier: classRecord.piano_1_supplier || '',
+			manufacturer: classRecord.piano_1_manufacturer || '',
+			share: classRecord.piano_1_share || 'false',
+			requirements: classRecord.piano_1_requirements || ''
+		},
+		piano2: {
+			type: classRecord.piano_2_type || '',
+			quality: classRecord.piano_2_quality || '',
+			size: classRecord.piano_2_size || '',
+			supplier: classRecord.piano_2_supplier || '',
+			manufacturer: classRecord.piano_2_manufacturer || '',
+			share: classRecord.piano_2_share || 'false',
+			requirements: classRecord.piano_2_requirements || ''
+		}
+	}
+
+	const row = new Row();
+	row.addTitle('Piano Needs', 'piano-title');
+	row.addSubtitle('No Pianos Needed', 'no-piano');
+
+	if (pianos.piano == 0) {
+		document.getElementById('piano1').style.display = 'none';
+		document.getElementById('piano2').style.display = 'none';
+	}
+
+	if (pianos.piano >= 1) {
+		document.getElementById('piano1').style.display = 'flex';
+		document.getElementById('piano2').style.display = 'none';
+		row.addSeparator();
+		row.addTitle('Piano 1');
+		row.addSubtitle(`Type: ${pianos.piano1.type}`, 'piano-1-type-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Quality: ${pianos.piano1.quality}`, 'piano-1-quality-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Size: ${pianos.piano1.size}`, 'piano-1-size-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Supplier: ${pianos.piano1.supplier}`, 'piano-1-supplier-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Manufacturer: ${pianos.piano1.manufacturer}`, 'piano-1-manufacturer-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Shared: ${pianos.piano1.share}`, 'piano-1-share-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Requirements: ${pianos.piano1.requirements}`, 'piano-1-requirements-subtitle');
+	}
+
+	if (pianos.piano >= 2) {
+		document.getElementById('piano2').style.display = 'flex';
+
+		row.addSeparator();
+		row.addTitle('Piano 2');
+		row.addSubtitle(`Type: ${pianos.piano2.type}`, 'piano-2-type-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Quality: ${pianos.piano2.quality}`, 'piano-2-quality-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Size: ${pianos.piano2.size}`, 'piano-2-size-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Supplier: ${pianos.piano2.supplier}`, 'piano-2-supplier-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Manufacturer: ${pianos.piano2.manufacturer}`, 'piano-2-manufacturer-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Shared: ${pianos.piano2.share}`, 'piano-2-share-subtitle');
+		row.addSeparator();
+		row.addSubtitle(`Requirements: ${pianos.piano2.requirements}`, 'piano-2-requirements-subtitle');
+
+	}
+
+	row.row.addEventListener('click', () => {
+		modal.show();
+		document.getElementById('piano').value = pianos.piano;
+		document.getElementById('piano-1-type').value = pianos.piano1.type;
+		document.getElementById('piano-1-quality').value = pianos.piano1.quality;
+		document.getElementById('piano-1-size').value = pianos.piano1.size;
+		document.getElementById('piano-1-supplier').value = pianos.piano1.supplier;
+		document.getElementById('piano-1-manufacturer').value = pianos.piano1.manufacturer;
+		document.getElementById('piano-1-share').checked = pianos.piano1.share;
+		document.getElementById('piano-1-requirements').value = pianos.piano1.requirements;
+
+		document.getElementById('piano-2-type').value = pianos.piano2.type;
+		document.getElementById('piano-2-quality').value = pianos.piano2.quality;
+		document.getElementById('piano-2-size').value = pianos.piano2.size;
+		document.getElementById('piano-2-supplier').value = pianos.piano2.supplier;
+		document.getElementById('piano-2-manufacturer').value = pianos.piano2.manufacturer;
+		document.getElementById('piano-2-share').checked = pianos.piano2.share;
+		document.getElementById('piano-2-requirements').value = pianos.piano2.requirements;
+	});
+
+	container.appendChild(row.row);
+
+	modal.formSubmit(async () => {
+		const updated = await fetchClass(classRecord.id);
+		pianos = {
+			pianos: updated.piano,
+			piano1: {
+				type: updated.piano_1_type || '',
+				quality: updated.piano_1_quality || '',
+				size: updated.piano_1_size || '',
+				supplier: updated.piano_1_supplier || '',
+				manufacturer: updated.piano_1_manufacturer || '',
+				share: updated.piano_1_share || 'false',
+				requirements: updated.piano_1_requirements || ''
+			},
+			piano2: {
+				type: updated.piano_2_type || '',
+				quality: updated.piano_2_quality || '',
+				size: updated.piano_2_size || '',
+				supplier: updated.piano_2_supplier || '',
+				manufacturer: updated.piano_2_manufacturer || '',
+				share: updated.piano_2_share || 'false',
+				requirements: updated.piano_2_requirements || ''
+			}
+		}
+
+		if (pianos.piano == 0) {
+			document.getElementById('no-piano').textContent = 'No Pianos Needed';
+		} else {
+			document.getElementById('no-piano').textContent = '';
+		}
+
+		if (pianos.piano >=1) {
+			document.getElementById('piano-1-type-subtitle').textContent = `Type: ${pianos.piano1.type}`;
+			document.getElementById('piano-1-quality-subtitle').textContent = `Quality: ${pianos.piano1.quality}`;
+			document.getElementById('piano-1-size-subtitle').textContent = `Size: ${pianos.piano1.size}`;
+			document.getElementById('piano-1-supplier-subtitle').textContent = `Supplier: ${pianos.piano1.supplier}`;
+			document.getElementById('piano-1-manufacturer-subtitle').textContent = `Manufacturer: ${pianos.piano2.manufacturer}`;
+			document.getElementById('piano-1-share-subtitle').textContent = `Shared: ${pianos.piano1.share}`;
+			document.getElementById('piano-1-requirements-subtitle').textContent = `Requirements: ${pianos.piano1.requirements}`;
+		}
+
+		if (pianos.piano >=2) {
+			document.getElementById('piano-2-type-subtitle').textContent = `Type: ${pianos.piano2.type}`;
+			document.getElementById('piano-2-quality-subtitle').textContent = `Quality: ${pianos.piano2.quality}`;
+			document.getElementById('piano-2-size-subtitle').textContent = `Size: ${pianos.piano2.size}`;
+			document.getElementById('piano-2-supplier-subtitle').textContent = `Supplier: ${pianos.piano2.supplier}`;
+			document.getElementById('piano-2-manufacturer-subtitle').textContent = `Manufacturer: ${pianos.piano2.manufacturer}`;
+			document.getElementById('piano-2-share-subtitle').textContent = `Shared: ${pianos.piano2.share}`;
+			document.getElementById('piano-2-requirements-subtitle').textContent = `Requirements: ${pianos.piano2.requirements}`;
+		}
 	}, 'classes');
 }
 
@@ -391,7 +762,6 @@ function setupSponsor(classRecord) {
 function setupHistory(classHistory, classId) {
 	const container = document.getElementById('history');
 	container.innerHTML = '';
-	console.log(classHistory)
 	let history = classHistory;
 
 	const row = new Row();

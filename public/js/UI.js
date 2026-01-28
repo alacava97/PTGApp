@@ -55,4 +55,10 @@ class Row {
 		this.deleteButton.innerHTML = `&times;`;
 		this.row.appendChild(this.deleteButton);
 	}
+
+	addSeparator() {
+		this.separator = document.createElement('div');
+		this.separator.classList.add('seperator');
+		this.row.appendChild(this.separator);
+	}
 }

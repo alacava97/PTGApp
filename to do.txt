@@ -1,19 +1,19 @@
-- Update class info page to reflect new columns in db
+	-Piano section: pianos 1 and 2 info
+- Remove sponsored from instructors
+- Update class-info level dropdowns to reflect new levels
 
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
+	- Fix CSS so the whole page scrolls,  not just the schedule
 
 - Class and Instructor pages don't update properly when creating new records
 
--Emailing
-	-Password reset emailing
-	-Approved class emailing
-	-Yes/no class proposals - only Corie has permission - delay send option
-		-"don't email" option in prop-info page
-		-mark "email sent" in db
-		-page to link in email that marks email received "click here to accept your acceptance"
-		-Automatic deadline reminders 1 week before and day of
+- create a page to view audit log
+
+- Emailing
+	- Password reset emailing
+	- Class reviews
 
 Next year:
 -Class Proposals
@@ -22,13 +22,18 @@ Next year:
 	- Second form copy of shared google form
 	- Column in db to mark 2nd form sent
 	- Column in db to mark 2nd form received
-
-	- create a page to view audit log
+	-Approved class emailing
+	-Yes/no class proposals - only Corie has permission - delay send option
+		-"don't email" option in prop-info page
+		-mark "email sent" in db
+		-page to link in email that marks email received "click here to accept your acceptance"
+		-Automatic deadline reminders 1 week before and day of
 
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year
 	-Dashboard for class reviews can be viewed in real time
 	-Electronic consent to teach
+
 -CSS
 	-Responsive design for mobile and other devices in general
 
