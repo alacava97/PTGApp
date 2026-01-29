@@ -1,15 +1,10 @@
-	-Piano section: pianos 1 and 2 info
-- Remove sponsored from instructors
-- Update class-info level dropdowns to reflect new levels
-
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
-	- Fix CSS so the whole page scrolls,  not just the schedule
 
-- Class and Instructor pages don't update properly when creating new records
+- Get CTE, Tutor, Board, Exam committee data for instructors
 
-- create a page to view audit log
+- Create a page to view audit log
 
 - Emailing
 	- Password reset emailing

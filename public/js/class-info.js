@@ -231,10 +231,11 @@ function setupDetails(classRecord) {
 			<div class="seperator"></div>
 			<label for="level-select">Level</label>
 			<select name="level" id="level-select">
-				<option value="everyone">Everyone</option>
-				<option value="beginner">Beginner</option>
+				<option value="introductory">Introductory</option>
+				<option value="foundational">Foundational</option>
 				<option value="intermediate">Intermediate</option>
 				<option value="advanced">Advanced</option>
+				<option value="everyone">Everyone</option>
 			</select>
 			<div class="seperator"></div>
 			<label for="sessions">Sessions</label>
@@ -347,8 +348,8 @@ function setupClassSetup(classRecord) {
 		conflicts: classRecord.conflicts || '',
 		preferences: classRecord.preferences || '',
 		class_requirements: classRecord.class_requirements || '',
-		prep_time: classRecord.prep_time,
-		seating: classRecord.seating,
+		prep_time: classRecord.prep_time || '',
+		seating: classRecord.seating || 'either',
 		extra_tables: classRecord.extra_tables || '',
 		av: classRecord.av || '',
 		special_equipment: classRecord.special_equipment || ''
@@ -392,8 +393,8 @@ function setupClassSetup(classRecord) {
 			conflicts: updated.conflicts || '',
 			preferences: updated.preferences || '',
 			class_requirements: updated.class_requirements || '',
-			prep_time: updated.prep_time,
-			seating: updated.seating,
+			prep_time: updated.prep_time || '',
+			seating: updated.seating || 'either',
 			extra_tables: updated.extra_tables || '',
 			av: updated.av || '',
 			special_equipment: updated.special_equipment || ''
@@ -416,7 +417,6 @@ function setupClassSetup(classRecord) {
 
 function pianoSetup(classRecord) {
 	const container = document.getElementById('pianos');
-	container.innerHTML = '';
 
 	const modal = new Modal('setup-modal');
 	modal.content(`
@@ -435,28 +435,28 @@ function pianoSetup(classRecord) {
 					<div class="seperator"></div>
 
 					<label for="piano-1-quality">Quality</label>
-					<textarea id="piano-1-quality" name="quality"></textarea>
+					<textarea id="piano-1-quality" name="piano_1_quality"></textarea>
 					<div class="seperator"></div>
 
 					<label for="piano-1-size">Size</label>
-					<input id="piano-1-size" name="size" type="text">
+					<input id="piano-1-size" name="piano_1_size" type="text">
 					<div class="seperator"></div>
 
 					<label for="piano-1-supplier">Supplier</label>
-					<textarea id="piano-1-supplier" name="supplier"></textarea>
+					<textarea id="piano-1-supplier" name="piano_1_supplier"></textarea>
 					<div class="seperator"></div>
 
 					<label for="piano-1-manufacturer">Manufacturer</label>
-					<input id="piano-1-manufacturer" name="manufacturer" type="text">
+					<input id="piano-1-manufacturer" name="piano_1_manufacturer" type="text">
 					<div class="seperator"></div>
 
 					<label for="piano-1-share">Shared
-						<input id="piano-1-share" name="share" type="checkbox">
+						<input id="piano-1-share" name="piano_1_share" type="checkbox">
 					</label>
 					<div class="seperator"></div>
 
 					<label for="piano-1-requirements">Requirements</label>
-					<input id="piano-1-requirements" name="requirements" type="text">
+					<input id="piano-1-requirements" name="piano_1_requirements" type="text">
 					<div class="seperator"></div>
 				</div>
 
@@ -465,32 +465,32 @@ function pianoSetup(classRecord) {
 					<div class="seperator"></div>
 
 					<label for="piano-2-type">Type</label>
-					<input id="piano-2-type" name="piano_1_type" type="text">
+					<input id="piano-2-type" name="piano_2_type" type="text">
 					<div class="seperator"></div>
 
 					<label for="piano-2-quality">Quality</label>
-					<textarea id="piano-2-quality" name="quality"></textarea>
+					<textarea id="piano-2-quality" name="piano_2_quality"></textarea>
 					<div class="seperator"></div>
 
 					<label for="piano-2-size">Size</label>
-					<input id="piano-2-size" name="size" type="text">
+					<input id="piano-2-size" name="piano_2_size" type="text">
 					<div class="seperator"></div>
 
 					<label for="piano-2-supplier">Supplier</label>
-					<textarea id="piano-2-supplier" name="supplier"></textarea>
+					<textarea id="piano-2-supplier" name="piano_2_supplier"></textarea>
 					<div class="seperator"></div>
 
 					<label for="piano-2-manufacturer">Manufacturer</label>
-					<input id="piano-2-manufacturer" name="manufacturer" type="text">
+					<input id="piano-2-manufacturer" name="piano_2_manufacturer" type="text">
 					<div class="seperator"></div>
 
 					<label for="piano-2-share">Shared
-						<input id="piano-2-share" name="share" type="checkbox">
+						<input id="piano-2-share" name="piano_2_share" type="checkbox">
 					</label>
 					<div class="seperator"></div>
 
 					<label for="piano-2-requirements">Requirements</label>
-					<input id="piano-2-requirements" name="requirements" type="text">
+					<input id="piano-2-requirements" name="piano_2_requirements" type="text">
 					<div class="seperator"></div>
 				</div>
 			</div>
@@ -498,29 +498,12 @@ function pianoSetup(classRecord) {
 		</form>
 	`);
 
-	document.getElementById('piano').addEventListener('change', () => {
-		const piano1 = document.getElementById('piano1');
-		const piano2 = document.getElementById('piano2');
-		const pianoInput = document.getElementById('piano').value;
-
-		if (pianoInput == 0) {
-			piano1.style.display = 'none';
-			piano2.style.display = 'none';
-		}
-
-		if (pianoInput >= 1) {
-			piano1.style.display = 'flex';
-			piano2.style.display = 'none';
-		}
-
-		if (pianoInput >= 2) {
-			piano1.style.display = 'flex';
-			piano2.style.display = 'flex';
-		}
+	document.getElementById('piano').addEventListener('change', (e) => {
+		checkPianos(e.target.value)
 	});
 
 	let pianos = {
-		piano: classRecord.piano,
+		piano: classRecord.piano || 0,
 		piano1: {
 			type: classRecord.piano_1_type || '',
 			quality: classRecord.piano_1_quality || '',
@@ -545,54 +528,54 @@ function pianoSetup(classRecord) {
 	row.addTitle('Piano Needs', 'piano-title');
 	row.addSubtitle('No Pianos Needed', 'no-piano');
 
-	if (pianos.piano == 0) {
-		document.getElementById('piano1').style.display = 'none';
-		document.getElementById('piano2').style.display = 'none';
-	}
+	const pianoSection = document.getElementById('pianos')
+	
+	pianoSection.insertBefore(
+			row.row,
+			pianoSection.firstChild
+		);
 
-	if (pianos.piano >= 1) {
-		document.getElementById('piano1').style.display = 'flex';
-		document.getElementById('piano2').style.display = 'none';
-		row.addSeparator();
-		row.addTitle('Piano 1');
-		row.addSubtitle(`Type: ${pianos.piano1.type}`, 'piano-1-type-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Quality: ${pianos.piano1.quality}`, 'piano-1-quality-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Size: ${pianos.piano1.size}`, 'piano-1-size-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Supplier: ${pianos.piano1.supplier}`, 'piano-1-supplier-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Manufacturer: ${pianos.piano1.manufacturer}`, 'piano-1-manufacturer-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Shared: ${pianos.piano1.share}`, 'piano-1-share-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Requirements: ${pianos.piano1.requirements}`, 'piano-1-requirements-subtitle');
-	}
+	const piano1Row = new Row();
+	piano1Row.addTitle('Piano 1');
+	piano1Row.addSubtitle(`Type: ${pianos.piano1.type}`, 'piano-1-type-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Quality: ${pianos.piano1.quality}`, 'piano-1-quality-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Size: ${pianos.piano1.size}`, 'piano-1-size-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Supplier: ${pianos.piano1.supplier}`, 'piano-1-supplier-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Manufacturer: ${pianos.piano1.manufacturer}`, 'piano-1-manufacturer-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Shared: ${pianos.piano1.share}`, 'piano-1-share-subtitle');
+	piano1Row.addSeparator();
+	piano1Row.addSubtitle(`Requirements: ${pianos.piano1.requirements}`, 'piano-1-requirements-subtitle');
 
-	if (pianos.piano >= 2) {
-		document.getElementById('piano2').style.display = 'flex';
+	document.getElementById('piano1-info').appendChild(piano1Row.row);
 
-		row.addSeparator();
-		row.addTitle('Piano 2');
-		row.addSubtitle(`Type: ${pianos.piano2.type}`, 'piano-2-type-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Quality: ${pianos.piano2.quality}`, 'piano-2-quality-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Size: ${pianos.piano2.size}`, 'piano-2-size-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Supplier: ${pianos.piano2.supplier}`, 'piano-2-supplier-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Manufacturer: ${pianos.piano2.manufacturer}`, 'piano-2-manufacturer-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Shared: ${pianos.piano2.share}`, 'piano-2-share-subtitle');
-		row.addSeparator();
-		row.addSubtitle(`Requirements: ${pianos.piano2.requirements}`, 'piano-2-requirements-subtitle');
+	const piano2Row = new Row();
+	piano2Row.addTitle('Piano 2');
+	piano2Row.addSubtitle(`Type: ${pianos.piano2.type}`, 'piano-2-type-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Quality: ${pianos.piano2.quality}`, 'piano-2-quality-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Size: ${pianos.piano2.size}`, 'piano-2-size-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Supplier: ${pianos.piano2.supplier}`, 'piano-2-supplier-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Manufacturer: ${pianos.piano2.manufacturer}`, 'piano-2-manufacturer-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Shared: ${pianos.piano2.share}`, 'piano-2-share-subtitle');
+	piano2Row.addSeparator();
+	piano2Row.addSubtitle(`Requirements: ${pianos.piano2.requirements}`, 'piano-2-requirements-subtitle');
 
-	}
+	document.getElementById('piano2-info').appendChild(piano2Row.row);
 
-	row.row.addEventListener('click', () => {
+	checkPianoRows(pianos);
+
+	container.addEventListener('click', () => {
 		modal.show();
+		checkPianos(pianos.piano);
 		document.getElementById('piano').value = pianos.piano;
 		document.getElementById('piano-1-type').value = pianos.piano1.type;
 		document.getElementById('piano-1-quality').value = pianos.piano1.quality;
@@ -611,12 +594,10 @@ function pianoSetup(classRecord) {
 		document.getElementById('piano-2-requirements').value = pianos.piano2.requirements;
 	});
 
-	container.appendChild(row.row);
-
 	modal.formSubmit(async () => {
 		const updated = await fetchClass(classRecord.id);
 		pianos = {
-			pianos: updated.piano,
+			piano: updated.piano || 0,
 			piano1: {
 				type: updated.piano_1_type || '',
 				quality: updated.piano_1_quality || '',
@@ -637,18 +618,13 @@ function pianoSetup(classRecord) {
 			}
 		}
 
-		if (pianos.piano == 0) {
-			document.getElementById('no-piano').textContent = 'No Pianos Needed';
-		} else {
-			document.getElementById('no-piano').textContent = '';
-		}
-
 		if (pianos.piano >=1) {
+			console.log('test');
 			document.getElementById('piano-1-type-subtitle').textContent = `Type: ${pianos.piano1.type}`;
 			document.getElementById('piano-1-quality-subtitle').textContent = `Quality: ${pianos.piano1.quality}`;
 			document.getElementById('piano-1-size-subtitle').textContent = `Size: ${pianos.piano1.size}`;
 			document.getElementById('piano-1-supplier-subtitle').textContent = `Supplier: ${pianos.piano1.supplier}`;
-			document.getElementById('piano-1-manufacturer-subtitle').textContent = `Manufacturer: ${pianos.piano2.manufacturer}`;
+			document.getElementById('piano-1-manufacturer-subtitle').textContent = `Manufacturer: ${pianos.piano1.manufacturer}`;
 			document.getElementById('piano-1-share-subtitle').textContent = `Shared: ${pianos.piano1.share}`;
 			document.getElementById('piano-1-requirements-subtitle').textContent = `Requirements: ${pianos.piano1.requirements}`;
 		}
@@ -662,7 +638,53 @@ function pianoSetup(classRecord) {
 			document.getElementById('piano-2-share-subtitle').textContent = `Shared: ${pianos.piano2.share}`;
 			document.getElementById('piano-2-requirements-subtitle').textContent = `Requirements: ${pianos.piano2.requirements}`;
 		}
+
+		checkPianoRows(pianos);
 	}, 'classes');
+}
+
+function checkPianos(data) {
+		const piano1 = document.getElementById('piano1');
+		const piano2 = document.getElementById('piano2');
+
+		if (data == 0) {
+			piano1.style.display = 'none';
+			piano2.style.display = 'none';
+		}
+
+		if (data >= 1) {
+			piano1.style.display = 'flex';
+			piano2.style.display = 'none';
+		}
+
+		if (data >= 2) {
+			piano1.style.display = 'flex';
+			piano2.style.display = 'flex';
+		}
+}
+
+function checkPianoRows(data) {
+		const pianoTitle = document.getElementById('no-piano');
+		const piano1Info = document.getElementById('piano1-info');
+		const piano2Info = document.getElementById('piano2-info');
+
+		if (data.piano == 0) {
+			piano1Info.style.display = 'none';
+			piano2Info.style.display = 'none';
+			pianoTitle.textContent = 'No Pianos Needed';
+		}
+
+		if (data.piano >= 1) {
+			piano1Info.style.display = 'grid';
+			piano2Info.style.display = 'none';
+			pianoTitle.textContent = '1 Piano Needed';
+		}
+
+		if (data.piano >= 2) {
+			piano1Info.style.display = 'grid';
+			piano2Info.style.display = 'grid';
+			pianoTitle.textContent = '2 Pianos Needed';
+		}
 }
 
 /* -----------------------------

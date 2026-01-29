@@ -56,10 +56,12 @@
 				<label for="level">Level</label>
 				<select id="level" name="level" required>
 					<option value="" selected disabled>Select a level</option>
-					<option value="everyone">Everyone</option>
+					<option value="introductory">Introductory</option>
+					<option value="foundational">Foundational</option>
 					<option value="beginner">Beginner</option>
 					<option value="intermediate">Intermediate</option>
 					<option value="advanced">Advanced</option>
+					<option value="everyone">Everyone</option>
 				</select>
 				<div class="seperator"></div>
 				<button type="submit" class="button">Create Record</button>
@@ -68,8 +70,8 @@
 			<div id="message"></div>`);
 		document.getElementById('new-btn').addEventListener('click', () => newClass.show());
 		async function classSuccess() {
-			const classes = await read('classes');
-			displayRecords(classes);
+			const updated = await read('classes');
+			displayRecords(updated);
 		}
 		newClass.formSubmit(classSuccess, 'classes', type = 'create');
 

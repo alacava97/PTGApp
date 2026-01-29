@@ -40,25 +40,20 @@
 				<label for="name">Name</label>
 				<input id="name" type="text" name="name" placeholder="Name" autocomplete="off" required>
 				<div class="seperator"></div>
-				<label for="phone">Phone</label>
-				<input id="phone" type="tel" name="phone" autocomplete="off" placeholder="Phone">
-				<div class="seperator"></div>
-				<label for="email">Email</label>
-				<input id="email" type="email" name="email" autocomplete="off" placeholder="Email">
-				<div class="seperator"></div>
+
 				<label for="rpt">RPT Status
 					<input id="rpt" class="small-input" type="checkbox" name="rpt">
 				</label>
 				<div class="seperator"></div>
-				<label for="sponsored">Sponsored
-					<input class="small-input" id="sponsored" type="checkbox" name="sponsored">
-				</label>
-			    <div class="seperator"></div>
-				<div id="sponsor-div" style="display: none;">
-					<label for="sponsor">Sponsor</label>
-					<input id="sponsor" type="text" name="sponsor" autocomplete="off" placeholder="Sponsor">
-				</div>
+
+				<label for="phone">Phone</label>
+				<input id="phone" type="tel" name="phone" autocomplete="off" placeholder="Phone">
 				<div class="seperator"></div>
+
+				<label for="email">Email</label>
+				<input id="email" type="email" name="email" autocomplete="off" placeholder="Email">
+				<div class="seperator"></div>
+
 				<button type="submit" class="button modal-center">Create Record</button>
 			</form>
 
@@ -69,17 +64,6 @@
 			displayRecords(records);
 		}
 		newInst.formSubmit(instSuccess, 'instructors', type = 'create');
-
-		const sponsored = document.getElementById('sponsored');
-		const sponsor = document.getElementById('sponsor-div');
-
-		sponsored.addEventListener('change', () => {
-			if (sponsored.checked) {
-				sponsor.style.display = 'inline-block';
-			} else {
-				sponsor.style.display = 'none';
-			}
-		});
 	})
 
 	function displayRecords(instructors) {
@@ -91,7 +75,6 @@
 			const name = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''}`;
 
 			entry.addTitle(name);
-			entry.addSubtitle(instructor.sponsor == true && instructor.sponsored == true ? instructor.sponsor : 'No sponsor')
 			entry.addArrow(`/instructor-info.html?id=${instructor.id}`);
 
 			instList.appendChild(entry.row);

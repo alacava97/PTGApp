@@ -1001,6 +1001,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
           <link rel="stylesheet" href="http://localhost:3000/public/styles/styles.css">
           <link rel="stylesheet" href="http://localhost:3000/public/styles/schedule-styles.css">
           <link rel="stylesheet" href="http://localhost:3000/public/styles/class-labels.css">
+          <link rel="stylesheet" href="http://localhost:3000/public/styles/print.css">
         </head>
         <body>
         ${html}
