@@ -45,12 +45,13 @@
 .schedule *, .cal-day * {
 	background-color: #F8F8F8;
 	padding: 5px;
+	box-sizing: border-box;
 }
 
 .schedule {
 	display: grid;
 	gap: 1px;
-	grid-template-columns: max-content repeat(4, 1fr);
+	grid-template-columns: max-content repeat(20, 1fr);
 	position: fixed;
 	justify-content: space-between;
 	margin: 0 5%;
@@ -60,46 +61,40 @@
 	max-height: -webkit-fill-available;
 	overflow: scroll;
 	border: #333 solid 1px;
-	border-radius: 5px;
 	align-content: start;
 }
 
 .cal-day {
-	position: sticky;
-	top: 0;
-
 	display: grid;
 	grid-template-columns: repeat(5, 1fr);
 	width: 100%;
-	box-sizing: border-box;
 	background-color: #333;
 	gap: 1px;
 	padding: 0;
-	border-right: 1px #333 solid;
-	border-left: 1px #333 solid;
 }
 
 .day-label {
+	grid-column: span 5;
+}
+
+.period-time-label {
+	font-size: 12px;
+	font-weight: 400;
 	text-align: center;
 	grid-column-start: 1;
 	grid-column-end: 6;
-	max-height: 40px;
 }
 
 .period {
 	text-align: center;
+	font-size: 8px;
 }
 
 .cal-col {
 	min-height: 82px;
-  box-sizing: border-box;
 	text-align: center;
 	vertical-align: bottom;
 	padding: 15px;
-	position: sticky;
-	left: 0;
-	z-index: 1;
-	border-right: 1px solid black;
 }
 
 .room-period {
@@ -115,18 +110,19 @@
 }
 
 .day-period {
-	position: sticky;
-	top: 0;
-	z-index: 2;
-	border-bottom: 1px solid black;
+	grid-template-rows: repeat(3, 1fr);
 }
 
 .blank {
-	z-index: 3;
-	position: sticky;
-	top:0;
-	left:0;
-	border-bottom: 1px solid black;
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	background-color: #333;
+	padding: 0;
+}
+
+.blank > * {
+	height: 100%;
 }
 
 .year-select {

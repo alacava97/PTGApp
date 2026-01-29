@@ -1,6 +1,8 @@
 - Schedule page
 	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
 	- Generate classroom labels as pdfs
+	- Add a way to change piano/room assignments
+	- May need to make blocks wider/taller to fit everything or just make text smaller? Work on mimicing the current block style.
 
 - Get CTE, Tutor, Board, Exam committee data for instructors
 

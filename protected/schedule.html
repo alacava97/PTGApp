@@ -100,7 +100,7 @@
 		try {
 			const data = await ScheduleAPI.load(ScheduleState.year_id);
 			await renderKey(data.types, data.conventions);
-			await renderSchedule(data.schedule, data.rooms);
+			await renderSchedule(data.schedule, data.rooms, data.periods);
 
 			attachEventModalHandlers();
 		    const delButton = document.getElementById('confirm-delete');
@@ -131,14 +131,15 @@
 
 	const ScheduleAPI = {
 		load: async (locationId) => {
-			const [schedule, rooms, types, conventions, classes] = await Promise.all([
+			const [schedule, rooms, types, conventions, classes, periods] = await Promise.all([
 				fetchJSON(`/api/schedule/${locationId}`),
 				fetchJSON(`/api/getRooms/${locationId}`),
 				fetchJSON('/api/read/types'),
 				fetchJSON('/api/read/conventions'),
-				fetchJSON('/api/read/classes')
+				fetchJSON('/api/read/classes'),
+				fetchJSON('/api/read/periods')
 			]);
-			return { schedule, rooms, types, conventions, classes };
+			return { schedule, rooms, types, conventions, classes, periods };
 		},
 
 		updateTypeColor: (id, color) =>
@@ -174,47 +175,64 @@
 	   Page Setup
 	----------------------------- */
 
-	function renderSchedulePage({ schedule, rooms, types, conventions }) {
+	function renderSchedulePage({ schedule, rooms, types, conventions, periods }) {
 		renderKey(types, conventions);
-		renderSchedule(schedule, rooms);
+		renderSchedule(schedule, rooms, periods);
 	}
 
 	/* -----------------------------
 	   Schedule Setup
 	----------------------------- */
 
-	async function renderSchedule(schedule, rooms) {
+	async function renderSchedule(schedule, rooms, periods) {
 		//render headers
 		DOM.colorBlock.innerHTML = '';
 
 		const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
-		const periods = [1, 2, 3, 4, 5];
 
 		renderDayHeaders(DOM.colorBlock, days, periods);
 		renderRooms(DOM.colorBlock, schedule, rooms, days, periods);
 	}
 
 	function renderDayHeaders(calendar, days, periods) {
-		const roomRow = document.createElement('div');
-		roomRow.classList.add('cal-col', 'blank');
-		calendar.appendChild(roomRow);
+		const blank = document.createElement('div');
+
+		const periodTitle = document.createElement('div');
+		periodTitle.textContent = 'Period'
+
+		const timeTitle = document.createElement('div');
+		timeTitle.textContent = 'Time';
+
+		calendar.appendChild(blank);
 
 		days.forEach(day => {
-			const dayHeader = document.createElement('div');
 			const dayLabel = document.createElement('div');
 			dayLabel.textContent = day;
-			dayLabel.classList.add('day-label');
-			dayHeader.appendChild(dayLabel);
-			dayHeader.classList.add('cal-day', 'day-period');
+			calendar.appendChild(dayLabel);
+		});
 
+		calendar.appendChild(periodTitle);
+
+		for (let i = 0; i < 4; i++) {
 			periods.forEach(period => {
 				const block = document.createElement('div');
-				block.textContent = period;
-				block.classList.add('period');
-				dayHeader.appendChild(block);
-			})
-			calendar.appendChild(dayHeader);
-		});
+				block.textContent = period.period;
+				calendar.appendChild(block);
+			});
+		}
+
+		calendar.appendChild(timeTitle);
+
+		for (let i = 0; i < 4; i++) {
+			periods.forEach(period =>  {
+				const [ hoursStart, minutesStart ] = period.start.split(':');
+				const [ hoursEnd, minutesEnd ] = period.end.split(':');
+
+				const periodTime = document.createElement('div');				
+				periodTime.innerHTML = `${parseInt(hoursStart, 10)}:${minutesStart} - ${parseInt(hoursEnd, 10)}:${minutesEnd}`;
+				calendar.appendChild(periodTime);
+			});
+		}
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
