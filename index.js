@@ -541,17 +541,15 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         rooms.name as room,
         rooms.id as room_id,
         COALESCE(
-          string_agg(
+          array_agg(
             instructors.name ||
             CASE
-              WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
-              THEN ', RPT'
+              WHEN instructors.rpt IS TRUE THEN ', RPT'
               ELSE ''
-            END,
-            ', '
-          ),
-          'No instructors'
-        ) AS instructor_name,
+            END
+          ) FILTER (WHERE instructors.id IS NOT NULL),
+          ARRAY[]::text[]
+        ) AS instructors,
         array_agg(DISTINCT instructors.id)
           FILTER (WHERE instructors.id IS NOT NULL)
           AS instructor_ids

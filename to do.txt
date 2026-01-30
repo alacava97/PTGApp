@@ -1,8 +1,9 @@
 - Schedule page
-	- Dropdown with info (eg pianos, populates # and kind of pianos on each schedule item)
+	- Dropdown to switch between pianos and av info on rooms
 	- Generate classroom labels as pdfs
 	- Add a way to change piano/room assignments
-	- May need to make blocks wider/taller to fit everything or just make text smaller? Work on mimicing the current block style.
+		- Click on room title, open edit modal.
+	- Get schedule data into db
 
 - Get CTE, Tutor, Board, Exam committee data for instructors
 
@@ -11,6 +12,7 @@
 - Emailing
 	- Password reset emailing
 	- Class reviews
+- Expand navbar to include proposals, audit log
 
 Next year:
 -Class Proposals

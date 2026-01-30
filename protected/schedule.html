@@ -196,31 +196,36 @@
 
 	function renderDayHeaders(calendar, days, periods) {
 		const blank = document.createElement('div');
-
-		const periodTitle = document.createElement('div');
-		periodTitle.textContent = 'Period'
-
-		const timeTitle = document.createElement('div');
-		timeTitle.textContent = 'Time';
-
+		blank.classList.add('header', 'sched-row1', 'sched-col1');
 		calendar.appendChild(blank);
 
 		days.forEach(day => {
 			const dayLabel = document.createElement('div');
 			dayLabel.textContent = day;
+			dayLabel.classList.add('day', 'header', 'sched-row1');
 			calendar.appendChild(dayLabel);
 		});
 
+		const periodTitle = document.createElement('div');
+		periodTitle.textContent = 'Period'
+		periodTitle.classList.add('header', 'period', 'sched-col1');
 		calendar.appendChild(periodTitle);
 
 		for (let i = 0; i < 4; i++) {
 			periods.forEach(period => {
 				const block = document.createElement('div');
 				block.textContent = period.period;
+				block.classList.add('header', 'period');
+				if (period.period == 5) {
+					block.classList.add('sched-col1');
+				}
 				calendar.appendChild(block);
 			});
 		}
 
+		const timeTitle = document.createElement('div');
+		timeTitle.textContent = 'Time';
+		timeTitle.classList.add('header', 'period', 'sched-col1', 'sched-row1');
 		calendar.appendChild(timeTitle);
 
 		for (let i = 0; i < 4; i++) {
@@ -228,14 +233,19 @@
 				const [ hoursStart, minutesStart ] = period.start.split(':');
 				const [ hoursEnd, minutesEnd ] = period.end.split(':');
 
-				const periodTime = document.createElement('div');				
+				const periodTime = document.createElement('div');
+				periodTime.classList.add('header', 'period', 'sched-row1');			
 				periodTime.innerHTML = `${parseInt(hoursStart, 10)}:${minutesStart} - ${parseInt(hoursEnd, 10)}:${minutesEnd}`;
+				if (period.period == 5) {
+					periodTime.classList.add('sched-col1');
+				}
 				calendar.appendChild(periodTime);
 			});
 		}
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
+		console.log(schedule)
 		if (!rooms) {
 			calendar.innerHTML = `No rooms on record`;
 			calendar.style.backgroundColor = 'white';
@@ -243,71 +253,96 @@
 		}
 		calendar.style.backgroundColor = '#333'
 
-		for (const key in rooms) {
+		rooms.forEach(room => {
+			const roomEvents = schedule.filter(e => e.room_id == room.id);
+
 			const roomLabel = document.createElement('div');
-			const roomName = rooms[key]['name'];
-			const roomId = rooms[key].id;
-			roomLabel.textContent = roomName
-			roomLabel.classList.add('cal-col');
+			roomLabel.innerHTML = `
+				${room.name}<br>
+				${room.t ?
+					`${room.t || 0}-T<br>` :
+					''}
+				${room.c ?
+					`${room.c || 0}-C<br>` :
+					''}
+				${room.piano || 'No Piano'}
+			`;
+			roomLabel.classList.add('room', 'sched-col1', 'sched-row1');
 			calendar.appendChild(roomLabel);
+
 			days.forEach((day, index) => {
-			  	const roomDay = document.createElement('div');
-			  	roomDay.classList.add('cal-day');
-
-				const events = schedule.filter(e => e.day == (index + 3) && e.room_id == roomId);
-
-			  // --- grid rendering with dummy cells ---
+				const roomDayEvents = roomEvents.filter(e => e.day == (index + 3));
+				
 				let p = 1;
 				while (p <= periods.length) {
-				  const periodEvent = events.find(ev => ev.start_period == p);
+					const periodEvent = roomDayEvents.find(ev => ev.start_period == p);
+					if (periodEvent) {
+						const eventDiv = document.createElement('div');
+						eventDiv.innerHTML = `
+							${periodEvent.title}<br><br>
+							${periodEvent.instructors.join(`<br>`)}
+							${periodEvent.piano
+								?`<br>${periodEvent.piano}`
+								:''}
+							`;
 
-				  if (periodEvent) {
-				    const eventDiv = document.createElement('div');
-				    eventDiv.classList.add('room-period');
-				    eventDiv.textContent = periodEvent.title;
-				    eventDiv.style.backgroundColor = periodEvent.color;
+						eventDiv.classList.add('event');
+						eventDiv.style.backgroundColor = periodEvent.color;
+					    eventDiv.style.gridColumn = `span ${periodEvent.length}`;
+					    eventDiv.id = periodEvent.schedule_id;
+					    eventDiv.addEventListener('mouseenter', () => {
+					    	eventDiv.style.backgroundColor = `color-mix(in srgb, ${periodEvent.color} 90%, black)`;
+					    });
 
-				    const start = Number(periodEvent.start_period);
-				    const end = start + Number(periodEvent.length) - 1; // compute end from length
-				    eventDiv.style.gridColumn = `${start} / ${end + 1}`;
-				    eventDiv.id = periodEvent.schedule_id;
-				    const checkbox = document.createElement('input');
-				    checkbox.type = 'checkbox';
-				    checkbox.value = periodEvent.schedule_id;
-				    checkbox.classList.add('bottom-right');
-				    checkbox.checked = true;
-				    checkbox.addEventListener('click', (e) => { e.stopPropagation() });
-				    eventDiv.appendChild(checkbox);
+					    eventDiv.addEventListener('mouseleave', () => {
+					    	eventDiv.style.backgroundColor = periodEvent.color;
+					    })
 
-				    eventDiv.addEventListener('click', () => openEventModal(periodEvent));
+					    const checkbox = document.createElement('input');
+					    checkbox.type = 'checkbox';
+					    checkbox.value = periodEvent.schedule_id;
+					    checkbox.classList.add('bottom-right');
+					    checkbox.checked = true;
+					    checkbox.addEventListener('click', (e) => { e.stopPropagation() });
+					    eventDiv.appendChild(checkbox);
 
-				    roomDay.appendChild(eventDiv);
+					    eventDiv.addEventListener('click', () => openEventModal(periodEvent));
+					    const start = Number(periodEvent.start_period);
+					    const end = start + Number(periodEvent.length) - 1;
 
-				    p = end + 1; // skip past this event
-				  } else {
-				    const dummy = document.createElement('div');
-				    dummy.classList.add('room-period', 'empty');
-				    dummy.textContent = p; 
-				    dummy.id = 0;
-				    const currentPeriod = p;
+					    if (end >=5) {
+					    	eventDiv.classList.add('sched-col1');
+					    }
 
-				    dummy.addEventListener('click', async () => {
-				      	DOM.searchable.value = '';
-				     	DOM.results.innerHTML = '';
-				     	DOM.classModal.style.display = 'flex';
-				     	DOM.periodInfo.textContent = `${day} - Period ${currentPeriod} - ${roomName}`;
-				      	DOM.scheduleForm.dataset.day = index + 3;
-				      	DOM.scheduleForm.dataset.period = currentPeriod;
-				      	DOM.scheduleForm.dataset.room = parseInt(roomId);
-				    });
+					    calendar.appendChild(eventDiv);
+					    p = end + 1;
+					} else {
+					    const dummy = document.createElement('div');
+					    dummy.textContent = p;
+					    dummy.classList.add('event');
+					    dummy.id = 0;
+					    const currentPeriod = p;
+					    if (p === 5) {
+					    	dummy.classList.add('sched-col1')
+					    }
 
-				    roomDay.appendChild(dummy);
-				    p++;
-				  }
+					    dummy.addEventListener('click', async () => {
+					      	DOM.searchable.value = '';
+					     	DOM.results.innerHTML = '';
+					     	DOM.classModal.style.display = 'flex';
+					     	DOM.periodInfo.textContent = `${day} - Period ${currentPeriod} - ${room.name}`;
+					      	DOM.scheduleForm.dataset.day = index + 3;
+					      	DOM.scheduleForm.dataset.period = currentPeriod;
+					      	DOM.scheduleForm.dataset.room = parseInt(room.id);
+					    });
+
+					    calendar.appendChild(dummy);
+					    p++;
+					}
 				}
-			  calendar.appendChild(roomDay);
 			});
-		}
+		});
+
 	}
 
 	/* -----------------------------
@@ -708,8 +743,8 @@
 	}
 
 	async function refreshSchedule() {
-		const { schedule, rooms } = await ScheduleAPI.load(ScheduleState.year_id);
-  		await renderSchedule(schedule, rooms);
+		const { schedule, rooms, periods } = await ScheduleAPI.load(ScheduleState.year_id);
+  		await renderSchedule(schedule, rooms, periods);
 	}
 
 </script>
