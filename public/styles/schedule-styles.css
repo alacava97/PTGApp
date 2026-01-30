@@ -98,6 +98,11 @@
     max-width: 250px;
 }
 
+.room:hover {
+	background-color: color-mix(in srgb, #F8F8F8 90%, black);
+	cursor: pointer;
+}
+
 .event {
 	display: flex;
 	align-items: center;
