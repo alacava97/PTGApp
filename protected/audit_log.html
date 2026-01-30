@@ -17,9 +17,100 @@
 	<header class="clearfix">
 		<h1>Audit Log</h1>
 	</header>
+	<section id="list"></section>
 </body>
 <script src="public/js/script.js"></script>
+<script src="public/js/UI.js"></script>
 <script>
+	window.addEventListener('DOMContentLoaded', initAudit)
+
+	async function initAudit() {
+		await loadAuditLog();
+	}
+
+	/* -----------------------------
+	   Data Fetching
+	----------------------------- */
+
+	async function fetchAudits() {
+		const res = await fetch(`/api/read/audit_log`);
+		if (!res.ok) throw new Error('Network error');
+		return res.json();
+	}	
+
+	/* -----------------------------
+	   Setup Page
+	----------------------------- */
+
+	async function loadAuditLog() {
+		try {
+			const [audits] = await Promise.all([
+				fetchAudits()
+			]);
+
+			setupAudits(audits);
+			console.log(audits);
+		} catch (err) {
+			console.error('Internal server error:', err);
+		}
+	}
+
+	/* -----------------------------
+	   Audits
+	----------------------------- */
+
+	function setupAudits(audits) {
+		const list = document.getElementById('list');
+
+		Object.entries(audits)
+			.reverse()
+			.slice(0, 100)
+			.forEach(([key, value]) => {
+				const audit = audits[key];
+				const row = new Row();
+				row.addSubtitle(`<b>Action:</b> ${audit.action}`);
+				row.addSeparator();
+				row.addSubtitle(`<b>DB Table:</b> ${audit.table_name}`);
+				row.addSeparator();
+				row.addSubtitle(`<b>Record ID:</b> ${audit.id}`);
+				row.addSeparator();
+				row.addSubtitle(`<b>Timestamp:</b> ${new Date(audit.created_at)}`);
+				row.addSeparator();
+				row.addSubtitle(`<b>User:</b> ${audit.name}`);
+				row.addSeparator();
+				if (audit.action === 'UPDATE') {
+					const diffs = diffObjectsSplit(audit.old_data ?? {}, audit.new_data ?? {});
+					row.addSubtitle(`<b>Old Data:</b> ${JSON.stringify(diffs.oldValues)}`);
+					row.addSeparator();
+					row.addSubtitle(`<b>New Data:</b> ${JSON.stringify(diffs.newValues)}`);
+				} else if (audit.action === 'INSERT') {
+					row.addSubtitle(`<b>Inserted Data:</b> ${audit.new_data ? JSON.stringify(audit.new_data) : ''}`);
+				} else if (audit.action === 'DELETE') {
+					row.addSubtitle(`<b>Deleted Data:</b> ${audit.old_data ? JSON.stringify(audit.old_data) : ''}`);
+				}
+				
+				list.appendChild(row.row);
+			});
+	}
+
+	function diffObjectsSplit(a = {}, b = {}) {
+	  if (!a || !b) {
+	    return { oldValues: {}, newValues: {} };
+	  }
+
+	  const oldValues = {};
+	  const newValues = {};
+
+	  for (const key of Object.keys(a)) {
+	    if (a[key] !== b[key]) {
+	      oldValues[key] = a[key];
+	      newValues[key] = b[key];
+	    }
+	  }
+
+	  return { oldValues, newValues };
+	}
+
 
 </script>
 </html>

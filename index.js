@@ -365,6 +365,16 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
     classes.length,
     rooms.name;
   `
+  } else if (table === 'audit_log') {
+    query =
+      `SELECT
+        a.*,
+        u.name
+      FROM
+        audit_log a
+      LEFT JOIN
+        users u on u.id = a.user_id
+    `;
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
   }

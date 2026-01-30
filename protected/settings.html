@@ -149,8 +149,7 @@
 	        });
 	        const data = await res.json();
 	        li.remove();
-	        console.log(data);
-	        renderListItem(data);
+	        renderListItem(data.record);
 	      } catch (err) {
 	        console.error(`Add ${displayKey} failed:`, err);
 	        li.remove();
@@ -159,9 +158,9 @@
 
 	    input.addEventListener('keydown', e => {
 	      if (e.key === 'Enter') finalizeAdd();
-	      if (e.key === 'Escape') li.remove();
+	      if (e.key === 'Escape') li?.remove();
 	    });
-	    input.addEventListener('blur', finalizeAdd);
+	    input?.addEventListener('blur', finalizeAdd);
 	  });
 
 	  // --- Helper: Render a Single Item ---

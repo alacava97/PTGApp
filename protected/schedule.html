@@ -32,6 +32,26 @@
 	document.addEventListener('DOMContentLoaded', initSchedule);
 
 	async function initSchedule() {
+		const roomModal = new Modal('room-modal');
+		roomModal.content(`
+			<h3>Edit Room</h3>
+			<p id="room-info"></p>
+			<form id="room-form" class="modal-form">
+			    <label for="t">Theater Seating</label>
+				<input id="t" name="t" type="number">
+				<div class="seperator"></div>
+
+				<label for="c">Classroom Seating</label>
+				<input id="c" name="c" type="number">
+				<div class="seperator"></div>
+
+				<label for="piano">Piano</label>
+				<input id="piano" name="piano" type="text">
+				<div class="seperator"></div>
+
+				<button type="submit">Update Room</button>
+			</form>
+		`);
 		const classModal = new Modal('class-modal');
 		classModal.content(`<h3>Select a Class</h3>
 			<p id="period-info"></p>
@@ -98,7 +118,13 @@
 		}
 
 		try {
-			const data = await ScheduleAPI.load(ScheduleState.year_id);
+			const { conventions } = await ScheduleAPI.load(ScheduleState.year_id);
+			const years = conventions.map( convention => parseInt(convention.location_id));
+			const maxLocation = Math.max(...years);
+			ScheduleState.year_id = maxLocation;
+			console.log(ScheduleState.year_id = maxLocation)
+
+			const data = await ScheduleAPI.load(maxLocation);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);
 
@@ -156,6 +182,13 @@
 		      	body: JSON.stringify(data)
 		    }),
 
+		updateRoom: (data, id) =>
+			fetchJSON(`/api/update/rooms/${id}`, {
+				method: 'PATCH',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(data)
+			}),
+
 		deleteSchedule: id =>
 		    fetchJSON(`/api/delete/schedule/${id}`, { method: 'DELETE' })
 	};
@@ -168,7 +201,8 @@
 	let ScheduleState = {
 		selectedLocation: null,
 		activeEvent: null,
-		year_id: 1
+		year_id: 1,
+		activeRoom: null
 	};
 
 	/* -----------------------------
@@ -245,7 +279,6 @@
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
-		console.log(schedule)
 		if (!rooms) {
 			calendar.innerHTML = `No rooms on record`;
 			calendar.style.backgroundColor = 'white';
@@ -253,7 +286,12 @@
 		}
 		calendar.style.backgroundColor = '#333'
 
-		rooms.forEach(room => {
+		const roomArray = Object.values(rooms);
+		roomArray.sort((a, b) => {
+			return a.position - b.position;
+		});
+
+		roomArray.forEach(room => {
 			const roomEvents = schedule.filter(e => e.room_id == room.id);
 
 			const roomLabel = document.createElement('div');
@@ -268,6 +306,8 @@
 				${room.piano || 'No Piano'}
 			`;
 			roomLabel.classList.add('room', 'sched-col1', 'sched-row1');
+			roomLabel.id = room.id;
+			roomLabel.addEventListener('click', openRoomModal);
 			calendar.appendChild(roomLabel);
 
 			days.forEach((day, index) => {
@@ -360,6 +400,12 @@
 	    eventModal.style.display = 'flex';
 	}
 
+	async function openRoomModal(e) {
+		const roomId = e.target.id;
+		await fillRoomModal(roomId);
+		showModal('room-modal');
+	}
+
 	function fillEventModal(periodEvent) {
 	    DOM.classTitle.innerHTML = `${periodEvent.title} &#9998;`;
 	    DOM.classTitle.href = `/class-info.html?id=${periodEvent.class_id}`
@@ -372,10 +418,21 @@
 	    DOM.notes.value = periodEvent.notes;
 	}
 
+	async function fillRoomModal(roomId) {
+		const { rooms } = await ScheduleAPI.load(ScheduleState.year_id);
+		const room = rooms.find(r => r.id == roomId);
+		document.getElementById('room-info').textContent = room.name;
+		document.getElementById('t').value = room.t || 0;
+		document.getElementById('c').value = room.c || 0;
+		document.getElementById('piano').value = room.piano;
+		ScheduleState.activeRoom = roomId;
+	}
+
 	function attachEventModalHandlers(periodEvent) {
 		document.getElementById('update-sched').addEventListener('submit', handleUpdateSubmit);
 		document.getElementById('delete-button').addEventListener('click', handleDelete);
 		DOM.scheduleForm.addEventListener('submit', handleCreateSubmit);
+		document.getElementById('room-form').addEventListener('submit', handleUpdateRoom);
 	}
 
 	async function handleCreateSubmit(e) {
@@ -509,6 +566,16 @@
 
 		DOM.eventModal.style.display = 'none';
 
+		await refreshSchedule();
+	}
+
+	async function handleUpdateRoom(e) {
+		e.preventDefault();
+
+		const updated = parseForm(e.target);
+		const { rooms } = await ScheduleAPI.load(ScheduleState.year_id);
+		await ScheduleAPI.updateRoom(updated, ScheduleState.activeRoom);
+		document.getElementById('room-modal').style.display = 'none';
 		await refreshSchedule();
 	}
 

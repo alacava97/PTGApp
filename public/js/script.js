@@ -407,13 +407,15 @@ function addTooltip(el, text) {
 }
 
 
-async function populateYearDropdown(dd, selected) {
+async function populateYearDropdown(dd) {
 	const conventions = await read('conventions');
+	const years = conventions.map(year => year.year);
+	const selected = Math.max(...years)
 	conventions.forEach(convention => {
 		const option = document.createElement('option');
 		option.textContent = convention.year;
 		option.value = convention.location_id;
-		if (convention.location_id == selected) {
+		if (convention.year == selected) {
 			option.selected = true;
 		}
 		dd.appendChild(option);

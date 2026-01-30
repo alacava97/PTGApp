@@ -1,18 +1,10 @@
 - Schedule page
 	- Dropdown to switch between pianos and av info on rooms
 	- Generate classroom labels as pdfs
-	- Add a way to change piano/room assignments
-		- Click on room title, open edit modal.
 	- Get schedule data into db
-
-- Get CTE, Tutor, Board, Exam committee data for instructors
-
-- Create a page to view audit log
-
 - Emailing
 	- Password reset emailing
 	- Class reviews
-- Expand navbar to include proposals, audit log
 
 Next year:
 -Class Proposals
@@ -27,6 +19,7 @@ Next year:
 		-mark "email sent" in db
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
+	-Fix class prop graph to order by visible data rather than the whole set
 
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year
