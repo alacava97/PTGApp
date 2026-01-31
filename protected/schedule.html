@@ -320,7 +320,7 @@
 						const eventDiv = document.createElement('div');
 						eventDiv.innerHTML = `
 							${periodEvent.title}<br><br>
-							${periodEvent.instructors.join(`<br>`)}
+							${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}
 							${periodEvent.piano
 								?`<br>${periodEvent.piano}`
 								:''}
@@ -503,7 +503,6 @@
 	      	room: dpr.room
       	});
 
-      	alert('Class added!');
       	DOM.classModal.style.display = 'none';
       	refreshSchedule();
 
@@ -792,15 +791,19 @@
 		const newEnd = newStart + Number(length) - 1;
 
 		return schedule
-			.filter(e =>
-				e.day == day &&
-				e.id !== ignoredId &&
-				(
-					Array.isArray(e.instructor_ids)
-						? e.instructor_ids.some(id => instructorId.includes(id))
-						: e.instructor_ids.includes(event.instructor_ids)
-				)
-			)
+			.filter(e => {
+				if (
+					e.day != day ||
+					e.id === ignoredId ||
+					!Array.isArray(e.instructor_ids) ||
+					e.instructor_ids.length === 0 ||
+					!instructorId
+				) {
+					return false;
+				}
+
+				return e.instructor_ids.some(id => instructorId.includes(id));
+			})
 			.find(event => {
 				const start = Number(event.start_period);
 				const end = start + Number(event.length) - 1;
