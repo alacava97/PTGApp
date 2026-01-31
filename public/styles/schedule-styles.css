@@ -105,8 +105,9 @@
 
 .event {
 	display: flex;
+	flex-direction: column;
 	align-items: center;
-	justify-content: center;
+	justify-content: space-between;
 	position: relative;
 	font-size: 14px;
 	max-height: 150px;
@@ -116,6 +117,15 @@
 .event:hover {
 	cursor: pointer;
 	background-color: color-mix(in srgb, #F8F8F8 90%, black);
+}
+
+.event-info {
+	background-color: transparent;
+}
+
+.name {
+	white-space: nowrap;
+	background-color: transparent;
 }
 
 .sched-row1 {

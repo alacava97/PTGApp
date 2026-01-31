@@ -10,7 +10,7 @@
 	<link rel="stylesheet" href="public/styles/nav-styles.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>Test</title>
+	<title>Audit Log</title>
 </head>
 <body>
 	<div id="navbar"></div>
@@ -67,28 +67,22 @@
 			.slice(0, 100)
 			.forEach(([key, value]) => {
 				const audit = audits[key];
+
 				const row = new Row();
 				row.addSubtitle(`<b>Action:</b> ${audit.action}`);
-				row.addSeparator();
-				row.addSubtitle(`<b>DB Table:</b> ${audit.table_name}`);
-				row.addSeparator();
-				row.addSubtitle(`<b>Record ID:</b> ${audit.id}`);
 				row.addSeparator();
 				row.addSubtitle(`<b>Timestamp:</b> ${new Date(audit.created_at)}`);
 				row.addSeparator();
 				row.addSubtitle(`<b>User:</b> ${audit.name}`);
+				row.addSeparator();
+				row.addSubtitle(`<b>Action:</b> ${audit.to_display}`);
 				row.addSeparator();
 				if (audit.action === 'UPDATE') {
 					const diffs = diffObjectsSplit(audit.old_data ?? {}, audit.new_data ?? {});
 					row.addSubtitle(`<b>Old Data:</b> ${JSON.stringify(diffs.oldValues)}`);
 					row.addSeparator();
 					row.addSubtitle(`<b>New Data:</b> ${JSON.stringify(diffs.newValues)}`);
-				} else if (audit.action === 'INSERT') {
-					row.addSubtitle(`<b>Inserted Data:</b> ${audit.new_data ? JSON.stringify(audit.new_data) : ''}`);
-				} else if (audit.action === 'DELETE') {
-					row.addSubtitle(`<b>Deleted Data:</b> ${audit.old_data ? JSON.stringify(audit.old_data) : ''}`);
 				}
-				
 				list.appendChild(row.row);
 			});
 	}

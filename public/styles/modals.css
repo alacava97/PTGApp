@@ -10,7 +10,6 @@
 	justify-content: center;
 	align-items: center;
 	overflow: auto;
-	padding: 20px;
 	box-sizing: border-box;
 	max-height: 100%;
 	overscroll-behavior: contain;
@@ -23,6 +22,7 @@
 	position: relative;
 	min-width: 250px;
 	width: fit-content;
+	max-width: 500px;
 	background-color: white;
 	margin: auto;
 	border: black solid 1px;
@@ -58,7 +58,6 @@
 
 .modal-content > form > textarea {
 	field-sizing: content;
-	max-width: 300px;
 	min-height: 4em;
 	padding: 5px;
 	font-size: 1em;
@@ -76,7 +75,7 @@
 	font-size: 1.5em;
 	font-weight: bold;
 	text-align: center;
-	white-space: nowrap;
+	margin: 0;
 }
 
 .modal-content > .delete:hover {

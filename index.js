@@ -88,6 +88,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
     await client.query('BEGIN');
 
     let record;
+    let toDisplay;
 
     if (table === 'types') {
       const { rows } = await client.query(
@@ -97,6 +98,8 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
         [data.type]
       );
       record = rows[0];
+
+      toDisplay = `Created new class type: '${record.type}'`;
 
     } else if (table === 'rooms') { 
       const { name, location_id } = req.body;
@@ -108,6 +111,9 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       );
       record = rows[0];
 
+      toDisplay = record.name;
+    } else if (table === 'instructors') {
+      toDisplay = `Created new instructor: '${record.name}'`;
     } else {
       record = await createRecord({ table, data, returning: ['*'] }, client);
   
@@ -115,6 +121,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
         Array.isArray(instructorIds) &&
         instructorIds.length > 0
       ) {
+        toDisplay = `Created new class: '${record.title}'`;
         for (const instId of instructorIds) {
           await client.query(
             'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
@@ -123,14 +130,15 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
         }
       }
     }
+
     await client.query(
      `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, new_data)
+        (user_id, action, table_name, record_id, new_data, to_display)
       VALUES
-        ($1, 'INSERT', $2, $3, $4)
+        ($1, 'INSERT', $2, $3, $4, $5)
       `,
-      [userId, table, record.id, record]
+      [userId, table, record.id, record, toDisplay]
     );
 
     await client.query('COMMIT');
@@ -164,7 +172,7 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
   try {
     await client.query('BEGIN');
 
-    const { rows } = await pool.query(
+    const { rows } = await client.query(
     `
       INSERT INTO schedule (class_id, day, start_period, room_id)
       VALUES ($1, $2, $3, $4)
@@ -174,14 +182,22 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
     );
     const record = rows[0];
 
+    const { rows: classRows } = await client.query(`SELECT * FROM classes WHERE id = $1;`, [record.class_id]);
+    const { rows: roomRows } = await client.query(`SELECT * FROM rooms WHERE id = $1;`, [room]);
+
+    const event = classRows[0];
+    const roomName = roomRows[0];
+
+    const toDisplay = `Added '${event.title}' to schedule at day '${day}', period '${start_period}', room '${roomName.name}'`
+
     await client.query(
       `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, new_data)
+        (user_id, action, table_name, record_id, new_data, to_display)
       VALUES
-        ($1, 'INSERT', 'schedule', $2, $3)
+        ($1, 'INSERT', 'schedule', $2, $3, $4)
       `,
-      [userId, record.id, record]
+      [userId, record.id, record, toDisplay]
     );
 
     await client.query('COMMIT');
@@ -222,14 +238,32 @@ app.post('/api/addInstructorClassById', requireLogin, async (req, res) => {
     );
     const record = rows[0];
 
+    const { rows: displayRows } = await client.query(
+      `
+      SELECT
+        i.name AS instructor_name,
+        c.title AS class_title
+      FROM class_instructors ci
+      JOIN classes c ON c.id = ci.class_id
+      JOIN instructors i ON i.id = ci.instructor_id
+      WHERE ci.class_id = $1
+        AND ci.instructor_id = $2
+      `,
+      [class_id, instructor_id]
+    );
+
+    const names = displayRows[0];
+
+    const toDisplay = `Updated '${names.class_title}' to include '${names.instructor_name}'`;
+
     await client.query(
       `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, new_data)
+        (user_id, action, table_name, record_id, new_data, to_display)
       VALUES
-        ($1, 'INSERT', 'class_instructors', $2, $3)
+        ($1, 'INSERT', 'class_instructors', $2, $3, $4)
       `,
-      [userId, record.id, record]
+      [userId, record.id, record, toDisplay]
     );
 
     await client.query('COMMIT');
@@ -544,8 +578,10 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         schedule.start_period,
         schedule.class_id,
         schedule.notes,
+        schedule.pianos,
         classes.title,
         classes.length,
+        classes.av,
         types.type,
         types.color,
         rooms.name as room,
@@ -584,8 +620,10 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
           schedule.day,
           schedule.start_period,
           schedule.notes,
+          schedule.pianos,
           classes.title,
           classes.length,
+          classes.av,
           types.color,
           types.type,
           room,
@@ -854,14 +892,26 @@ app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
     //get new data and insert it into the audit log
     const newRow = result.rows[0];
 
+    let toDisplay
+
+    if (table === 'classes') {
+      toDisplay = `Updated record for '${newRow.title}'`
+    } else if (table === 'instructors') {
+      toDisplay = `Updated record for '${newRow.name}'`
+    } else if (table === 'schedule') {
+      const { rows: classRows } = await client.query(`SELECT * FROM classes WHERE id = $1;`, [newRow.class_id]);
+      const classTitle = classRows[0]
+      toDisplay = `Updated schedule for '${classTitle.title}'`
+    }
+
     await client.query(
       `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, old_data, new_data)
+        (user_id, action, table_name, record_id, old_data, new_data, to_display)
       VALUES  
-        ($1, 'UPDATE', $2, $3, $4, $5)
+        ($1, 'UPDATE', $2, $3, $4, $5, $6)
       `,
-      [userId, table, id, oldRow, newRow]
+      [userId, table, id, oldRow, newRow, toDisplay]
     );
 
     await client.query('COMMIT');
@@ -896,6 +946,24 @@ app.delete('/api/deleteInstructorClass', requireLogin, async (req, res) => {
   try {
     await client.query('BEGIN');
 
+    const { rows: displayRows } = await client.query(
+      `
+      SELECT
+        i.name AS instructor_name,
+        c.title AS class_title
+      FROM class_instructors ci
+      JOIN classes c ON c.id = ci.class_id
+      JOIN instructors i ON i.id = ci.instructor_id
+      WHERE ci.class_id = $1
+        AND ci.instructor_id = $2
+      `,
+      [class_id, instructor_id]
+    );
+
+    const names = displayRows[0];
+
+    const toDisplay = `Removed '${names.instructor_name}' from '${names.class_title}'`;
+
     const { rows } = await client.query(
       `DELETE FROM class_instructors WHERE class_id = $1 AND instructor_id = $2 RETURNING *;`,
       [class_id, instructor_id]
@@ -910,11 +978,11 @@ app.delete('/api/deleteInstructorClass', requireLogin, async (req, res) => {
     await client.query(
       `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, old_data)
+        (user_id, action, table_name, record_id, old_data, to_display)
       VALUES
-        ($1, 'INSERT', 'class_instructors', $2, $3)
+        ($1, 'INSERT', 'class_instructors', $2, $3, $4)
       `,
-      [userId, record.id, record]
+      [userId, record.id, record, toDisplay]
     );
 
     await client.query('COMMIT');
@@ -953,14 +1021,30 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
 
     const record = rows[0];
 
+    let toDisplay
+
+    if (table === 'classes') {
+      toDisplay = `Deleted '${record.title}'`
+    } else if (table === 'instructors') {
+      toDisplay = `Deleted '${record.name}'`
+    } else if (table === 'schedule') {
+      const { rows: classRows } = await client.query(`SELECT * FROM classes WHERE id = $1;`, [record.class_id]);
+      const { rows: roomRows } = await client.query(`SELECT * FROM rooms WHERE id = $1;`, [room]);
+
+      const event = classRows[0];
+      const roomName = roomRows[0];
+
+      const toDisplay = `Removed '${event.title}' from schedule at day '${day}', period '${start_period}', room '${roomName.name}'`
+    }
+
     await client.query(
       `
       INSERT INTO audit_log
-        (user_id, action, table_name, record_id, old_data)
+        (user_id, action, table_name, record_id, old_data, to_display)
       VALUES
-        ($1, 'DELETE', $2, $3, $4)
+        ($1, 'DELETE', $2, $3, $4, $5)
       `,
-      [userId, table, record.id, record]
+      [userId, table, record.id, record, toDisplay]
     );
 
     await client.query('COMMIT');

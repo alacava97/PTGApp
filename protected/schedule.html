@@ -75,6 +75,7 @@
 					<option value="6">Saturday</option>
 				</select>
 				<div class="seperator"></div>
+
 				<label for="start_period">Period</label>
 				<select id="start_period" name="start_period">
 					<option value="1">Period 1</option>
@@ -84,11 +85,23 @@
 					<option value="5">Period 5</option>
 				</select>
 				<div class="seperator"></div>
+
 				<label for="room_id">Room</label>
 				<select name="room_id" id="room-dropdown"></select>
 				<div class="seperator"></div>
+
 				<label for="notes">Notes</label>
 				<textarea name="notes" placeholder="notes" id="notes"></textarea>
+				<div class="seperator"></div>
+
+				<label for="pianos">Pianos</label>
+				<input name="pianos" id="pianos" type="text" placeholder="pianos">
+				<div class="seperator"></div>
+
+				<label for="av">AV</label>
+				<input name="av" id="av" type="text" placeholder="AV Needs">
+				<div class="seperator"></div>
+
 				<button type="submit" id="edit-sched" class="button">Update</button>
 			</form><br>
 			<button id="confirm-delete" class="red delete">Delete</button>`);
@@ -122,11 +135,11 @@
 			const years = conventions.map( convention => parseInt(convention.location_id));
 			const maxLocation = Math.max(...years);
 			ScheduleState.year_id = maxLocation;
-			console.log(ScheduleState.year_id = maxLocation)
 
 			const data = await ScheduleAPI.load(maxLocation);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);
+			console.log(data.schedule)
 
 			attachEventModalHandlers();
 		    const delButton = document.getElementById('confirm-delete');
@@ -202,7 +215,8 @@
 		selectedLocation: null,
 		activeEvent: null,
 		year_id: 1,
-		activeRoom: null
+		activeRoom: null,
+		info: 'pianos'
 	};
 
 	/* -----------------------------
@@ -318,13 +332,12 @@
 					const periodEvent = roomDayEvents.find(ev => ev.start_period == p);
 					if (periodEvent) {
 						const eventDiv = document.createElement('div');
-						eventDiv.innerHTML = `
-							${periodEvent.title}<br><br>
-							${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}
-							${periodEvent.piano
-								?`<br>${periodEvent.piano}`
-								:''}
-							`;
+						eventDiv.innerHTML = `${periodEvent.title}<br><br>`;
+
+						const nameDiv = document.createElement('div');
+						nameDiv.innerHTML = `${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}`;
+						nameDiv.classList.add('name');
+						eventDiv.appendChild(nameDiv);
 
 						eventDiv.classList.add('event');
 						eventDiv.style.backgroundColor = periodEvent.color;
@@ -337,6 +350,13 @@
 					    eventDiv.addEventListener('mouseleave', () => {
 					    	eventDiv.style.backgroundColor = periodEvent.color;
 					    })
+
+					    const moreInfo = document.createElement('span');
+					    if (periodEvent[ScheduleState.info]) {
+					    	moreInfo.innerHTML = `${periodEvent[ScheduleState.info]}`;
+					    }
+					    moreInfo.classList.add('event-info');
+					    eventDiv.appendChild(moreInfo)
 
 					    const checkbox = document.createElement('input');
 					    checkbox.type = 'checkbox';
@@ -374,6 +394,7 @@
 					      	DOM.scheduleForm.dataset.day = index + 3;
 					      	DOM.scheduleForm.dataset.period = currentPeriod;
 					      	DOM.scheduleForm.dataset.room = parseInt(room.id);
+					      	document.getElementById('searchable').focus()
 					    });
 
 					    calendar.appendChild(dummy);
@@ -416,6 +437,8 @@
 	    DOM.period.value = periodEvent.start_period;
 	    DOM.roomDropdown.value = periodEvent.room_id;
 	    DOM.notes.value = periodEvent.notes;
+	    document.getElementById('pianos').value = periodEvent.pianos;
+	    document.getElementById('av').value = periodEvent.av;
 	}
 
 	async function fillRoomModal(roomId) {
@@ -487,8 +510,6 @@
 				schedule
 		);
 
-		console.log(instConflict)
-
 		if (instConflict) {
 			alert(
 				`Cannot schedule "${selectedClass.title}" because ${instConflict.instructor_name} is already scheduled in ${instConflict.room}`
@@ -529,7 +550,7 @@
 			    length: activeEvent.length
 		  	},
 			  	schedule,
-		  	{ ignoreId: activeEvent.schedule_id }
+		  	{ ignoredId: activeEvent.schedule_id }
 		);
 
 		if (conflict) {
@@ -547,7 +568,7 @@
 				instructorId: activeEvent.instructor_id
 			},
 				schedule,
-			{ ignoreId: activeEvent.schedule_id }
+			{ ignoredId: activeEvent.schedule_id }
 		);
 
 		if (instConflict) {
@@ -597,12 +618,36 @@
 		spacer.classList.add('key-label');
 		spacer.textContent = "Select Convention";
 		spacer.appendChild(await renderYearSelect());
+
 		const vertSep = document.createElement('div');
 		vertSep.classList.add('vertical-seperator');
 		spacer.appendChild(vertSep);
 		DOM.colorKey.appendChild(spacer);
 
-		
+		const infoDDLabel = document.createElement('label');
+		infoDDLabel.classList.add('key-label');
+		infoDDLabel.textContent = "Info to Display";
+
+		const infoDD = document.createElement('select');
+		infoDD.classList.add('year-select');
+		const infoOptions = ['Pianos', 'AV', 'Notes'];
+		infoOptions.forEach((option) => {
+			const selectOption = document.createElement('option');
+			selectOption.textContent = option;
+			selectOption.value = option.toLowerCase();
+			infoDD.appendChild(selectOption);
+		});
+
+		infoDD.addEventListener('change', async (e) => {
+			const toDisplay = e.target.value;
+			ScheduleState.info = toDisplay;
+			await refreshSchedule();
+		});
+
+		infoDDLabel.appendChild(infoDD);
+		infoDDLabel.appendChild(vertSep.cloneNode(false));
+
+		DOM.colorKey.appendChild(infoDDLabel);
 
 		const ddLabel = document.createElement('label');
 		ddLabel.classList.add('key-label');
@@ -772,7 +817,7 @@
 			.filter(e =>
 				e.day == day &&
 				e.room_id == room &&
-				e.id !== ignoredId
+				e.schedule_id !== ignoredId
 			)
 			.find(event => {
 				const start = Number(event.start_period);
@@ -794,7 +839,7 @@
 			.filter(e => {
 				if (
 					e.day != day ||
-					e.id === ignoredId ||
+					e.schedule_id === parseInt(ignoredId) ||
 					!Array.isArray(e.instructor_ids) ||
 					e.instructor_ids.length === 0 ||
 					!instructorId

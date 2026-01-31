@@ -1,10 +1,12 @@
 - Schedule page
-	- Dropdown to switch between pianos and av info on rooms
 	- Generate classroom labels as pdfs
-	- Get schedule data into db
+
 - Emailing
+	- Get official email address
 	- Password reset emailing
 	- Class reviews
+
+- Responsive design for mobile and other devices in general
 
 Next year:
 -Class Proposals
@@ -25,9 +27,6 @@ Next year:
 	-Include classes in instructor profiles so classes can be resubmitted each year
 	-Dashboard for class reviews can be viewed in real time
 	-Electronic consent to teach
-
--CSS
-	-Responsive design for mobile and other devices in general
 
 -Attendee screen/login
 	-Favorite classes

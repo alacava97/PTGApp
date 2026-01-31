@@ -42,7 +42,6 @@ async function loadClassData(classId) {
 			fetchClassHistory(classId)
 		]);
 
-		console.log(classRecord)
 
 		setupTitle(classRecord, classId);
 		setupDescription(classRecord);

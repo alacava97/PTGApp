@@ -147,7 +147,12 @@ async function populateDropdown(dropdown, table, toDisplay) {
 		if(!response.ok) throw new Error(`Failed to fetch data from ${table} table`);
 		const data = await response.json();
 
-		data.forEach(row => {
+		Object.entries(data)
+			.sort(([, a], [, b]) =>
+				a[toDisplay].localeCompare(b[toDisplay], undefined, {sensitivity: 'base'})
+			)
+			.forEach(row => {
+			row = row[1]
 			const option = document.createElement('option');
 			option.value = row.id;
 			option.textContent = row[toDisplay];
@@ -280,6 +285,10 @@ async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubm
 }
 
 function createSearchableDropdown(inputId, resultsId, options, display) {
+	options = Object.entries(options)
+				.sort(([, a], [, b]) =>
+					a[display].localeCompare(b[display], undefined, {sinsitivity: 'base'})
+				)
 	const input = document.getElementById(inputId);
 	const results = document.getElementById(resultsId);
 
@@ -297,8 +306,9 @@ function createSearchableDropdown(inputId, resultsId, options, display) {
 		}
 
 		options
-			.filter(o => o[display].toLowerCase().includes(searchTerm))
+			.filter(o => o[1][display].toLowerCase().includes(searchTerm))
 			.forEach(o => {
+				o = o[1]
 				const li = document.createElement('li');
 				li.textContent = o[display];
 				li.classList.add('dd-options');

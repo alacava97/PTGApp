@@ -70,7 +70,12 @@
 		const instList = document.getElementById('list');
 		instList.innerHTML = '';
 
-		instructors.forEach(instructor => {
+		Object.entries(instructors)
+			.sort(([, a], [, b]) => 
+				a.name.localeCompare(b.name, undefined, {sensitivity: 'base'})
+			)
+			.forEach(instructor => {
+			instructor = instructor[1]
 			const entry = new Row();
 			const name = `${instructor.name}${instructor.rpt == true ? ', RPT' : ''}`;
 

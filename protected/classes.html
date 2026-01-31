@@ -87,7 +87,12 @@
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
-		records.forEach(record => {
+		Object.entries(records)
+			.sort(([, a], [, b]) =>
+				a.title.localeCompare(b.title, undefined, {sensitivity: 'base'})
+			)
+			.forEach(record => {
+			record = record[1]
 			const entry = new Row();
 
 			const name = `${record.title}`
