@@ -364,13 +364,20 @@ function getId() {
 	return new URLSearchParams(window.location.search).get('id');
 }
 
-async function downloadElementAsPDF(element, title) {
-	const htmlList = [element.outerHTML];
+async function downloadElementAsPDF(element, title, d = {}) {
+	const { height, width } = d;
+
+	const elementArray = Array.isArray(element) ? element : [element];
+
+	const payload = { htmlList: elementArray.map(el => el.outerHTML), };
+
+	if (height != null) payload.height = height;
+	if (width != null) payload.width = width;
 
 	const res = await fetch(`/api/export-pdf/${title}`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ htmlList })
+		body: JSON.stringify(payload)
 	});
 
 	const blob = await res.blob();
@@ -378,9 +385,54 @@ async function downloadElementAsPDF(element, title) {
 
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = 'element.pdf';
+	a.download = `${title}.pdf`;
 	a.click();
 	a.remove();
+}
+
+async function createLabel(data) {
+	const label = document.createElement('div');
+	label.id = "paper"
+	label.classList.add('letter-size');
+	label.innerHTML = `
+		<h1 id="class-title"></h1>
+		<h2 id="instructor"></h2>
+		<div id="dpr">
+			<h3 id="day"></h3>
+			<h3 id="period"></h3>
+			<h3 id="room"></h3>
+		</div>
+		<div id="qrcode"></div>
+		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
+	`;
+
+	const title = label.querySelector('#class-title');
+	const inst = label.querySelector('#instructor');
+	const day = label.querySelector('#day');
+	const period = label.querySelector('#period');
+	const room = label.querySelector('#room');
+	const qrCodeDiv = label.querySelector('#qrcode');
+
+	const names = data.instructors.join(', ');
+
+	title.textContent = data.title;
+	inst.textContent = names;
+	day.textContent = data.day;
+	period.textContent = `${formatTime(data.start)} - ${formatTime(data.end)}`;
+	room.textContent = data.room;
+
+	await generateQRCode(`/class-review.html?id=${data.schedule_id}`, qrCodeDiv);
+
+	return label;
+}
+
+
+function formatTime(time) {
+	const [hours24, minutes, seconds] = time.split(':');
+	let hours = parseInt(hours24, 10);
+	const meridian = hours >= 12 ? 'PM' : 'AM';
+	hours = hours % 12 || 12;
+	return `${hours}:${minutes} ${meridian}`;
 }
 
 async function deleteEntry(table, id) {
@@ -431,4 +483,3 @@ async function populateYearDropdown(dd) {
 		dd.appendChild(option);
 	});
 }
-

@@ -26,8 +26,10 @@
 	<section id="color-key" class="key"></section>
 	<main id="color-block" class="schedule"></main>
 </body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="public/js/script.js" defer></script>
 <script src="public/js/modals.js" defer></script>
+<script src="public/js/qr.js" defer></script>
 <script>
 	document.addEventListener('DOMContentLoaded', initSchedule);
 
@@ -139,7 +141,6 @@
 			const data = await ScheduleAPI.load(maxLocation);
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);
-			console.log(data.schedule)
 
 			attachEventModalHandlers();
 		    const delButton = document.getElementById('confirm-delete');
@@ -673,8 +674,10 @@
 			})
 		})
 		ddLabel.appendChild(allNone);
+		ddLabel.appendChild(renderPrintLabelsButton());
 		ddLabel.appendChild(vertSep.cloneNode(false));
 		DOM.colorKey.appendChild(ddLabel);
+
 
 		const cbLabel = document.createElement('label');
 		cbLabel.classList.add('key-label');
@@ -743,7 +746,7 @@
 			const toPrint = document.createElement('div');
 
 			const colorKey = document.createElement('div');
-			colorKey.classList.add('flex-row', 'print-key-container');
+			colorKey.classList.add('print-key-container');
 			types.forEach(type => {
 				const key = document.createElement('div');
 				key.textContent = type.type;
@@ -755,7 +758,10 @@
 			toPrint.appendChild(colorKey);
 			toPrint.appendChild(blockWKey);
 
-			await downloadElementAsPDF(toPrint, 'colorblock');
+			const sHeight = document.getElementById('color-block').scrollHeight + 400;
+			const sWidth = document.getElementById('color-block').scrollWidth;
+
+			await downloadElementAsPDF(toPrint, 'colorblock', {height: sHeight, width: sWidth});
 			loading.style.display = "none";
 			e.target.disabled = false;
 		});
@@ -773,13 +779,22 @@
 
 		printBtn.appendChild(loading);
 		printBtn.addEventListener('click', async (e) => {
+			const { schedule } = await ScheduleAPI.load(ScheduleState.year_id);
 			e.target.disabled = true;
 			loading.style.display = 'flex';
-			const toPrint = document.createElement('div');
+			let toPrint = [];
 
-			//get labels here
+			const selected = document.querySelectorAll('input[type="checkbox"]:checked');
+	        for (const box of selected) {
+	            const eventId = box.closest('.event').id;
+	            const data = schedule.find(event => event.schedule_id == eventId);
+	            if (data) {
+	                const label = await createLabel(data); // wait for QR code
+	                toPrint.push(label);
+	            }
+	        }
 
-			await downloadElementAsPDF(toPrint, 'colorblock');
+			await downloadElementAsPDF(toPrint, 'class-labels');
 			loading.style.display = "none";
 			e.target.disabled = false;
 		});

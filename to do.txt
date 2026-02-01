@@ -7,6 +7,29 @@
 	- Class reviews
 
 - Responsive design for mobile and other devices in general
+- Every other color different on list pages, maybe a light blue
+
+- Class proposal:
+	- Differentiate clickable vs not
+	- Title, instructor, type, maybe level - "more info" to the right that opens a modal with extra info
+	- Update checkboxes to yes, maybe, no
+	- Turn prop-info into just a modal box
+	- Make looker studio dash for class props and embed using i frame
+	- Class type distribution goal
+
+- Audit log:
+	- Filter by date and time (start date - end date)
+
+- Instructors:
+	- Include classes taught as a subtitle
+
+- Schedule:
+	- Report print for piano needs, av needs, etc.
+	- Labels on class types
+
+- Convention setup page
+
+
 
 Next year:
 -Class Proposals

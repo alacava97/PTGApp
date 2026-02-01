@@ -586,6 +586,8 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         types.color,
         rooms.name as room,
         rooms.id as room_id,
+        periods.start as start,
+        periods.end as end,
         COALESCE(
           array_agg(
             instructors.name ||
@@ -613,6 +615,8 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         instructors ON class_instructors.instructor_id = instructors.id
       LEFT JOIN 
         locations ON locations.id = rooms.location_id
+      LEFT JOIN
+        periods ON periods.id = schedule.start_period
       WHERE
         locations.id = $1
       GROUP BY 
@@ -627,7 +631,9 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
           types.color,
           types.type,
           room,
-          rooms.id
+          rooms.id,
+          periods.start,
+          periods.end
       ORDER BY
         schedule.id ASC
     `, [year]);
@@ -1029,12 +1035,12 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
       toDisplay = `Deleted '${record.name}'`
     } else if (table === 'schedule') {
       const { rows: classRows } = await client.query(`SELECT * FROM classes WHERE id = $1;`, [record.class_id]);
-      const { rows: roomRows } = await client.query(`SELECT * FROM rooms WHERE id = $1;`, [room]);
+      const { rows: roomRows } = await client.query(`SELECT * FROM rooms WHERE id = $1;`, [record.room_id]);
 
       const event = classRows[0];
       const roomName = roomRows[0];
 
-      const toDisplay = `Removed '${event.title}' from schedule at day '${day}', period '${start_period}', room '${roomName.name}'`
+      toDisplay = `Removed '${event.title}' from schedule at day '${record.day}', period '${record.start_period}', room '${roomName.name}'`
     }
 
     await client.query(
@@ -1062,7 +1068,7 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
 //generate pdf of page
 app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   const { filename } = req.params;
-  const { htmlList } = req.body;
+  const { htmlList, width, height } = req.body;
 
   if (!Array.isArray(htmlList) || htmlList.length === 0) {
     return res.status(400).send('No HTML provided');
@@ -1072,13 +1078,13 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   const mergedPdf = await PDFDocument.create();
   const pdfConfigs = {
     'colorblock': {
-      height: '2000px',
-      width: '2810px',
+      height: `${height}px`,
+      width: `${width}px`,
       margin: { top: 20, right: 20, bottom: 20, left: 20 }
     },
     'classroom-labels': {
       format: 'letter',
-      preferCSSPageSize: true,
+      landscape: true,
       margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
     }
   };
@@ -1096,17 +1102,19 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
           <link rel="stylesheet" href="http://localhost:3000/public/styles/print.css">
         </head>
         <body>
-        ${html}
+          ${html}
         </body>
       </html>
     `;
 
     await page.setContent(content, { waitUntil: 'networkidle0' });
 
-    const pdfBuffer = await page.pdf({
+    let pdfOptions = {
       printBackground: true,
       ...(pdfConfigs[filename] ?? {})
-    })
+    };
+
+    const pdfBuffer = await page.pdf(pdfOptions)
 
     await page.close();
 

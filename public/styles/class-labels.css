@@ -5,18 +5,36 @@
 	flex-direction: column;
 	align-items: center;
 	background-color: white;
-	padding: 1in;
+	padding: 0.5in;
 	box-sizing: border-box;
+	justify-content: space-around;
+	text-align: center;
 }
 
-.flex-row {
+#dpr {
 	display: flex;
 	flex-direction: row;
 	width: 100%;
-	justify-content: space-around;
+	justify-content: center;
+	gap: 2em;
 }
 
 #dpr > h3 {
 	text-align: center;
-	width: 100%;
+	font-weight: bold;
+	font-size: 40px;
+}
+
+.letter-size > p {
+	font-size: 24px;
+}
+
+.letter-size > h2 {
+	font-size: 37px;
+	font-weight: 100;
+}
+
+.letter-size > h1 {
+	font-size: 4rem;
+	font-weight: bold;
 }

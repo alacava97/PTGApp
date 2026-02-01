@@ -43,8 +43,16 @@
 			title.textContent = data.title;
 			inst.textContent = data.instructor_name;
 			day.textContent = data.day;
-			period.innerHTML = `${data.start.slice(0, -3)} - ${data.end.slice(0, -3)}`
+			period.innerHTML = `${formatTime(data.start)} - ${formatTime(data.end)}`
 			room.textContent = data.room;
+		}
+
+		function formatTime(time) {
+			const [hours24, minutes, seconds] = time.split(':');
+			let hours = parseInt(hours24, 10);
+			const meridian = hours >= 12 ? 'PM' : 'AM';
+			hours = hours % 12 || 12;
+			return `${hours}:${minutes} ${meridian}`;
 		}
 
 		createLabel(scheduleData[0]);

@@ -27,7 +27,7 @@ class Row {
 	addArrow(link) {
 		this.arrow = document.createElement('span');
 		this.arrow.classList.add('arrow');
-		this.arrow.innerHTML = `&#9654;`;
+		this.arrow.innerHTML = `More Info &#9654;`;
 		this.row.addEventListener('click', (e) => {
 			e.stopPropagation();
 			window.location.href = link;
