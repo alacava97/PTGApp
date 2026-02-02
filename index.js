@@ -23,7 +23,8 @@ app.use(cors({
   credentials: true
 }));
 
-app.use(express.json());
+app.use(express.json({ limit: '5mb'}));
+app.use(express.urlencoded({ limit: '5mb', extended: true }));
 
 app.use(
   session({
@@ -311,28 +312,47 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       classes.length,
       types.type AS type,
       COALESCE(
-      string_agg(
-      instructors.name ||
-      CASE
-        WHEN instructors.rpt IS NOT NULL AND instructors.rpt = TRUE
-      THEN ', RPT'
-      ELSE ''
-      END,
-      ', '
-    ),
-    'No instructors'
-    )AS instructor_name,
-    array_agg(DISTINCT instructors.id)
-        FILTER (WHERE instructors.id IS NOT NULL)
-        AS instructor_ids
-    FROM classes
-    LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
-    LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
-    LEFT JOIN types ON types.id = classes.type
-    GROUP BY classes.id, classes.title, classes.level, types.type
-    ORDER BY classes.id;
+        string_agg(
+        instructors.name ||
+        CASE
+          WHEN instructors.rpt IS NOT NULL AND instructors.rpt = TRUE
+        THEN ', RPT'
+        ELSE ''
+        END,
+        ', '
+      ),
+      'No instructors'
+      )AS instructor_name,
+      array_agg(DISTINCT instructors.id)
+          FILTER (WHERE instructors.id IS NOT NULL)
+          AS instructor_ids
+      FROM classes
+      LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
+      LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
+      LEFT JOIN types ON types.id = classes.type
+      GROUP BY classes.id, classes.title, classes.level, types.type
+      ORDER BY classes.id;
   `;
-  } else if (table === 'types') {
+  } else if (table ==='instructors') {
+    query = `
+    SELECT
+      i.*,
+      COALESCE(
+        string_agg(
+        '"' || c.title || '"',
+        ', '
+        )
+      ) as classes
+    FROM
+      instructors i
+    LEFT JOIN
+      class_instructors ci ON ci.instructor_id = i.id
+    LEFT JOIN
+      classes c ON ci.class_id = c.id
+    GROUP BY
+      i.id
+  `
+  }else if (table === 'types') {
     query = `SELECT * FROM types ORDER BY position ASC`;
   } else  if (table === 'schedule' ) {
     query =
@@ -1085,6 +1105,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     'classroom-labels': {
       format: 'letter',
       landscape: true,
+      preferCSSPageSize: true,
       margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
     }
   };
