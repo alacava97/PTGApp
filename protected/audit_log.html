@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
 	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/row.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Audit Log</title>
@@ -16,8 +17,17 @@
 	<div id="navbar"></div>
 	<header class="clearfix">
 		<h1>Audit Log</h1>
+		<div class="right" id="date-range">
+			<label>start
+				<input id="start-date" type="date">
+			</label>
+			<div class="vertical-seperator"></div>
+			<label>end
+				<input id="end-date" type="date">
+			</label>
+		</div>
 	</header>
-	<section id="list"></section>
+	<section id="list-no-hover"></section>
 </body>
 <script src="public/js/script.js"></script>
 <script src="public/js/UI.js"></script>
@@ -26,6 +36,11 @@
 
 	async function initAudit() {
 		await loadAuditLog();
+
+		const inputs = document.getElementById('date-range').querySelectorAll('input');
+		inputs.forEach(input => {
+			input.addEventListener('change', checkRange)
+		})
 	}
 
 	/* -----------------------------
@@ -49,7 +64,6 @@
 			]);
 
 			setupAudits(audits);
-			console.log(audits);
 		} catch (err) {
 			console.error('Internal server error:', err);
 		}
@@ -60,7 +74,8 @@
 	----------------------------- */
 
 	function setupAudits(audits) {
-		const list = document.getElementById('list');
+		const list = document.getElementById('list-no-hover');
+		list.innerHTML = '';
 
 		Object.entries(audits)
 			.reverse()
@@ -103,6 +118,20 @@
 	  }
 
 	  return { oldValues, newValues };
+	}
+
+	async function checkRange() {
+		const start = document.getElementById('start-date').value;
+		const end = document.getElementById('end-date').value;
+
+		const audits = await fetchAudits();
+
+		const filteredAudits = audits.filter(audit => {
+			const auditTime = audit.created_at
+			return auditTime >= start && auditTime <= end;
+		});
+
+		setupAudits(filteredAudits);
 	}
 
 

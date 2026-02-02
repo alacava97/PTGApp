@@ -1,0 +1,40 @@
+.row-title {
+	font-weight: bold;
+	font-size: 16px;
+	padding-right: 100px;
+}
+
+.row-subtitle {
+	font-size: 16px;
+	padding-right: 100px;
+}
+
+.row {
+	display: grid;
+	position: relative;
+	padding: 7px 5%;
+	border: #CCCCCC solid 1px;
+	overflow: hidden;
+}
+
+#list > *:nth-child(odd),
+#list-no-hover > *:nth-child(odd) {
+	background-color: color-mix(in srgb, #EEEEEE 90%, #01ab6d);
+}
+
+#list > *:nth-child(even),
+#list-no-hover > *:nth-child(even) {
+	background-color: #EEEEEE;
+}
+
+#list > *:hover {
+	cursor: pointer;
+}
+
+#list > *:nth-child(odd):hover {
+	background-color: color-mix(in srgb, color-mix(in srgb, #EEEEEE 90%, #01ab6d) 90%, black);
+}
+
+#list > *:nth-child(even):hover {
+	background-color: color-mix(in srgb, #EEEEEE 90%, black);
+}

@@ -3,12 +3,6 @@
 	- Password reset emailing
 	- Class reviews
 
-- Responsive design for mobile and other devices in general
-- Every other color different on list pages, maybe a light blue
-
-- Audit log:
-	- Filter by date and time (start date - end date)
-
 - Schedule:
 	- Report print for piano needs, av needs, etc.
 	- Labels on class types
