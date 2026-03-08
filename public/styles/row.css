@@ -9,7 +9,7 @@
 	padding-right: 100px;
 }
 
-.row {
+.row, .static-row {
 	display: grid;
 	position: relative;
 	padding: 7px 5%;

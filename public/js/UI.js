@@ -4,6 +4,11 @@ class Row {
 		this.row.classList.add('row');
 	}
 
+	static() {
+		this.classList.remove('row');
+		this.classList.add('static-row');
+	}
+
 	addTitle(html, id) {
 		this.title = document.createElement('span');
 		if (id) {

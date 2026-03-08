@@ -86,21 +86,24 @@
 	function setupClassInfo(data) {
 		const container = document.getElementById('class-info');
 		container.innerHTML = '';
-		console.log(data)
 		const row = new Row();
+		row.static();
 		const classInfo = document.getElementById('class-info');
 		const classRow = new Row();
+		classRow.static();
 		classRow.addTitle(data.title || 'No Title');
 		classRow.addSubtitle(`<b>Type:</b> ${data.type || 'No type'}`);
 		classRow.addSubtitle(`<b>Level:</b> ${data.level || 'No level'}`);
 		classInfo.replaceChildren(classRow.row);
 
 		const descRow = new Row();
+		descRow.static();
 		descRow.addTitle('Class Description');
 		descRow.addSubtitle(`${data.description || 'No description'}`);
 		classInfo.appendChild(descRow.row);
 
 		const moreRow = new Row();
+		moreRow.static();
 		moreRow.addSubtitle(`<b>Length:</b> ${data.length || 0} ${data.length == 1 ? 'period' : 'periods'}`);
 		moreRow.addSubtitle(`<b>Uprights:</b> ${data.uprights || 0} ${data.uprights == 1 ? 'upright' : 'uprights'}`);
 		moreRow.addSubtitle(`<b>Grands:</b> ${data.grands || 0} ${data.grands == 1 ? 'grand' : 'grands'}`);
@@ -114,6 +117,7 @@
 	function setupInstructorInfo(data) {
 		const instInfo = document.getElementById('instructor-info');
 		const instRow = new Row();
+		instRow.static();
 		instRow.addTitle(`${data.name || 'No Instructor'}`);
 		instRow.addSubtitle(`<b>Email:</b> ${data.email || 'No email'}`);
 		instRow.addSubtitle(`<b>Phone:</b> ${data.phone || 'No phone'}`);
@@ -127,6 +131,7 @@
 	function setupSponsorInfo(data) {
 		const sponsorInfo = document.getElementById('sponsor-info');
 		const sponsorRow = new Row();
+		sponsorRow.static();
 		sponsorRow.addSubtitle(`${data.sponsor || 'No Sponsor'}`);
 		sponsorInfo.replaceChildren(sponsorRow.row);
 	}
