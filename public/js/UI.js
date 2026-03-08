@@ -5,8 +5,8 @@ class Row {
 	}
 
 	static() {
-		this.classList.remove('row');
-		this.classList.add('static-row');
+		this.row.classList.remove('row');
+		this.row.classList.add('static-row');
 	}
 
 	addTitle(html, id) {
