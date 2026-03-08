@@ -114,7 +114,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 
       toDisplay = record.name;
     } else if (table === 'instructors') {
-      record = rows[0];
+      record = await createRecord({ table, data, returning: ['*'] }, client);
       toDisplay = `Created new instructor: '${record.name}'`;
     } else {
       record = await createRecord({ table, data, returning: ['*'] }, client);
