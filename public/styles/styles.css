@@ -488,3 +488,14 @@ main > h2,
 main > h3 {
 	margin-left: 5%;
 }
+
+.check-col {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: flex-end;
+}
+
+.check-col h4 {
+	margin: 0;
+}

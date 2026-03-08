@@ -17,17 +17,20 @@
 	<div id="navbar"></div>
 	<header class="clearfix">
 		<h1>Class Proposals</h1>
-		<div class="right">
-			<label for="declined">show declined</label>
-			<input id="declined" name="declined" type="checkbox" value="false">
-		</div>
-		<div class="right">
-			<label for="pending">show pending</label>
-			<input id="pending" name="pending" type="checkbox" checked value="null">
-		</div>
-		<div class="right">
-			<label for="approved">show approved</label>
-			<input id="approved" name="approved" type="checkbox" value="true">
+		<div class="check-col right">
+			<h4>Approved</h4>
+			<div>
+				<label for="approved">Yes</label>
+				<input id="approved" name="approved" type="checkbox" value="yes">
+			</div>
+			<div>
+				<label for="pending">Maybe</label>
+				<input id="pending" name="pending" type="checkbox" checked value="maybe">
+			</div>
+			<div>
+				<label for="declined">No</label>
+				<input id="declined" name="declined" type="checkbox" value="no">
+			</div>	
 		</div>
 	</header>
 	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by title, name, type, level, length, etc.">
@@ -83,9 +86,7 @@
 		propList.innerHTML = '';
 		const checkedNodes = document.querySelectorAll('input[type="checkbox"]:checked');
 		const checkedValues = [...checkedNodes].map(check => {
-			if (check.value == 'true') return true;
-			if (check.value == 'false') return false;
-			return null;
+			return check.value;
 		});
 
 		const filteredData = data.filter(row => {
@@ -97,10 +98,6 @@
 			row.addSubtitle(`<b>Title:</b> ${entry.title || 'No Title'} <b>- ${entry.approved || 'pending review'}</b>`);
 			row.addSubtitle(`<b>Instructor:</b> ${entry.name || 'No Instructor'}`);
 			row.addSubtitle(`<b>Type:</b> ${entry.type || 'No type'}`);
-			row.addSubtitle(`<b>Level:</b> ${entry.level || 'No level'}`);
-			row.addSubtitle(`<b>Length:</b> ${entry.length || 0} ${entry.length == 1 ? 'period' : 'periods'}`);
-			row.addSubtitle(`<b>Institute Contact:</b> ${entry.assigned ? `Assigned to ${entry.assigned}` : 'Not assigned'}`);
-			row.addSubtitle(`<b>Description:</b> ${entry.description || 'No description'}`)
 			row.addArrow(`/prop-info.html?id=${entry.id}`);
 			propList.appendChild(row.row);
 		});

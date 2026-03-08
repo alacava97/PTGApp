@@ -4,17 +4,14 @@
 	- Class reviews
 
 - Schedule:
-	- Report print for piano needs, av needs, etc.
 	- Labels on class types
+	- Fix float on header row
 
 - Convention setup page
+- Fix case sensitive email field for login
 
 Next year:
 -Class Proposals
- 	- Differentiate clickable vs not
-	- Title, instructor, type, maybe level - "more info" to the right that opens a modal with extra info
-	- Update checkboxes to yes, maybe, no
-	- Turn prop-info into just a modal box
 	- Make looker studio dash for class props and embed using i frame
 	- Class type distribution goal
 	- Flag high priority classes - add initials and a note
