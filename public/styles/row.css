@@ -14,7 +14,14 @@
 	position: relative;
 	padding: 7px 5%;
 	border: #CCCCCC solid 1px;
+	background-color: #EEEEEE;
 	overflow: hidden;
+}
+
+.row:hover {
+	background-color: #E0E0E0;
+	border: #BBBBBB solid 1px;
+	cursor: pointer;
 }
 
 #list > *:nth-child(odd),
