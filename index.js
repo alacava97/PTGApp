@@ -1109,7 +1109,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     '/public/styles/print.css'
   ];
 
-  if (filename === 'classroom-labels') {
+  if (filename === 'class-labels') {
     stylesheets.push('/public/styles/class-labels.css');
   }
 
