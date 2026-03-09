@@ -1149,20 +1149,20 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
 
     const pdfBuffer = await page.pdf(pdfOptions)
 
-    await page.close();
+  //   await page.close();
 
-    const pdf = await PDFDocument.load(pdfBuffer);
-    const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-    copiedPages.forEach(p => mergedPdf.addPage(p));
+  //   const pdf = await PDFDocument.load(pdfBuffer);
+  //   const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+  //   copiedPages.forEach(p => mergedPdf.addPage(p));
 
 
-  await browser.close();
+  // await browser.close();
 
-  const finalPdf = await mergedPdf.save();
+  // const finalPdf = await mergedPdf.save();
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
-  res.send(Buffer.from(finalPdf));
+  res.send(Buffer.from(pdfBuffer));
 });
 
 app.patch('/api/update-order', requireLogin, async (req, res) => {
