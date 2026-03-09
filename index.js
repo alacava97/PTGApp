@@ -1135,7 +1135,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
           ${links}
         </head>
         <body>
-          ${html}
+          ${combinedHTML}
         </body>
       </html>
     `;
