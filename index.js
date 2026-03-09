@@ -1095,74 +1095,67 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     return res.status(400).send('No HTML provided');
   }
 
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
-  const mergedPdf = await PDFDocument.create();
+  const browser = await puppeteer.launch({
+    headless: true,
+    args: ['--no-sandbox', '--disable-setuid-sandbox']
+  });
+
+  const page = await browser.newPage();
+  await page.setDefaultNavigationTimeout(0);
+
+  const stylesheets = [
+    '/public/styles/styles.css',
+    '/public/styles/schedule-styles.css',
+    '/public/styles/print.css'
+  ];
+
+  if (filename === 'classroom-labels') {
+    stylesheets.push('/public/styles/class-labels.css');
+  }
+
+  const links = stylesheets
+    .map(href => `<link rel="stylesheet" href="http://localhost:3000${href}">`)
+    .join('\n');
+
+  const combinedHtml = htmlList
+    .map(html => `<div class="print-page">${html}</div>`)
+    .join('');
+
+  const content = `
+  <html>
+    <head>
+      ${links}
+    </head>
+    <body>
+      ${combinedHtml}
+    </body>
+  </html>
+  `;
+
+  await page.setContent(content, { waitUntil: 'networkidle0' });
+
   const pdfConfigs = {
-    'colorblock': {
-      height: `${height}px`,
+    colorblock: {
       width: `${width}px`,
-      margin: { top: 20, right: 20, bottom: 20, left: 20 }
+      height: `${height}px`,
+      printBackground: true
     },
     'classroom-labels': {
       format: 'letter',
       landscape: true,
-      preferCSSPageSize: true,
-      margin: { top: '0.5in', right: '0.5in', bottom: '0.5in', left: '0.5in' }
+      printBackground: true,
+      preferCSSPageSize: true
     }
   };
 
-  const page = await browser.newPage();
+  const pdfBuffer = await page.pdf(pdfConfigs[filename] ?? { printBackground: true });
 
-  const combinedHTML = htmlList.join('');
-
-    const stylesheets = [
-      '/public/styles/styles.css',
-      '/public/styles/schedule-styles.css',
-      '/public/styles/print.css'
-    ];
-
-    if (filename == 'class-labels') {
-      stylesheets.push('/public/styles/class-labels.css');
-    }
-
-    const links = stylesheets
-      .map(href => `<link rel="stylesheet" href="http://localhost:3000${href}">`)
-      .join('\n');
-
-    const content = `
-      <html>
-        <head>
-          ${links}
-        </head>
-        <body>
-          ${combinedHTML}
-        </body>
-      </html>
-    `;
-
-    await page.setContent(content, { waitUntil: 'networkidle0' });
-
-    let pdfOptions = {
-      printBackground: true,
-      ...(pdfConfigs[filename] ?? {})
-    };
-
-    const pdfBuffer = await page.pdf(pdfOptions)
-
-  //   await page.close();
-
-  //   const pdf = await PDFDocument.load(pdfBuffer);
-  //   const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
-  //   copiedPages.forEach(p => mergedPdf.addPage(p));
-
-
-  // await browser.close();
-
-  // const finalPdf = await mergedPdf.save();
+  await browser.close();
 
   res.setHeader('Content-Type', 'application/pdf');
   res.setHeader('Content-Disposition', `attachment; filename="${filename}.pdf"`);
-  res.send(Buffer.from(pdfBuffer));
+
+  res.end(pdfBuffer);
 });
 
 app.patch('/api/update-order', requireLogin, async (req, res) => {
