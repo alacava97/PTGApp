@@ -4,7 +4,7 @@
 	- Class reviews
 
 - Schedule:
-	- Fix pdf printing
+	- Fix class label printing - replace day id with day name - why can't it print all at once?
 
 - Convention setup page
 - Fix case sensitive email field for login

@@ -1111,9 +1111,9 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     }
   };
 
+  const page = await browser.newPage();
 
   for (const html of htmlList) {
-    const page = await browser.newPage();
 
     const stylesheets = [
       '/public/styles/styles.css',
