@@ -1115,7 +1115,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     path: './public/styles/print.css'
   });
 
-  if (filename === 'classroom-labels') {
+  if (filename == 'class-labels') {
     await page.addStyleTag({
       path: './public/styles/class-labels.css'
     });
