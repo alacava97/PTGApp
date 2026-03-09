@@ -17,7 +17,6 @@
 
 Next year:
 -Class Proposals
-	- Make looker studio dash for class props and embed using i frame
 	- Class type distribution goal
 	- Flag high priority classes - add initials and a note
 	- Button to send second form for approved classes w/ consent to teach (from home office)

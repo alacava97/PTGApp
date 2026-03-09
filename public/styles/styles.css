@@ -499,3 +499,14 @@ main > h3 {
 .check-col h4 {
 	margin: 0;
 }
+
+.chart {
+	display: grid;
+	justify-content: center;
+	justify-items: center;
+}
+
+.chart iframe {
+	width: 90vw;
+	height: 40vw;
+}
