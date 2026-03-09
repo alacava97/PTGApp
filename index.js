@@ -1095,7 +1095,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     return res.status(400).send('No HTML provided');
   }
 
-  const browser = await puppeteer.launch({ headless: true });
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox', '--disable-setuid-sandbox'] });
   const mergedPdf = await PDFDocument.create();
   const pdfConfigs = {
     'colorblock': {
