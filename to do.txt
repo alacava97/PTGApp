@@ -4,8 +4,6 @@
 	- Class reviews
 
 - Schedule:
-	- Labels on class types
-	- Fix float on header row. float whole header row
 	- Fix pdf printing
 
 - Convention setup page

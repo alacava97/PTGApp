@@ -24,7 +24,9 @@
 	</header>
 
 	<section id="color-key" class="key"></section>
-	<main id="color-block" class="schedule"></main>
+	<div>
+		<main id="color-block" class="schedule"></main>
+	</div>
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script src="public/js/script.js" defer></script>
@@ -249,26 +251,26 @@
 
 	function renderDayHeaders(calendar, days, periods) {
 		const blank = document.createElement('div');
-		blank.classList.add('header', 'sched-row1', 'sched-col1');
+		blank.classList.add('header', 'sched-row1', 'sched-col1', 'r1', 'c1');
 		calendar.appendChild(blank);
 
 		days.forEach(day => {
 			const dayLabel = document.createElement('div');
 			dayLabel.textContent = day;
-			dayLabel.classList.add('day', 'header', 'sched-row1');
+			dayLabel.classList.add('day', 'header', 'sched-row1', 'r1');
 			calendar.appendChild(dayLabel);
 		});
 
 		const periodTitle = document.createElement('div');
 		periodTitle.textContent = 'Period'
-		periodTitle.classList.add('header', 'period', 'sched-col1');
+		periodTitle.classList.add('header', 'period', 'sched-col1', 'sched-row2', 'r2', 'c1');
 		calendar.appendChild(periodTitle);
 
 		for (let i = 0; i < 4; i++) {
 			periods.forEach(period => {
 				const block = document.createElement('div');
 				block.textContent = period.period;
-				block.classList.add('header', 'period');
+				block.classList.add('header', 'period', 'r2');
 				if (period.period == 5) {
 					block.classList.add('sched-col1');
 				}
@@ -278,7 +280,7 @@
 
 		const timeTitle = document.createElement('div');
 		timeTitle.textContent = 'Time';
-		timeTitle.classList.add('header', 'period', 'sched-col1', 'sched-row1');
+		timeTitle.classList.add('header', 'period', 'sched-col1', 'sched-row1', 'r3', 'c1');
 		calendar.appendChild(timeTitle);
 
 		for (let i = 0; i < 4; i++) {
@@ -287,7 +289,7 @@
 				const [ hoursEnd, minutesEnd ] = period.end.split(':');
 
 				const periodTime = document.createElement('div');
-				periodTime.classList.add('header', 'period', 'sched-row1');			
+				periodTime.classList.add('header', 'period', 'sched-row1', 'r3');			
 				periodTime.innerHTML = `${parseInt(hoursStart, 10)}:${minutesStart} - ${parseInt(hoursEnd, 10)}:${minutesEnd}`;
 				if (period.period == 5) {
 					periodTime.classList.add('sched-col1');
@@ -715,9 +717,10 @@
 	}
 
 	function renderTypeKey(type) {
-		const wrapper = document.createElement('div');
+		const wrapper = document.createElement('label');
 		wrapper.className = 'key-item';
 		wrapper.style.backgroundColor = type.color;
+		wrapper.textContent = type.type;
 
 		const input = document.createElement('input');
 		input.type = 'color';
