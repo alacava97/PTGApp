@@ -139,6 +139,7 @@
 			ScheduleState.year_id = maxLocation;
 
 			const data = await ScheduleAPI.load(maxLocation);
+			dataCache = data;
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);
 
@@ -171,15 +172,16 @@
 
 	const ScheduleAPI = {
 		load: async (locationId) => {
-			const [schedule, rooms, types, conventions, classes, periods] = await Promise.all([
+			const [schedule, rooms, types, conventions, classes, periods, instructors] = await Promise.all([
 				fetchJSON(`/api/schedule/${locationId}`),
 				fetchJSON(`/api/getRooms/${locationId}`),
 				fetchJSON('/api/read/types'),
 				fetchJSON('/api/read/conventions'),
 				fetchJSON('/api/read/classes'),
-				fetchJSON('/api/read/periods')
+				fetchJSON('/api/read/periods'),
+				fetchJSON('/api/read/instructors')
 			]);
-			return { schedule, rooms, types, conventions, classes, periods };
+			return { schedule, rooms, types, conventions, classes, periods, instructors };
 		},
 
 		updateTypeColor: (id, color) =>
@@ -219,6 +221,8 @@
 		activeRoom: null,
 		info: 'pianos'
 	};
+
+	let dataCache;
 
 	/* -----------------------------
 	   Page Setup
@@ -847,6 +851,7 @@
 		schedule,
 		{ ignoredId = null } = {}
 	) {
+		const instructor = dataCache.instructors.filter(i => i.id == instructorId)[0];
 		const newStart = Number(period);
 		const newEnd = newStart + Number(length) - 1;
 
@@ -857,9 +862,12 @@
 					e.schedule_id === parseInt(ignoredId) ||
 					!Array.isArray(e.instructor_ids) ||
 					e.instructor_ids.length === 0 ||
-					!instructorId
+					!instructorId ||
+					instructor.team == true
 				) {
 					return false;
+				} else {
+
 				}
 
 				return e.instructor_ids.some(id => instructorId.includes(id));
