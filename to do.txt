@@ -9,6 +9,7 @@
 
 - Convention setup page
 - Fix case sensitive email field for login
+- Fix schedule audit log to show room names rather than room IDs
 
 Next year:
 -Class Proposals
