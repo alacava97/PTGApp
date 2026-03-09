@@ -1135,7 +1135,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   await page.setContent(content, { waitUntil: 'networkidle0' });
 
   const pdfConfigs = {
-    colorblock: {
+    'colorblock': {
       width: `${width}px`,
       height: `${height}px`,
       printBackground: true
