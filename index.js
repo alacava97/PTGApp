@@ -1113,7 +1113,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
 
   const page = await browser.newPage();
 
-  for (const html of htmlList) {
+  const combinedHTML = htmlList.join('');
 
     const stylesheets = [
       '/public/styles/styles.css',
@@ -1154,7 +1154,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     const pdf = await PDFDocument.load(pdfBuffer);
     const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
     copiedPages.forEach(p => mergedPdf.addPage(p));
-  }
+
 
   await browser.close();
 
