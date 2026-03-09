@@ -40,3 +40,6 @@ Next year:
 	-Favorite classes
 	-Build custom ittinerary
 	-Comments/reviews
+
+
+How to transfer proposals to database once approved? Maybe a field in the prop-info page to link proposal to instructor and or class?
