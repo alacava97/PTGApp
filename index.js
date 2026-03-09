@@ -1115,13 +1115,24 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   for (const html of htmlList) {
     const page = await browser.newPage();
 
+    const stylesheets = [
+      '/public/styles/styles.css',
+      '/public/styles/schedule-styles.css',
+      '/public/styles/print.css'
+    ];
+
+    if (filename == 'class-labels') {
+      stylesheets.push('/public/styles/class-labels.css');
+    }
+
+    const links = stylesheets
+      .map(href => `<link rel="stylesheet" href="http://localhost:3000${href}">`)
+      .join('\n');
+
     const content = `
       <html>
         <head>
-          <link rel="stylesheet" href="http://localhost:3000/public/styles/styles.css">
-          <link rel="stylesheet" href="http://localhost:3000/public/styles/schedule-styles.css">
-          <link rel="stylesheet" href="http://localhost:3000/public/styles/class-labels.css">
-          <link rel="stylesheet" href="http://localhost:3000/public/styles/print.css">
+          ${links}
         </head>
         <body>
           ${html}
