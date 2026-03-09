@@ -1103,23 +1103,19 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   const page = await browser.newPage();
   await page.setDefaultNavigationTimeout(0);
 
-  await page.addStyleTag({
-    path: './public/styles/styles.css'
-  });
+  const stylesheets = [
+    '/public/styles/styles.css',
+    '/public/styles/schedule-styles.css',
+    '/public/styles/print.css'
+  ];
 
-  await page.addStyleTag({
-    path: './public/styles/schedule-styles.css'
-  });
-
-  await page.addStyleTag({
-    path: './public/styles/print.css'
-  });
-
-  if (filename == 'class-labels') {
-    await page.addStyleTag({
-      path: './public/styles/class-labels.css'
-    });
+  if (filename === 'class-labels') {
+    stylesheets.push('/public/styles/class-labels.css');
   }
+
+  const links = stylesheets
+    .map(href => `<link rel="stylesheet" href="http://localhost:3000${href}">`)
+    .join('\n');
 
   const combinedHtml = htmlList
     .map(html => `<div class="print-page">${html}</div>`)
@@ -1127,6 +1123,9 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
 
   const content = `
   <html>
+    <head>
+      ${links}
+    </head>
     <body>
       ${combinedHtml}
     </body>
@@ -1136,12 +1135,12 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   await page.setContent(content, { waitUntil: 'networkidle0' });
 
   const pdfConfigs = {
-    'colorblock': {
+    colorblock: {
       width: `${width}px`,
       height: `${height}px`,
       printBackground: true
     },
-    'classroom-labels': {
+    'class-labels': {
       format: 'letter',
       landscape: true,
       printBackground: true,
