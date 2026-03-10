@@ -39,7 +39,7 @@
       const formData = new FormData(form);
       const data = {
         name: formData.get('name'),
-        email: formData.get('email'),
+        email: formData.get('email').toLowerCase(),
         password: formData.get('password')
       };
 
