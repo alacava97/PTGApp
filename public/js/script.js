@@ -415,9 +415,11 @@ async function createLabel(data) {
 
 	const names = data.instructors.join(', ');
 
+	const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday']
+
 	title.textContent = data.title;
 	inst.textContent = names;
-	day.textContent = data.day;
+	day.textContent = days[data.day-3];
 	period.textContent = `${formatTime(data.start)} - ${formatTime(data.end)}`;
 	room.textContent = data.room;
 
