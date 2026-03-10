@@ -4,8 +4,6 @@
 	- Class reviews
 	
 - Convention setup page
-- Fix case sensitive email field for login
-- Fix schedule audit log to show room names rather than room IDs
 - Catch schedule creates where 2nd class is in a different room than the first
 - Solution for forum held between periods
 - Safari scroll issue on schedule page
