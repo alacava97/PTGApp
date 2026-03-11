@@ -4,6 +4,7 @@
   font-size: 2rem;
   gap: 10px;
   width: fit-content;
+  align-items: center;
 }
 
 .rating input {

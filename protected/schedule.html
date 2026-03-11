@@ -81,6 +81,11 @@
 					<option value="4">Period 4</option>
 					<option value="5">Period 5</option>
 				</select>
+
+				<label for="half-period">Half period
+					<input id="half-period" name="half_period" type="checkbox">
+				</label>
+
 				<div class="seperator"></div>
 
 				<label for="room_id">Room</label>
@@ -341,7 +346,7 @@
 
 						eventDiv.classList.add('event');
 						eventDiv.style.backgroundColor = periodEvent.color;
-					    eventDiv.style.gridColumn = `span ${periodEvent.length}`;
+					
 					    eventDiv.id = periodEvent.schedule_id;
 					    eventDiv.addEventListener('mouseenter', () => {
 					    	eventDiv.style.backgroundColor = `color-mix(in srgb, ${periodEvent.color} 90%, black)`;
@@ -374,8 +379,17 @@
 					    	eventDiv.classList.add('sched-col1');
 					    }
 
-					    calendar.appendChild(eventDiv);
-					    p = end + 1;
+					    if (periodEvent.half_period == true) {
+					    	const halfEventDiv = document.createElement('div');
+					    	halfEventDiv.classList.add('half-period');
+					    	halfEventDiv.appendChild(eventDiv);
+					    	calendar.appendChild(halfEventDiv);
+					    	p = end + 2;
+					    } else {
+					    	eventDiv.style.gridColumn = `span ${periodEvent.length}`;
+					    	calendar.appendChild(eventDiv);
+					    	p = end + 1;
+					    }
 					} else {
 					    const dummy = document.createElement('div');
 					    dummy.textContent = p;
@@ -441,6 +455,7 @@
 	    DOM.notes.value = periodEvent.notes;
 	    document.getElementById('pianos').value = periodEvent.pianos;
 	    document.getElementById('av').value = periodEvent.av;
+	    document.getElementById('half-period').checked = periodEvent.half_period;
 	}
 
 	async function fillRoomModal(roomId) {

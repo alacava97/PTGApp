@@ -420,7 +420,11 @@ async function createLabel(data) {
 	title.textContent = data.title;
 	inst.textContent = names;
 	day.textContent = days[data.day-3];
-	period.textContent = `${formatTime(data.start)} - ${formatTime(data.end)}`;
+	if (data.half_period == true) {
+		period.textContent = `${formatTime(data.end)} - ${formatTime(data.end, 1)}`
+	} else {
+		period.textContent = `${formatTime(data.start)} - ${formatTime(data.end)}`;
+	}
 	room.textContent = data.room;
 
 	await generateQRCode(`/class-review.html?id=${data.schedule_id}`, qrCodeDiv);
@@ -429,9 +433,9 @@ async function createLabel(data) {
 }
 
 
-function formatTime(time) {
+function formatTime(time, plus) {
 	const [hours24, minutes, seconds] = time.split(':');
-	let hours = parseInt(hours24, 10);
+	let hours = parseInt(hours24, 10) + (plus ? plus : 0);
 	const meridian = hours >= 12 ? 'PM' : 'AM';
 	hours = hours % 12 || 12;
 	return `${hours}:${minutes} ${meridian}`;

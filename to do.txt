@@ -5,8 +5,6 @@
 	
 - Convention setup page
 - Catch schedule creates where 2nd class is in a different room than the first
-- Solution for forum held between periods
-- Best/Worst on class review form
 
 Next year:
 -Class Proposals

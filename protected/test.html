@@ -30,7 +30,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 
 		const scheduleData = await read('schedule');
-		console.log(scheduleData[0]);
+		console.log(scheduleData);
 
 		function createLabel(data) {
 			const title = document.getElementById('class-title');
@@ -55,7 +55,8 @@
 			return `${hours}:${minutes} ${meridian}`;
 		}
 
-		createLabel(scheduleData[0]);
+		const data = scheduleData.find(s => s.schedule_id == 277)
+		createLabel(data);
 	})
 </script>
 </html>

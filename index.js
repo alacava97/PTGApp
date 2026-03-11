@@ -600,6 +600,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         schedule.class_id,
         schedule.notes,
         schedule.pianos,
+        schedule.half_period,
         classes.title,
         classes.length,
         classes.av,
@@ -646,6 +647,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
           schedule.start_period,
           schedule.notes,
           schedule.pianos,
+          schedule.half_period,
           classes.title,
           classes.length,
           classes.av,
@@ -1100,7 +1102,6 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
 //generate pdf of page
 app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
   const { filename } = req.params;
-  console.log(filename);
   const { htmlList, width, height } = req.body;
 
   if (!Array.isArray(htmlList) || htmlList.length === 0) {

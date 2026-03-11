@@ -16,12 +16,14 @@
 	width: 100%;
 	justify-content: center;
 	gap: 2em;
+	flex-wrap: wrap;
 }
 
 #dpr > h3 {
 	text-align: center;
 	font-weight: bold;
 	font-size: 40px;
+	margin: 0;
 }
 
 .letter-size > p {
