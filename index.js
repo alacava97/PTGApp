@@ -773,6 +773,17 @@ app.get('/api/getReviews/:id', async (req, res) => {
   const id = req.params.id;
 
   try {
+    const reviews = await pool.query(`
+      SELECT *
+      FROM
+        reviews
+      JOIN
+        schedule ON reviews.schedule_id = schedule.id
+      WHERE
+        schedule.class_id = $1;`,
+      [id]
+    );
+
     const result = await pool.query(`
       SELECT 
         schedule.id as schedule_id,
@@ -830,7 +841,7 @@ app.get('/api/getReviews/:id', async (req, res) => {
         conventions.year ASC
     `, [id]);
 
-    res.json(result.rows);
+    res.json({ res: result.rows, reviews: reviews.rows });
   } catch (err) {
     console.error(`Error:`, err);
     res.status(500).json({ error: 'Database query failed' });

@@ -6,7 +6,6 @@
 - Convention setup page
 - Catch schedule creates where 2nd class is in a different room than the first
 - Solution for forum held between periods
-- CSS broken on class reviews page
 - Best/Worst on class review form
 
 Next year:

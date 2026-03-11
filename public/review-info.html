@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="/public/styles/themes.css">
 	<link rel="stylesheet" href="/public/styles/modals.css">
 	<link rel="stylesheet" href="/public/styles/reviews.css">
+	<link rel="stylesheet" href="/public/styles/row.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<title>Class Review</title>
 </head>
@@ -64,11 +65,22 @@
 
 	function setupClassInfo(reviewData, orData) {
 		const title = document.getElementById('class-title');
-		title.innerHTML = `${reviewData[0].title}`
+		title.innerHTML = `${reviewData.res[0].title}`
 
-		reviewData.reverse().forEach(event => {
+		if (reviewData.reviews.length == 0) {
+			const noReview = new Row();
+			noReview.static();
+			noReview.addTitle('There are no reviews yet for this class.');
+
+			document.getElementById('reviews').appendChild(noReview.row);
+
+			return
+		}
+
+		reviewData.res.reverse().forEach(event => {
 			const or = orData.filter(orData => event.schedule_id == orData.schedule_id)
 			const row = new Row();
+			row.static();
 			row.addTitle(`${event.location_name} - ${event.year}`);
 			row.addSubtitle(`${event.day} - Period ${event.period} - ${event.name}`);
 			row.addSubtitle(`${or.length} reviews`)
