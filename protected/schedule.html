@@ -298,6 +298,7 @@
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
+		console.log(schedule)
 		if (!rooms) {
 			calendar.innerHTML = `No rooms on record`;
 			calendar.style.backgroundColor = 'white';
@@ -337,7 +338,7 @@
 					const periodEvent = roomDayEvents.find(ev => ev.start_period == p);
 					if (periodEvent) {
 						const eventDiv = document.createElement('div');
-						eventDiv.innerHTML = `${periodEvent.title}<br><br>`;
+						eventDiv.innerHTML = `${periodEvent.short_title ? periodEvent.short_title : periodEvent.title}<br><br>`;
 
 						const nameDiv = document.createElement('div');
 						nameDiv.innerHTML = `${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}`;
@@ -444,7 +445,7 @@
 	}
 
 	function fillEventModal(periodEvent) {
-	    DOM.classTitle.innerHTML = `${periodEvent.title} &#9998;`;
+	    DOM.classTitle.innerHTML = `${periodEvent.short_title ? periodEvent.short_title : periodEvent.title} &#9998;`;
 	    DOM.classTitle.href = `/class-info.html?id=${periodEvent.class_id}`
 
 	    DOM.instructor.textContent = periodEvent.instructors;
@@ -534,6 +535,8 @@
 			return
 		}
 
+		findSameRoom(schedule, selectedClass.id, dpr.room)
+
       	await ScheduleAPI.addSchedule({
 	      	class_id: cId,
 	      	day: dpr.day,
@@ -594,6 +597,8 @@
 			);
 			return
 		}
+
+		findSameRoom(schedule, activeEvent.class_id, updated.room_id)
 
 		await fetch(`api/update/schedule/${activeEvent.schedule_id}`, {
 			method: 'PATCH',
@@ -891,6 +896,19 @@
 
 				return newStart <= end && start <= newEnd;
 			});
+	}
+
+	function findSameRoom(schedule, classId, roomId) {
+		const sameClass = schedule.filter(event => event.class_id == classId);
+		let flag = false;
+		sameClass.forEach(event => {
+			if (event.room_id !== roomId && flag == false) {
+				alert(`This class is scheduled at another time in a different room: ${event.room}`);
+				flag = true;
+			}
+		})
+
+		return;
 	}
 
 	async function refreshSchedule() {

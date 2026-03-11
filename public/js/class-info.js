@@ -71,22 +71,29 @@ function setupTitle(classRecord, classId) {
 		<form>
 			<input type="text" name="title" id="title-input">
 			<div class="seperator"></div>
+			<label for="short-title">Short title
+				<input type="text" name="short_title" id="short-title">
+			</label>
+			<div class="seperator"></div>
 			<button type="submit">Submit</button>
 		</form>
 	`);
 
 	let classTitle = classRecord.title
+	let shortTitle = classRecord.short_title || '';
 
 	title.textContent = `${classRecord.title} ✎`;
 	title.addEventListener('click', () => {
 		modal.show();
 		document.getElementById('title-input').value = classTitle;
+		document.getElementById('short-title').value = shortTitle;
 	});
 
 	modal.formSubmit(async () => {
 		const updated = await fetchClass(classId);
 		title.textContent = `${updated.title} ✎`;
 		classTitle = updated.title;
+		shortTitle = updated.short_title || '';
 	}, 'classes');
 }
 
