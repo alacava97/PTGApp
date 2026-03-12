@@ -298,7 +298,6 @@
 	}
 
 	function renderRooms(calendar, schedule, rooms, days, periods) {
-		console.log(schedule)
 		if (!rooms) {
 			calendar.innerHTML = `No rooms on record`;
 			calendar.style.backgroundColor = 'white';
@@ -315,8 +314,11 @@
 			const roomEvents = schedule.filter(e => e.room_id == room.id);
 
 			const roomLabel = document.createElement('div');
-			roomLabel.innerHTML = `
-				${room.name}<br>
+			roomLabel.innerHTML = `${room.name}`;
+			roomLabel.classList.add('room', 'sched-col1', 'sched-row1');
+			roomLabel.id = room.id;
+			const seatingInfo = document.createElement('div');
+			seatingInfo.innerHTML = `
 				${room.t ?
 					`${room.t || 0}-T<br>` :
 					''}
@@ -325,8 +327,9 @@
 					''}
 				${room.piano || 'No Piano'}
 			`;
-			roomLabel.classList.add('room', 'sched-col1', 'sched-row1');
-			roomLabel.id = room.id;
+			seatingInfo.id = room.id;
+			seatingInfo.classList.add('no-print');
+			roomLabel.appendChild(seatingInfo);
 			roomLabel.addEventListener('click', openRoomModal);
 			calendar.appendChild(roomLabel);
 
@@ -342,7 +345,7 @@
 
 						const nameDiv = document.createElement('div');
 						nameDiv.innerHTML = `${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}`;
-						nameDiv.classList.add('name');
+						nameDiv.classList.add('name', 'no-print');
 						eventDiv.appendChild(nameDiv);
 
 						eventDiv.classList.add('event');
@@ -361,7 +364,7 @@
 					    if (periodEvent[ScheduleState.info]) {
 					    	moreInfo.innerHTML = `${periodEvent[ScheduleState.info]}`;
 					    }
-					    moreInfo.classList.add('event-info');
+					    moreInfo.classList.add('event-info', 'no-print');
 					    eventDiv.appendChild(moreInfo)
 
 					    const checkbox = document.createElement('input');
