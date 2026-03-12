@@ -4,7 +4,6 @@
 	- Class reviews
 	
 - Convention setup page
-- Remove seating and piano/av info from colorblock print
 
 Next year:
 -Class Proposals
