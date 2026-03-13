@@ -344,8 +344,8 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
       LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
       LEFT JOIN types ON types.id = classes.type
-      LEFT JOIN sponsor ON sponsors.id = classes.sponsor_id
-      GROUP BY classes.id, classes.title, classes.level, types.type, classes.special_equipment, classes.sponsor
+      LEFT JOIN sponsors ON sponsors.id = classes.sponsor_id
+      GROUP BY classes.id, classes.title, classes.level, types.type, classes.special_equipment, sponsors.sponsor_name
       ORDER BY classes.id;
   `;
   } else if (table ==='instructors') {
@@ -1062,9 +1062,9 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const userId = req.user.id;
   const client = await pool.connect();
-    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms'];
+    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms', 'sponsors'];
   if (!allowedTables.includes(table)) {
-    return res.status(400).json({ error: 'Invalid table name' });
+    return res.status(400).json({ error: `${table} is not allowed.` });
   }
 
   try {

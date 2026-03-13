@@ -103,6 +103,10 @@
 	  }
 	  list.innerHTML = '';
 
+	  data.sort((a, b) => {
+	  	return a.position - b.position;
+	  })
+
 	  data.forEach(item => renderListItem(item));
 
 	  // --- Initialize Drag Sorting ---
@@ -236,12 +240,14 @@
 	    del.className = 'delete-btn2';
 	    li.appendChild(del);
 
-	    del.addEventListener('click', async e => {
+	    del.addEventListener('click', async (e) => {
 	      e.stopPropagation();
 	      const id = li.dataset.id;
 	      if (!confirm(`Delete this ${displayKey}?`)) return;
 
 	      try {
+	      	console.log(table);
+	      	console.log(id);
 	        const res = await fetch(`/api/delete/${table}/${id}`, { method: 'DELETE' });
 	        if (!res.ok) throw new Error('Delete failed');
 	        li.remove();
