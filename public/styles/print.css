@@ -10,3 +10,7 @@ input[type="checkbox"] {
 .print-page:last-child {
   page-break-after: auto;
 }
+
+.no-print {
+  display: none !important;
+}

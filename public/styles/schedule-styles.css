@@ -97,6 +97,7 @@
 
 .room {
 	display: flex;
+	flex-direction: column;
     height: 150px;
     text-align: center;
     align-items: center;
@@ -105,6 +106,10 @@
     left: 0;
     z-index: 1;
     max-width: 250px;
+}
+
+.room > div {
+	background-color: transparent;
 }
 
 .room:hover {
