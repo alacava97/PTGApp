@@ -1,35 +1,20 @@
-- Emailing
-	- Get official email address
+- Sponsor report/dashboard
+- Flag high priority class proposals - add initials and a note
+- Convention setup pages
+
+- Encode instructor ids and email each instructor a unique link to submit class proposals. Unique prop forms should dropdown classes associated with that instructor and record instructor info.
+
+- Things that require emailing
+	- Set up email server - Need to get a domain first and SSL
 	- Password reset emailing
 	- Class reviews
-	
-- Sponsor report/dashboard
-
-Next year:
--Class Proposals
-	- Flag high priority classes - add initials and a note
 	- Button to send second form for approved classes w/ consent to teach (from home office)
 	- Second form copy of shared google form
 	- Column in db to mark 2nd form sent
 	- Column in db to mark 2nd form received
-	-Approved class emailing
-	-Yes/no class proposals - only Corie has permission - delay send option
+	- Approved class emailing
+	- Yes/no class proposals - only Corie has permission - delay send option
 		-"don't email" option in prop-info page
 		-mark "email sent" in db
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
-	-Fix class prop graph to order by visible data rather than the whole set
-- Convention setup pages
-
--Instructor login
-	-Include classes in instructor profiles so classes can be resubmitted each year
-	-Dashboard for class reviews can be viewed in real time
-	-Electronic consent to teach
-
--Attendee screen/login
-	-Favorite classes
-	-Build custom ittinerary
-	-Comments/reviews
-
-
-Encode instructor ids and email each instructor a unique link to submit class proposals. Unique prop forms should dropdown classes associated with that instructor and record instructor info.
