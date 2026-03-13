@@ -7,7 +7,6 @@
 
 Next year:
 -Class Proposals
-	- Class type distribution goal
 	- Flag high priority classes - add initials and a note
 	- Button to send second form for approved classes w/ consent to teach (from home office)
 	- Second form copy of shared google form
