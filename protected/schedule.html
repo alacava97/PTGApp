@@ -548,11 +548,16 @@
 
 		findSameRoom(schedule, selectedClass.id, dpr.room)
 
+		const yearSelect = document.getElementById('year-select')
+		const selectedIndex = yearSelect.selectedIndex;
+		const selectedYear = yearSelect.options[selectedIndex].text;
+
       	await ScheduleAPI.addSchedule({
 	      	class_id: cId,
 	      	day: dpr.day,
 	      	start_period: dpr.period,
-	      	room: dpr.room
+	      	room: dpr.room,
+	      	year: selectedYear
       	});
 
       	DOM.classModal.style.display = 'none';

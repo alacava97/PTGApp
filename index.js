@@ -167,7 +167,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 });
 
 app.post('/api/addSchedule', requireLogin, async (req, res) => {
-  const { class_id, day, start_period, room } = req.body;
+  const { class_id, day, start_period, room, year } = req.body;
   const userId = req.user.id;
   const client = await pool.connect();
 
@@ -176,11 +176,11 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
 
     const { rows } = await client.query(
     `
-      INSERT INTO schedule (class_id, day, start_period, room_id)
-      VALUES ($1, $2, $3, $4)
+      INSERT INTO schedule (class_id, day, start_period, room_id, year)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *
     `,
-      [class_id, day, start_period, room]
+      [class_id, day, start_period, room, year]
     );
     const record = rows[0];
 

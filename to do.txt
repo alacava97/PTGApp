@@ -3,7 +3,6 @@
 	- Password reset emailing
 	- Class reviews
 	
-- Make schedule page insert year when creating new items. Update backend to match
 - Add special needs to schedule dropdown
 - Create sponsor table and make class sponsors a dropdown
 - Sponsor report/dashboard
