@@ -36,10 +36,11 @@ async function fetchClassHistory(classId) {
 
 async function loadClassData(classId) {
 	try {
-		const [classRecord, instructors, classHistory] = await Promise.all([
+		const [classRecord, instructors, classHistory, sponsors] = await Promise.all([
 			fetchClass(classId),
 			fetchInstructorsForClass(classId),
-			fetchClassHistory(classId)
+			fetchClassHistory(classId),
+			read('sponsors')
 		]);
 
 
@@ -48,7 +49,7 @@ async function loadClassData(classId) {
 		setupDetails(classRecord);
 		setupClassSetup(classRecord);
 		pianoSetup(classRecord);
-		setupSponsor(classRecord);
+		setupSponsor(classRecord, sponsors);
 		setupNotes(classRecord);
 		setupHistory(classHistory, classId);
 		await setupInstructors(instructors, classId);
@@ -733,7 +734,11 @@ function setupNotes(classRecord) {
     Sponsored
 ----------------------------- */
 
-function setupSponsor(classRecord) {
+function setupSponsor(classRecord, sponsors) {
+	sponsors = sponsors.sort((a, b) => {
+		return a.sponsor_name.localeCompare(b.sponsor_name)
+	});
+
 	const moreInfo = document.getElementById('more-info');
 	moreInfo.innerHTML = '';
 
@@ -748,7 +753,7 @@ function setupSponsor(classRecord) {
  				<input id="sponsored" class="small-input" type="checkbox" name="sponsored">
  			</label>
  			<div class="seperator"></div>
- 			<input type="text" name="sponsor" autocomplete="off" placeholder="Sponsor" id="sponsor">
+ 			<select name="sponsor_id" id="sponsor"></select>
  			<button type="submit">Update Sponsor</button>
  		</form>
 	`);
@@ -760,15 +765,31 @@ function setupSponsor(classRecord) {
 		sponsor: classRecord.sponsor
 	}
 
+	console.log(classRecord)
+
 	const sponsorRow = new Row();
 	sponsorRow.addTitle('Sponsor', 'sponsored-row');
 	sponsorRow.addSubtitle(sponsored.sponsored?sponsored.sponsor:'No sponsor on record', 'sponsor-row');
 	moreInfo.appendChild(sponsorRow.row);
 
 	sponsorRow.row.addEventListener('click', () => {
+		const sponsorSelect = document.getElementById('sponsor');
+		sponsorSelect.innerHTML = '';
+		const noS = document.createElement('option');
+		noS.value = '';
+		noS.textContent = 'No sponsor';
+		sponsorSelect.appendChild(noS);
+
+		sponsors.forEach(s => {
+			const option = document.createElement('option');
+			option.value = s.id;
+			option.textContent = s.sponsor_name;
+			sponsorSelect.appendChild(option);
+		});
+
 		modal.show();
 		document.getElementById('sponsored').checked = sponsored.sponsored;
-		document.getElementById('sponsor').value = sponsored.sponsor || '';
+		document.getElementById('sponsor').value = classRecord.sponsor_id || '';
 		sponsorCheck();
 	});
 

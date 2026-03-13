@@ -29,6 +29,11 @@
 			<ul id="room-list" class="transparent type-ul"></ul>
 			<button id="add-room" class="add-btn">+ Add Room</button>
 		</div>
+		<div>
+			<h2>Sponsors</h2>
+			<ul id="sponsor-list" class="transparent type-ul"></ul>
+			<button id="add-sponsor" class="add-btn">+ Add Sponsor</button>
+		</div>
 	</div>
 </body>
 <script src="public/js/script.js"></script>
@@ -52,6 +57,7 @@
 		});
 		const types = await read('types');
 		const rooms = await getRooms();
+		const sponsors = await read('sponsors');
 
 	  setupEditableSortableList({
 	  	table: 'types',
@@ -67,6 +73,14 @@
 	  	listId: 'room-list',
 	  	addButtonId: 'add-room',
 	  	displayKey: 'name',
+	  });
+
+	  setupEditableSortableList({
+	  	table: 'sponsors',
+	  	data: sponsors,
+	  	listId: 'sponsor-list',
+	  	addButtonId: 'add-sponsor',
+	  	displayKey: 'sponsor_name'
 	  });
 	});
 

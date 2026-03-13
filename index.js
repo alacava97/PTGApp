@@ -313,6 +313,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       classes.length,
       classes.special_equipment,
       types.type AS type,
+      sponsors.sponsor_name AS sponsor,
       COALESCE(
         string_agg(
         instructors.name ||
@@ -343,7 +344,8 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
       LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
       LEFT JOIN types ON types.id = classes.type
-      GROUP BY classes.id, classes.title, classes.level, types.type, classes.special_equipment
+      LEFT JOIN sponsor ON sponsors.id = classes.sponsor_id
+      GROUP BY classes.id, classes.title, classes.level, types.type, classes.special_equipment, classes.sponsor
       ORDER BY classes.id;
   `;
   } else if (table ==='instructors') {
@@ -577,11 +579,14 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
       result = await pool.query(`
         SELECT
           classes.*,
-          types.type AS type_name
+          types.type AS type_name,
+          sponsors.sponsor_name AS sponsor
         FROM
           classes
         LEFT JOIN
           types ON types.id = classes.type
+        LEFT JOIN
+          sponsors ON sponsors.id = classes.sponsor_id
         WHERE
           classes.id = $1
       `, [id]);
@@ -1188,7 +1193,13 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
 });
 
 app.patch('/api/update-order', requireLogin, async (req, res) => {
-  const { order } = req.body;
+  const { order, table } = req.body;
+  const allowedTables = ['types', 'rooms', 'sponsors'];
+
+  if (!allowedTables.includes(table)) {
+    throw new Error(`Table ${table} is not allowed`)
+  }
+
   if (!order) return res.status(400).send('Missing order data');
 
   const client = await pool.connect();
@@ -1198,7 +1209,7 @@ app.patch('/api/update-order', requireLogin, async (req, res) => {
 
     for (const item of order) {
       await client.query(
-        'UPDATE types SET position = $1 WHERE id = $2',
+        `UPDATE ${table} SET position = $1 WHERE id = $2`,
         [item.position, item.id]
       );
     }

@@ -3,7 +3,6 @@
 	- Password reset emailing
 	- Class reviews
 	
-- Create sponsor table and make class sponsors a dropdown
 - Sponsor report/dashboard
 - Update half scheduling to occupy only half of block
 
