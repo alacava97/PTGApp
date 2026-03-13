@@ -267,3 +267,8 @@ label {
 	display: flex;
     align-items: center;
 }
+
+.display-notes {
+	font-weight: bold;
+	background-color: transparent;
+}

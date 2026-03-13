@@ -96,6 +96,10 @@
 				<textarea name="notes" placeholder="notes" id="notes"></textarea>
 				<div class="seperator"></div>
 
+				<label for="display-notes">Display Notes</label>
+				<input type="text" id="display-notes" name="display_notes">
+				<div class="seperator"></div>
+
 				<label for="pianos">Pianos</label>
 				<input name="pianos" id="pianos" type="text" placeholder="pianos">
 				<div class="seperator"></div>
@@ -341,12 +345,17 @@
 					const periodEvent = roomDayEvents.find(ev => ev.start_period == p);
 					if (periodEvent) {
 						const eventDiv = document.createElement('div');
-						eventDiv.innerHTML = `${periodEvent.short_title ? periodEvent.short_title : periodEvent.title}<br><br>`;
+						eventDiv.innerHTML = `${periodEvent.short_title ? periodEvent.short_title : periodEvent.title}`;
 
 						const nameDiv = document.createElement('div');
 						nameDiv.innerHTML = `${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}`;
 						nameDiv.classList.add('name', 'no-print');
 						eventDiv.appendChild(nameDiv);
+
+						const displayNotes = document.createElement('div');
+						displayNotes.classList.add('display-notes');
+						displayNotes.innerHTML = `${periodEvent.display_notes || ''}`;
+						eventDiv.appendChild(displayNotes);
 
 						eventDiv.classList.add('event');
 						eventDiv.style.backgroundColor = periodEvent.color;
@@ -460,6 +469,7 @@
 	    document.getElementById('pianos').value = periodEvent.pianos;
 	    document.getElementById('av').value = periodEvent.av;
 	    document.getElementById('half-period').checked = periodEvent.half_period;
+	    document.getElementById('display-notes').value = periodEvent.display_notes;
 	}
 
 	async function fillRoomModal(roomId) {
@@ -906,7 +916,7 @@
 			.filter(e => {
 				if (
 					e.day != day ||
-					e.schedule_id === parseInt(ignoredId) ||
+					e.schedule_id == ignoredId ||
 					!Array.isArray(e.instructor_ids) ||
 					e.instructor_ids.length === 0 ||
 					!instructorId

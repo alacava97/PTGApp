@@ -4,7 +4,6 @@
 	- Class reviews
 	
 - Sponsor report/dashboard
-- Update half scheduling to occupy only half of block
 
 Next year:
 -Class Proposals
