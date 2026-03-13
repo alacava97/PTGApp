@@ -311,6 +311,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       classes.title,
       classes.level,
       classes.length,
+      classes.special_equipment,
       types.type AS type,
       COALESCE(
         string_agg(
@@ -342,7 +343,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
       LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
       LEFT JOIN types ON types.id = classes.type
-      GROUP BY classes.id, classes.title, classes.level, types.type
+      GROUP BY classes.id, classes.title, classes.level, types.type, classes.special_equipment
       ORDER BY classes.id;
   `;
   } else if (table ==='instructors') {
@@ -616,6 +617,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         classes.length,
         classes.av,
         classes.short_title,
+        classes.special_equipment,
         types.type,
         types.color,
         rooms.name as room,
@@ -664,6 +666,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
           classes.length,
           classes.av,
           classes.short_title,
+          classes.special_equipment,
           types.color,
           types.type,
           room,

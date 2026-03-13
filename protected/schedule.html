@@ -676,11 +676,11 @@
 
 		const infoDD = document.createElement('select');
 		infoDD.classList.add('year-select');
-		const infoOptions = ['Pianos', 'AV', 'Notes'];
+		const infoOptions = ['Pianos', 'AV', 'Notes', 'Special Equipment'];
 		infoOptions.forEach((option) => {
 			const selectOption = document.createElement('option');
 			selectOption.textContent = option;
-			selectOption.value = option.toLowerCase();
+			selectOption.value = option.toLowerCase().split(' ').join('_');
 			infoDD.appendChild(selectOption);
 		});
 
