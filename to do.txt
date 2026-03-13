@@ -32,4 +32,4 @@ Next year:
 	-Comments/reviews
 
 
-How to transfer proposals to database once approved? Maybe a field in the prop-info page to link proposal to instructor and or class?
+Encode instructor ids and email each instructor a unique link to submit class proposals. Unique prop forms should dropdown classes associated with that instructor and record instructor info.
