@@ -3,7 +3,6 @@
 	- Password reset emailing
 	- Class reviews
 	
-- Convention setup page
 - Make schedule page insert year when creating new items. Update backend to match
 - Add special needs to schedule dropdown
 - Create sponsor table and make class sponsors a dropdown
@@ -25,6 +24,7 @@ Next year:
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 	-Fix class prop graph to order by visible data rather than the whole set
+- Convention setup pages
 
 -Instructor login
 	-Include classes in instructor profiles so classes can be resubmitted each year

@@ -324,6 +324,17 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       ),
       'No instructors'
       )AS instructor_name,
+      COALESCE(
+        array_agg(
+          instructors.name ||
+          CASE
+            WHEN instructors.rpt IS NOT NULL AND instructors.rpt = TRUE
+          THEN ', RPT'
+          ELSE ''
+          END
+        ),
+        ARRAY[]::text[]
+      )AS instructors,
       array_agg(DISTINCT instructors.id)
           FILTER (WHERE instructors.id IS NOT NULL)
           AS instructor_ids

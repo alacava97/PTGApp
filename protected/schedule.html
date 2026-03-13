@@ -532,9 +532,17 @@
 		);
 
 		if (instConflict) {
-			alert(
-				`Cannot schedule "${selectedClass.title}" because ${instConflict.instructor_name} is already scheduled in ${instConflict.room}`
-			);
+			const instructors = instConflict.instructors.filter(i => selectedClass.instructors.includes(i));
+			if (instructors.length == 1) {
+				alert(
+					`Cannot schedule "${selectedClass.title}" because ${instructors} is already scheduled in ${instConflict.room}`
+				);
+			} else if (instructors.length > 1) {
+				alert (
+					`Cannot schedule "${selectedClass.title}" because ${instructors.slice(0, -1)} and ${instructors.pop()} are already scheduled in ${instConflict.room}`
+				);
+			}
+			
 			return
 		}
 
@@ -588,16 +596,24 @@
 				day: updated.day,
 				period: updated.start_period,
 				length: activeEvent.length,
-				instructorId: activeEvent.instructor_id
+				instructorId: activeEvent.instructor_ids
 			},
 				schedule,
 			{ ignoredId: activeEvent.schedule_id }
 		);
 
 		if (instConflict) {
-			alert(
-				`Cannot move "${activeEvent.title}" because ${instConflict.instructor_name} is already scheduled in ${instConflict.room}`
-			);
+			const instructors = instConflict.instructors.filter(i => activeEvent.instructors.includes(i));
+			if (instructors.length == 1) {
+				alert(
+					`Cannot schedule "${activeEvent.title}" because ${instructors} is already scheduled in ${instConflict.room}`
+				);
+			} else if (instructors.length > 1) {
+				alert (
+					`Cannot schedule "${activeEvent.title}" because ${instructors.slice(0, -1)} and ${instructors.pop()} are already scheduled in ${instConflict.room}`
+				);
+			}
+			
 			return
 		}
 
@@ -871,8 +887,13 @@
 		{ day, instructorId, period, length },
 		schedule,
 		{ ignoredId = null } = {}
-	) {
-		const instructor = dataCache.instructors.filter(i => i.id == instructorId)[0];
+	) {	
+		let instructors = [];
+		instructorId.forEach(id => {
+			const instructor = dataCache.instructors.filter(i => i.id == id)[0];
+			instructors.push(instructor)
+		}); 
+
 		const newStart = Number(period);
 		const newEnd = newStart + Number(length) - 1;
 
@@ -883,13 +904,16 @@
 					e.schedule_id === parseInt(ignoredId) ||
 					!Array.isArray(e.instructor_ids) ||
 					e.instructor_ids.length === 0 ||
-					!instructorId ||
-					instructor.team == true
+					!instructorId
 				) {
 					return false;
-				} else {
-
 				}
+
+				instructors.forEach(i => {
+					if (i.team == false) {
+						return false;
+					}
+				})
 
 				return e.instructor_ids.some(id => instructorId.includes(id));
 			})
