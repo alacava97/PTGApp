@@ -2,8 +2,8 @@ function generateQRCode(url, container) {
     return new Promise(resolve => {
         const qr = new QRCode(container, {
         	text: url, 
-        	width: 256, 
-        	height: 256,
+        	width: 128, 
+        	height: 128,
 	        colorDark: "#000000",
 			colorLight: "#ffffff",
 			correctLevel: QRCode.CorrectLevel.H
