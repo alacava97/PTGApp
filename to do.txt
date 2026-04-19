@@ -4,7 +4,7 @@
 
 - Encode instructor ids and email each instructor a unique link to submit class proposals. Unique prop forms should dropdown classes associated with that instructor and record instructor info.
 
-- Clean up class label appearence. Use flex col to space things vertically and make the qr bigger.
+- Display short title on class info page
 
 - Things that require emailing
 	- Set up email server - Need to get a domain first and SSL

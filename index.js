@@ -13,6 +13,7 @@ const { requireLogin } = require('./middleware/requireLogin');
 const authRoutes = require('./routes/auth');
 const { getAllowedFields } = require('./utils/dbHelper');
 const { createRecord } = require('./services/crud');
+const { createPublicToken } = require('./services/token.js');
 
 const app = express();
 
@@ -170,17 +171,18 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
   const { class_id, day, start_period, room, year } = req.body;
   const userId = req.user.id;
   const client = await pool.connect();
+  const token = createPublicToken();
 
   try {
     await client.query('BEGIN');
 
     const { rows } = await client.query(
     `
-      INSERT INTO schedule (class_id, day, start_period, room_id, year)
-      VALUES ($1, $2, $3, $4, $5)
+      INSERT INTO schedule (class_id, day, start_period, room_id, year, public_token)
+      VALUES ($1, $2, $3, $4, $5, $6)
       RETURNING *
     `,
-      [class_id, day, start_period, room, year]
+      [class_id, day, start_period, room, year, token]
     );
     const record = rows[0];
 
@@ -590,6 +592,32 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
         WHERE
           classes.id = $1
       `, [id]);
+    } else if (table == 'schedule') {
+      result = await pool.query(`
+        SELECT
+          schedule.*,
+          COALESCE(
+            string_agg(
+              instructors.name ||
+              CASE
+                WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
+                THEN ', RPT'
+                ELSE ''
+              END,
+              ', '
+            ),
+            'No instructors'
+          ) AS instructor_name
+        FROM
+          schedule
+        LEFT JOIN
+          class_instructors ON schedule.class_id = class_instructors.class_id
+        LEFT JOIN
+          instructors ON instructors.id = class_instructors.instructor_id
+        WHERE
+          schedule.id = $1
+        GROUP BY schedule.id
+      `, [id]);
     } else {
       result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
     }
@@ -619,6 +647,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         schedule.pianos,
         schedule.half_period,
         schedule.display_notes,
+        schedule.public_token,
         classes.title,
         classes.length,
         classes.av,
@@ -669,6 +698,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
           schedule.pianos,
           schedule.half_period,
           schedule.display_notes,
+          schedule.public_token,
           classes.title,
           classes.length,
           classes.av,
@@ -899,6 +929,46 @@ app.get('/api/getOpenResponse/:id', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(`Error:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/public/schedule/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id AS schedule_id,
+        c.title AS class_title,
+        CASE
+          WHEN s.day = 3 THEN 'Wednesday'
+          WHEN s.day = 4 THEN 'Thursday'
+          WHEN s.day = 5 THEN 'Friday'
+          WHEN s.day = 6 THEN 'Saturday'
+          WHEN s.day = 7 THEN 'Sunday'
+          ELSE NULL
+        END AS day,
+        s.start_period,
+        r.name,
+        COALESCE(
+          string_agg(i.name, ', '),
+          'No instructors'
+        ) AS instructors
+      FROM schedule s
+      JOIN classes c ON c.id = s.class_id
+      LEFT JOIN class_instructors ci ON ci.class_id = s.class_id
+      LEFT JOIN instructors i ON i.id = ci.instructor_id
+      LEFT JOIN rooms r ON r.id = s.room_id
+      WHERE s.public_token = $1
+      GROUP BY s.id, c.title, r.name
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+    return res.status(404).json({ error: 'Not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error:', err);
     res.status(500).json({ error: 'Database query failed' });
   }
 });
@@ -1154,7 +1224,8 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     .join('\n');
 
   const combinedHtml = htmlList
-    .map(html => `<div class="print-page">${html}</div>`)
+    .filter(html => html && html.trim().length > 0)
+    .map(html => `<div class="print-page letter-size">${html}</div>`)
     .join('');
 
   const content = `

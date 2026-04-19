@@ -402,7 +402,7 @@ async function createLabel(data) {
 			<h3 id="period"></h3>
 			<h3 id="room"></h3>
 		</div>
-		<div id="qrcode"></div>
+		<div id="qrcode" class="qrcode"></div>
 		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
 	`;
 
@@ -413,11 +413,17 @@ async function createLabel(data) {
 	const room = label.querySelector('#room');
 	const qrCodeDiv = label.querySelector('#qrcode');
 
-	const names = data.instructors.join(', ');
+	let names
+
+	if (Array.isArray(data.instructor_name)) {
+		names = data.instructor_name.join(', ');
+	} else {
+		names = data.instructor_name;
+	}
 
 	const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-	title.textContent = data.title;
+	title.textContent = data.short_title ? data.short_title : data.title;
 	inst.textContent = names;
 	day.textContent = days[data.day-3];
 	if (data.half_period == true) {
@@ -427,7 +433,7 @@ async function createLabel(data) {
 	}
 	room.textContent = data.room;
 
-	await generateQRCode(`/class-review.html?id=${data.schedule_id}`, qrCodeDiv);
+	await generateQRCode(`myptginstitute.com/public/class-review.html?id=${data.public_token}`, qrCodeDiv);
 
 	return label;
 }

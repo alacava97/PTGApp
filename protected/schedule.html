@@ -461,7 +461,7 @@
 	    DOM.classTitle.href = `/class-info.html?id=${periodEvent.class_id}`
 
 	    DOM.instructor.textContent = periodEvent.instructors;
-	    DOM.classInfo.href = `/public/class-review.html?id=${periodEvent.schedule_id}`
+	    DOM.classInfo.href = `/public/class-review.html?id=${periodEvent.public_token}`
 	    DOM.day.value = periodEvent.day;
 	    DOM.period.value = periodEvent.start_period;
 	    DOM.roomDropdown.value = periodEvent.room_id;
@@ -845,7 +845,7 @@
 	            const eventId = box.closest('.event').id;
 	            const data = schedule.find(event => event.schedule_id == eventId);
 	            if (data) {
-	                const label = await createLabel(data); // wait for QR code
+	                const label = await createLabel(data);
 	                toPrint.push(label);
 	            }
 	        }

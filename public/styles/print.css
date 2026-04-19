@@ -3,14 +3,20 @@ input[type="checkbox"] {
 }
 
 .print-page {
-  page-break-after: always;
-  break-after: page;
+  break-before: page;
+  page-break-before: always;
 }
 
 .print-page:last-child {
-  page-break-after: auto;
+  break-before: auto;
+  page-break-before: auto;
 }
 
 .no-print {
   display: none !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
 }

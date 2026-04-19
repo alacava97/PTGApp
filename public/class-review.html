@@ -15,6 +15,13 @@
 	<div class="main-content">
 		<h1>Class Feedback</h1>
 		<h2 id="class-title"></h2>
+		<h3 id="instructor"></h3>
+		<div id="dpr">
+			<h3 id="day"></h3>
+			<h3 id="period"></h3>
+			<h3 id="room"></h3>
+		</div>
+
 		<form id="star-form" class="center-form">
 			<div class="rating-widget">
 				<h3>I would recommend this class to a colleague.</h3>
@@ -193,15 +200,43 @@
 <script src="/public/js/script.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const classData = await readEntry('classes', getId());
-		document.getElementById('class-title').textContent = classData.title;
-		const form = document.getElementById('star-form');
-		form.addEventListener('submit', async (e) => {
-			e.preventDefault();
-			const data = parseForm(form);
-			data['schedule_id'] = getId();
-			const review = await create('reviews', data);
-			console.log(review);
-		})
+		const token = getId();
+
+		fetch(`/api/public/schedule/${token}`)
+			.then(res => res.json())
+			.then(data => {
+				populateReviewForm(data);
+				console.log(data);
+			});
 	});
+
+	function populateReviewForm(data) {
+		document.getElementById('class-title').textContent = data.class_title;
+		document.getElementById('instructor').textContent = data.instructors;
+		document.getElementById('day').textContent = data.day;
+		document.getElementById('period').textContent = `Period ${data.start_period}`;
+		document.getElementById('room').textContent = data.name;
+
+		const form = document.getElementById('star-form');
+		form.onsubmit = async (e) => {
+			e.preventDefault();
+			try {
+				const formData = parseForm(form);
+				formData.schedule_id = data.schedule_id;
+				formData.created_at = new Date();
+				const res = await create('reviews', formData);
+
+				if (!res || res.error) {
+					alert('Failed to submit review. Please try again.');
+					return;
+				}
+
+				alert('Review submitted successfully!');
+				form.reset();
+			} catch(err) {
+				console.error('Review submission error:', err);
+				alert('Something went wrong submitting your review');
+			}
+		};
+	}
 </script>
