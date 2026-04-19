@@ -65,6 +65,7 @@ async function loadClassData(classId) {
 
 function setupTitle(classRecord, classId) {
 	const title = document.getElementById('class-title');
+	const subtitle = document.getElementById('short-title');
 
 	const modal = new Modal('title-modal');
 	modal.content(`
@@ -72,8 +73,8 @@ function setupTitle(classRecord, classId) {
 		<form>
 			<input type="text" name="title" id="title-input">
 			<div class="seperator"></div>
-			<label for="short-title">Short title
-				<input type="text" name="short_title" id="short-title">
+			<label for="short-title-input">Short title
+				<input type="text" name="short_title" id="short-title-input">
 			</label>
 			<div class="seperator"></div>
 			<button type="submit">Submit</button>
@@ -84,10 +85,11 @@ function setupTitle(classRecord, classId) {
 	let shortTitle = classRecord.short_title || '';
 
 	title.textContent = `${classRecord.title} ✎`;
+	subtitle.textContent = `${classRecord.short_title || ''}`
 	title.addEventListener('click', () => {
 		modal.show();
 		document.getElementById('title-input').value = classTitle;
-		document.getElementById('short-title').value = shortTitle;
+		document.getElementById('short-title-input').value = shortTitle;
 	});
 
 	modal.formSubmit(async () => {
@@ -95,6 +97,7 @@ function setupTitle(classRecord, classId) {
 		title.textContent = `${updated.title} ✎`;
 		classTitle = updated.title;
 		shortTitle = updated.short_title || '';
+		subtitle.textContent = updated.short_title || '';
 	}, 'classes');
 }
 

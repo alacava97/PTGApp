@@ -115,6 +115,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 
       toDisplay = record.name;
     } else if (table === 'instructors') {
+      data.public_token = createPublicToken();
       record = await createRecord({ table, data, returning: ['*'] }, client);
       toDisplay = `Created new instructor: '${record.name}'`;
     } else {
