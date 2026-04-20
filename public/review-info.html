@@ -83,7 +83,14 @@
 			row.static();
 			row.addTitle(`${event.location_name} - ${event.year}`);
 			row.addSubtitle(`${event.day} - Period ${event.period} - ${event.name}`);
-			row.addSubtitle(`${or.length} reviews`)
+
+			const areAllNull = Array.from({ length: 8 }, (_, i) => `q${i + 1}`)
+  				.every(key => event[key] === null);
+  				
+  			if (!areAllNull) {
+				row.addSubtitle(`${or.length} reviews`)
+  			}
+
 			let q = []
 			const questions = {
 				1: 'I would recommend this class to a colleague.',
@@ -96,26 +103,27 @@
 				8: 'This class will be a standout favorite from the convention.'
 			}
 			const ratings = document.createElement('div');
-			const ratingTitles = document.createElement('div');
 			ratings.classList.add('rating-row');
-			ratingTitles.classList.add('rating-title-row');
-			const areAllNull = Array.from({ length: 8 }, (_, i) => `q${i + 1}`)
-  				.every(key => event[key] === null);
 			if (areAllNull) {
 				ratings.textContent = 'There are no reviews yet for this class.';
 			} else {
 				for (let i = 1; i < 9; i++) {
-					q[i] = document.createElement('div');
-					q[i].innerHTML = `${event[`q${i}`]}`;
-					ratings.appendChild(q[i]);
+					const ratingEl = document.createElement('div');
+					ratingEl.classList.add('q');
 
-					const title = document.createElement('div');
-					title.textContent = questions[i];
-					ratingTitles.appendChild(title);
+					const qTitle = document.createElement('div');
+					qTitle.classList.add('q-title');
+					qTitle.textContent = questions[i];
+					ratingEl.appendChild(qTitle);
+
+					q[i] = document.createElement('div');
+					q[i].classList.add('q-avg');
+					q[i].innerHTML = `${event[`q${i}`]}`;
+					ratingEl.appendChild(q[i]);
+
+					ratings.appendChild(ratingEl);
 				}
 			}
-
-			row.row.appendChild(ratingTitles);
 			row.row.appendChild(ratings);	
 
 			const sep = document.createElement('div');
