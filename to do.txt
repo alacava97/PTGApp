@@ -1,11 +1,9 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
 - Convention setup pages
-
-- Encode instructor ids and email each instructor a unique link to submit class proposals. Unique prop forms should dropdown classes associated with that instructor and record instructor info.
+- Mobile layout for review page
 
 - Things that require emailing
-	- Set up email server - Need to get a domain first and SSL
 	- Password reset emailing
 	- Class reviews
 	- Button to send second form for approved classes w/ consent to teach (from home office)
@@ -18,3 +16,4 @@
 		-mark "email sent" in db
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
+	-Send instructors class review page

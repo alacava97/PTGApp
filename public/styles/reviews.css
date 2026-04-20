@@ -68,7 +68,21 @@ form > button {
 .rating-row {
   display: flex;
   flex-direction: row;
+  justify-content: space-around;
+}
+
+.rating-title-row {
+  display: flex;
+  flex-direction: row;
   justify-content: space-between;
+  gap: 10px;
+}
+
+.rating-title-row > * {
+  font-style: italic;
+  font-size: 12px;
+  text-align: center;
+  flex: 1;
 }
 
 .rating-row > * {

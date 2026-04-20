@@ -51,7 +51,7 @@ async function loadClassData(classId) {
 		pianoSetup(classRecord);
 		setupSponsor(classRecord, sponsors);
 		setupNotes(classRecord);
-		setupHistory(classHistory, classId);
+		setupHistory(classHistory, classRecord);
 		await setupInstructors(instructors, classId);
 
 	} catch (err) {
@@ -811,7 +811,7 @@ function setupSponsor(classRecord, sponsors) {
    History
 ----------------------------- */
 
-function setupHistory(classHistory, classId) {
+function setupHistory(classHistory, classRecord) {
 	const container = document.getElementById('history');
 	container.innerHTML = '';
 	let history = classHistory;
@@ -824,7 +824,7 @@ function setupHistory(classHistory, classId) {
 		history.forEach(year => {
 			row.addSubtitle(`Taught ${year.times_taught}${year.times_taught == 1?' time':' times'} in ${year.year} - ${formatRating(year.rating) || 'No data'}/5 ★`);
 		});
-		row.addArrow(`/public/review-info.html?id=${classId}`);
+		row.addArrow(`/public/review-info.html?id=${classRecord.public_token}`);
 	}
 	container.appendChild(row.row);
 }

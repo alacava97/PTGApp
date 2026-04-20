@@ -825,8 +825,8 @@ app.get('/api/getPropTypes', async (req, res) => {
   }
 });
 
-app.get('/api/getReviews/:id', async (req, res) => {
-  const id = req.params.id;
+app.get('/api/public/getReviews/:token', async (req, res) => {
+  const token = req.params.token;
 
   try {
     const reviews = await pool.query(`
@@ -835,9 +835,11 @@ app.get('/api/getReviews/:id', async (req, res) => {
         reviews
       JOIN
         schedule ON reviews.schedule_id = schedule.id
+      LEFT JOIN
+        classes ON classes.id = schedule.class_id
       WHERE
-        schedule.class_id = $1;`,
-      [id]
+        classes.public_token = $1;`,
+      [token]
     );
 
     const result = await pool.query(`
@@ -883,7 +885,7 @@ app.get('/api/getReviews/:id', async (req, res) => {
       LEFT JOIN
         reviews ON schedule.id = reviews.schedule_id
       WHERE
-        schedule.class_id = $1
+        classes.public_token = $1
       GROUP BY 
           schedule.id,
           schedule.class_id,
@@ -895,7 +897,7 @@ app.get('/api/getReviews/:id', async (req, res) => {
           locations.location_name
       ORDER BY
         conventions.year ASC
-    `, [id]);
+    `, [token]);
 
     res.json({ res: result.rows, reviews: reviews.rows });
   } catch (err) {
@@ -904,8 +906,8 @@ app.get('/api/getReviews/:id', async (req, res) => {
   }
 });
 
-app.get('/api/getOpenResponse/:id', async (req, res) => {
-  const id = req.params.id;
+app.get('/api/public/getOpenResponse/:token', async (req, res) => {
+  const token = req.params.token;
   
   try {
     const result = await pool.query(`
@@ -917,15 +919,17 @@ app.get('/api/getOpenResponse/:id', async (req, res) => {
         schedule
       LEFT JOIN
         reviews ON schedule.id = reviews.schedule_id
+      LEFT JOIN
+        classes ON schedule.class_id = classes.id
       WHERE
-        schedule.class_id = $1
+        classes.public_token = $1
       GROUP BY 
           schedule.id,
           schedule.class_id,
           reviews.q9
       ORDER BY
         schedule_id ASC
-    `, [id]);
+    `, [token]);
 
     res.json(result.rows);
   } catch (err) {

@@ -35,13 +35,13 @@
 	----------------------------- */
 
 	async function fetchReviews(classId) {
-		const res = await fetch(`/api/getReviews/${classId}`);
+		const res = await fetch(`/api/public/getReviews/${classId}`);
 		if (!res.ok) throw new Error('Network error');
 		return res.json();
 	}
 
 	async function fetchOpenResponse(classId) {
-		const res = await fetch(`/api/getOpenResponse/${classId}`);
+		const res = await fetch(`/api/public/getOpenResponse/${classId}`);
 		if (!res.ok) throw new Error('Network error');
 		return res.json();
 	}	
@@ -96,18 +96,27 @@
 				8: 'This class will be a standout favorite from the convention.'
 			}
 			const ratings = document.createElement('div');
+			const ratingTitles = document.createElement('div');
 			ratings.classList.add('rating-row');
-			for (let i = 1; i < 9; i++) {
-				q[i] = document.createElement('div');
-				q[i].classList.add('tooltip');
-				const tooltip = document.createElement('span');
-				tooltip.classList.add('tooltiptext');
-				tooltip.textContent = questions[i];
-				q[i].innerHTML = `${event[`q${i}`]}`;
-				q[i].appendChild(tooltip);
-				ratings.appendChild(q[i]);
+			ratingTitles.classList.add('rating-title-row');
+			const areAllNull = Array.from({ length: 8 }, (_, i) => `q${i + 1}`)
+  				.every(key => event[key] === null);
+			if (areAllNull) {
+				ratings.textContent = 'There are no reviews yet for this class.';
+			} else {
+				for (let i = 1; i < 9; i++) {
+					q[i] = document.createElement('div');
+					q[i].innerHTML = `${event[`q${i}`]}`;
+					ratings.appendChild(q[i]);
+
+					const title = document.createElement('div');
+					title.textContent = questions[i];
+					ratingTitles.appendChild(title);
+				}
 			}
-			row.row.appendChild(ratings);
+
+			row.row.appendChild(ratingTitles);
+			row.row.appendChild(ratings);	
 
 			const sep = document.createElement('div');
 			sep.classList.add('seperator');
