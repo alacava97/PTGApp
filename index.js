@@ -48,6 +48,159 @@ app.use(
 app.use('/auth', authRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
+app.get('/api/public/getReviews/:token', async (req, res) => {
+  const token = req.params.token;
+
+  try {
+    const reviews = await pool.query(`
+      SELECT *
+      FROM
+        reviews
+      JOIN
+        schedule ON reviews.schedule_id = schedule.id
+      LEFT JOIN
+        classes ON classes.id = schedule.class_id
+      WHERE
+        classes.public_token = $1;`,
+      [token]
+    );
+
+    const result = await pool.query(`
+      SELECT 
+        schedule.id as schedule_id,
+        schedule.class_id,
+        schedule.start_period AS period,
+        rooms.name,
+        classes.title,
+        COALESCE(string_agg(DISTINCT instructors.name, ', '), 'No instructors') as instructors,
+        conventions.year,
+        ROUND(AVG((reviews.q1)::numeric), 1) AS q1,
+        ROUND(AVG((reviews.q2)::numeric), 1) AS q2,
+        ROUND(AVG((reviews.q3)::numeric), 1) AS q3,
+        ROUND(AVG((reviews.q4)::numeric), 1) AS q4,
+        ROUND(AVG((reviews.q5)::numeric), 1) AS q5,
+        ROUND(AVG((reviews.q6)::numeric), 1) AS q6,
+        ROUND(AVG((reviews.q7)::numeric), 1) AS q7,
+        ROUND(AVG((reviews.q8)::numeric), 1) AS q8,
+        CASE
+          WHEN schedule.day = 3 THEN 'Wednesday'
+          WHEN schedule.day = 4 THEN 'Thursday'
+          WHEN schedule.day = 5 THEN 'Friday'
+          WHEN schedule.day = 6 THEN 'Saturday'
+          WHEN schedule.day = 7 THEN 'Sunday'
+          ELSE NULL
+        END AS day,
+        locations.location_name
+      FROM
+        schedule
+      JOIN
+        classes ON classes.id = schedule.class_id
+      LEFT JOIN
+        class_instructors ON classes.id = class_instructors.class_id
+      LEFT JOIN
+        instructors ON class_instructors.instructor_id = instructors.id
+      LEFT JOIN
+        rooms ON schedule.room_id = rooms.id
+      LEFT JOIN
+        locations ON rooms.location_id = locations.id
+      LEFT JOIN
+        conventions ON locations.id = conventions.location_id
+      LEFT JOIN
+        reviews ON schedule.id = reviews.schedule_id
+      WHERE
+        classes.public_token = $1
+      GROUP BY 
+          schedule.id,
+          schedule.class_id,
+          schedule.day,
+          rooms.name,
+          schedule.start_period,
+          classes.title,
+          conventions.year,
+          locations.location_name
+      ORDER BY
+        conventions.year ASC
+    `, [token]);
+
+    res.json({ res: result.rows, reviews: reviews.rows });
+  } catch (err) {
+    console.error(`Error:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/public/getOpenResponse/:token', async (req, res) => {
+  const token = req.params.token;
+  
+  try {
+    const result = await pool.query(`
+      SELECT 
+        schedule.id as schedule_id,
+        schedule.class_id,
+        reviews.q9
+      FROM
+        schedule
+      LEFT JOIN
+        reviews ON schedule.id = reviews.schedule_id
+      LEFT JOIN
+        classes ON schedule.class_id = classes.id
+      WHERE
+        classes.public_token = $1
+      GROUP BY 
+          schedule.id,
+          schedule.class_id,
+          reviews.q9
+      ORDER BY
+        schedule_id ASC
+    `, [token]);
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/public/schedule/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        s.id AS schedule_id,
+        c.title AS class_title,
+        CASE
+          WHEN s.day = 3 THEN 'Wednesday'
+          WHEN s.day = 4 THEN 'Thursday'
+          WHEN s.day = 5 THEN 'Friday'
+          WHEN s.day = 6 THEN 'Saturday'
+          WHEN s.day = 7 THEN 'Sunday'
+          ELSE NULL
+        END AS day,
+        s.start_period,
+        r.name,
+        COALESCE(
+          string_agg(i.name, ', '),
+          'No instructors'
+        ) AS instructors
+      FROM schedule s
+      JOIN classes c ON c.id = s.class_id
+      LEFT JOIN class_instructors ci ON ci.class_id = s.class_id
+      LEFT JOIN instructors i ON i.id = ci.instructor_id
+      LEFT JOIN rooms r ON r.id = s.room_id
+      WHERE s.public_token = $1
+      GROUP BY s.id, c.title, r.name
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+    return res.status(404).json({ error: 'Not found' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
 app.use(requireLogin);
 app.use(express.static(path.join(__dirname, 'protected')));
 
@@ -821,159 +974,6 @@ app.get('/api/getPropTypes', async (req, res) => {
     res.json(result.rows);
   } catch (err) {
     console.error(`Error:`, err);
-    res.status(500).json({ error: 'Database query failed' });
-  }
-});
-
-app.get('/api/public/getReviews/:token', async (req, res) => {
-  const token = req.params.token;
-
-  try {
-    const reviews = await pool.query(`
-      SELECT *
-      FROM
-        reviews
-      JOIN
-        schedule ON reviews.schedule_id = schedule.id
-      LEFT JOIN
-        classes ON classes.id = schedule.class_id
-      WHERE
-        classes.public_token = $1;`,
-      [token]
-    );
-
-    const result = await pool.query(`
-      SELECT 
-        schedule.id as schedule_id,
-        schedule.class_id,
-        schedule.start_period AS period,
-        rooms.name,
-        classes.title,
-        COALESCE(string_agg(DISTINCT instructors.name, ', '), 'No instructors') as instructors,
-        conventions.year,
-        ROUND(AVG((reviews.q1)::numeric), 1) AS q1,
-        ROUND(AVG((reviews.q2)::numeric), 1) AS q2,
-        ROUND(AVG((reviews.q3)::numeric), 1) AS q3,
-        ROUND(AVG((reviews.q4)::numeric), 1) AS q4,
-        ROUND(AVG((reviews.q5)::numeric), 1) AS q5,
-        ROUND(AVG((reviews.q6)::numeric), 1) AS q6,
-        ROUND(AVG((reviews.q7)::numeric), 1) AS q7,
-        ROUND(AVG((reviews.q8)::numeric), 1) AS q8,
-        CASE
-          WHEN schedule.day = 3 THEN 'Wednesday'
-          WHEN schedule.day = 4 THEN 'Thursday'
-          WHEN schedule.day = 5 THEN 'Friday'
-          WHEN schedule.day = 6 THEN 'Saturday'
-          WHEN schedule.day = 7 THEN 'Sunday'
-          ELSE NULL
-        END AS day,
-        locations.location_name
-      FROM
-        schedule
-      JOIN
-        classes ON classes.id = schedule.class_id
-      LEFT JOIN
-        class_instructors ON classes.id = class_instructors.class_id
-      LEFT JOIN
-        instructors ON class_instructors.instructor_id = instructors.id
-      LEFT JOIN
-        rooms ON schedule.room_id = rooms.id
-      LEFT JOIN
-        locations ON rooms.location_id = locations.id
-      LEFT JOIN
-        conventions ON locations.id = conventions.location_id
-      LEFT JOIN
-        reviews ON schedule.id = reviews.schedule_id
-      WHERE
-        classes.public_token = $1
-      GROUP BY 
-          schedule.id,
-          schedule.class_id,
-          schedule.day,
-          rooms.name,
-          schedule.start_period,
-          classes.title,
-          conventions.year,
-          locations.location_name
-      ORDER BY
-        conventions.year ASC
-    `, [token]);
-
-    res.json({ res: result.rows, reviews: reviews.rows });
-  } catch (err) {
-    console.error(`Error:`, err);
-    res.status(500).json({ error: 'Database query failed' });
-  }
-});
-
-app.get('/api/public/getOpenResponse/:token', async (req, res) => {
-  const token = req.params.token;
-  
-  try {
-    const result = await pool.query(`
-      SELECT 
-        schedule.id as schedule_id,
-        schedule.class_id,
-        reviews.q9
-      FROM
-        schedule
-      LEFT JOIN
-        reviews ON schedule.id = reviews.schedule_id
-      LEFT JOIN
-        classes ON schedule.class_id = classes.id
-      WHERE
-        classes.public_token = $1
-      GROUP BY 
-          schedule.id,
-          schedule.class_id,
-          reviews.q9
-      ORDER BY
-        schedule_id ASC
-    `, [token]);
-
-    res.json(result.rows);
-  } catch (err) {
-    console.error(`Error:`, err);
-    res.status(500).json({ error: 'Database query failed' });
-  }
-});
-
-app.get('/api/public/schedule/:token', async (req, res) => {
-  try {
-    const result = await pool.query(`
-      SELECT
-        s.id AS schedule_id,
-        c.title AS class_title,
-        CASE
-          WHEN s.day = 3 THEN 'Wednesday'
-          WHEN s.day = 4 THEN 'Thursday'
-          WHEN s.day = 5 THEN 'Friday'
-          WHEN s.day = 6 THEN 'Saturday'
-          WHEN s.day = 7 THEN 'Sunday'
-          ELSE NULL
-        END AS day,
-        s.start_period,
-        r.name,
-        COALESCE(
-          string_agg(i.name, ', '),
-          'No instructors'
-        ) AS instructors
-      FROM schedule s
-      JOIN classes c ON c.id = s.class_id
-      LEFT JOIN class_instructors ci ON ci.class_id = s.class_id
-      LEFT JOIN instructors i ON i.id = ci.instructor_id
-      LEFT JOIN rooms r ON r.id = s.room_id
-      WHERE s.public_token = $1
-      GROUP BY s.id, c.title, r.name
-    `, [req.params.token]);
-
-    if (!result.rows.length) {
-    return res.status(404).json({ error: 'Not found' });
-    }
-
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.error('Error:', err);
     res.status(500).json({ error: 'Database query failed' });
   }
 });
