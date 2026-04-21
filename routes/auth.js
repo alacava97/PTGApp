@@ -108,7 +108,7 @@ router.post('/password-reset', async (req, res) => {
     await pool.query('UPDATE users SET reset_token = $1, reset_expires = NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
 
     const transporter = nodemailer.createTransport({
-      host: 'mail.myptginstitute.com',
+      host: 'smtp.titan.email',
       port: 465,
       secure: true,
       auth: {
