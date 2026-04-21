@@ -120,7 +120,7 @@ router.post('/password-reset', async (req, res) => {
     const resetLink = ``;
 
     const mailOptions = {
-      from: '"PTG Institute Team" <alacava97@gmail.com>',
+      from: `"PTG Institute Team" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'PTG Institute Password Reset',
       html: `
@@ -130,14 +130,10 @@ router.post('/password-reset', async (req, res) => {
       `
     }
 
-    await transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error('Error sending mail:', error);
-        return res.status(500).json({ message: 'Failed to send reset email.' });
-      }
-      console.log('Email sent:', info.response);
-      return res.json(genericResponse);
-    });
+    const info = await transporter.sendMail(mailOptions);
+
+    return res.json(genericResponse);
+
   } catch (err) {
     console.error('Error:', err);
     return res.status(500).json({ error: 'Internal server error' });
