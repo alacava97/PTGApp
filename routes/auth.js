@@ -15,6 +15,16 @@ const resetLimiter = rateLimit({
   }
 });
 
+const transporter = nodemailer.createTransport({
+  host: 'smtp.titan.email',
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
+
 // --- LOGIN ---
 router.post('/login', async (req, res) => {
   try {
@@ -106,44 +116,56 @@ router.post('/password-reset', resetLimiter, async (req, res) => {
       return res.status(400).json({ error: 'Email is required.' });
     }
 
-    const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+    const result = await pool.query(
+      'SELECT id, last_reset_request, reset_expires, reset_token FROM users WHERE email = $1',
+      [email]
+    );
+
     const user = result.rows[0];
 
-    const genericResponse = { message: 'If an account with that email exists, a password reset link has been sent.' };
+    const genericResponse = {
+      message: 'If an account with that email exists, a password reset link has been sent.'
+    };
 
     if (!user) return res.json(genericResponse);
 
-    const token = crypto.randomBytes(32).toString('hex');
-    await pool.query('UPDATE users SET reset_token = $1, last_reset_request = NOW(), reset_expires = NOW() + INTERVAL \'1 hour\'  WHERE id = $2', [token, user.id]);
-
-    if (user && user.last_reset_request && new Date() - new Date(user.last_reset_request).getTime() < 5 * 60 * 1000) {
+    if (
+      user.last_reset_request &&
+      Date.now() - new Date(user.last_reset_request).getTime() < 5 * 60 * 1000
+    ) {
       return res.json(genericResponse);
     }
 
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.titan.email',
-      port: 465,
-      secure: true,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
+    let token = user.reset_token;
 
-    const resetLink = ``;
+    if (!user.reset_expires || new Date(user.reset_expires) < new Date()) {
+      token = crypto.randomBytes(32).toString('hex');
 
-    const mailOptions = {
+      await pool.query(
+        `UPDATE users 
+         SET reset_token = $1, last_reset_request = NOW(), reset_expires = NOW() + INTERVAL '1 hour' 
+         WHERE id = $2`,
+        [token, user.id]
+      );
+    } else {
+      await pool.query(
+        `UPDATE users SET last_reset_request = NOW() WHERE id = $1`,
+        [user.id]
+      );
+    }
+
+    const resetLink = `https://myptginstitute.com/reset-password?token=${token}`;
+
+    await transporter.sendMail({
       from: `"PTG Institute Team" <${process.env.EMAIL_USER}>`,
       to: email,
       subject: 'PTG Institute Password Reset',
       html: `
         <p>A request has been made to reset your PTG Institute password.</p>
         <p><a href="${resetLink}">Click here to reset your password</a></p>
-        <p>If you didn't make this request, please contact a system administrator.</p>
+        <p>If you didn't make this request, please ignore this email.</p>
       `
-    }
-
-    const info = await transporter.sendMail(mailOptions);
+    });
 
     return res.json(genericResponse);
 
