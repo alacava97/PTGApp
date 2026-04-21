@@ -16,10 +16,6 @@
 		-Automatic deadline reminders 1 week before and day of
 	-Send instructors class review page
 
-Password reset emailing workflow:
-	-Link sends user to page to input new password
-	-On success, send user back to login page.
-
 -color block doesn't print instructor name
 -color block lines are too big
 -list of instructor/av needs in chronological order for Bruce
