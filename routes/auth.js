@@ -114,7 +114,7 @@ router.post('/password-reset', resetLimiter, async (req, res) => {
     if (!user) return res.json(genericResponse);
 
     const token = crypto.randomBytes(32).toString('hex');
-    await pool.query('UPDATE users SET reset_token = $1, last_reset_request = NOW(), reset_expires = NOW() + INTERVAL \'1 hour\',  WHERE id = $2', [token, user.id]);
+    await pool.query('UPDATE users SET reset_token = $1, last_reset_request = NOW(), reset_expires = NOW() + INTERVAL \'1 hour\'  WHERE id = $2', [token, user.id]);
 
     if (user && user.last_reset_request && new Date() - new Date(user.last_reset_request).getTime() < 5 * 60 * 1000) {
       return res.json(genericResponse);
