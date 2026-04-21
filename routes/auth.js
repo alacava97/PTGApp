@@ -89,7 +89,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/password', async (req, res) => {
+router.post('/password-reset', async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -100,7 +100,7 @@ router.post('/password', async (req, res) => {
     const result = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
     const user = result.rows[0];
 
-    const genericResponse = { message: 'If an account with that email exists, a reset link has been sent.' };
+    const genericResponse = { message: 'If an account with that email exists, a password reset link has been sent.' };
 
     if (!user) return res.json(genericResponse);
 
@@ -108,7 +108,10 @@ router.post('/password', async (req, res) => {
     await pool.query('UPDATE users SET reset_token = $1, reset_expires = NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
 
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'myptginstitute.com',
+      port: 465,
+      secure: true,
+      service: 'mail.myptginstitute.com',
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS

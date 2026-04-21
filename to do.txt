@@ -1,10 +1,8 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
 - Convention setup pages
-- Mobile layout for review page
 
 - Things that require emailing
-	- Password reset emailing
 	- Class reviews
 	- Button to send second form for approved classes w/ consent to teach (from home office)
 	- Second form copy of shared google form
@@ -17,3 +15,18 @@
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 	-Send instructors class review page
+
+Password reset emailing workflow:
+	-If email exists in user list, send password reset email w/ link to new page - currently working out backend email error.
+	-Link sends user to page to input new password
+	-On success, send user back to login page.
+
+-color block doesn't print instructor name
+-color block lines are too big
+-list of instructor/av needs in chronological order for Bruce
+-refine review page css
+-make color block class type colors update when changed
+-change 'delete class' to delete instructor on instructor page
+-bubble chart
+-fix color block overflow
+-suggestion form

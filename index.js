@@ -201,6 +201,60 @@ app.get('/api/public/schedule/:token', async (req, res) => {
   }
 });
 
+app.post('/api/public/createClassProposals', async (req, res) => {
+  const data = req.body;
+  data.created_at = new Date();
+
+  if (!data || Object.keys(data).length === 0) {
+    return res.status(400).json({ error: 'No valid fields provided' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const record = await createRecord(
+      { table: 'class_proposals', data, returning: ['*'] },
+      client
+    );
+
+    await client.query('COMMIT');
+
+    return res.json({
+      message: 'Submitted class proposal',
+      id: record.id,
+      record
+    });
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+
+    if (err.code === '23505') {
+      const errCol = err.constraint?.split('_')?.[1] || 'Field';
+      return res.status(400).json({ error: `${errCol} already exists.` });
+    }
+
+    console.error('Error inserting record:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+
+  } finally {
+    client.release();
+  }
+});
+
+app.get('/api/public/getTypes', async (req, res) => {
+  const query = `SELECT * FROM types ORDER BY position ASC`;
+
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching types:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.use(requireLogin);
 app.use(express.static(path.join(__dirname, 'protected')));
 
