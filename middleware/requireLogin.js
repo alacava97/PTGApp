@@ -4,11 +4,11 @@ function requireLogin(req, res, next) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    return res.redirect('public/login.html');
+    return res.redirect('/public/login.html');
   }
 
   if (req.session.user.role != 'admin') {
-    return res.redirect('public/login.html');
+    return res.redirect('/public/login.html');
   }
 
   req.user = req.session.user;
