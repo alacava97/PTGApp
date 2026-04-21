@@ -3,8 +3,17 @@ const bcrypt = require('bcrypt');
 const pool = require('../db/pool');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
 
 const router = express.Router();
+
+const resetLimiter = rateLimit({
+  windowsMs: 15 * 60 * 1000,
+  max: 5,
+  message: {
+    error: 'Too many password reset attempts. Please try again later.'
+  }
+});
 
 // --- LOGIN ---
 router.post('/login', async (req, res) => {
@@ -89,7 +98,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-router.post('/password-reset', async (req, res) => {
+router.post('/password-reset', resetLimiter, async (req, res) => {
   try {
     const { email } = req.body;
 
@@ -103,6 +112,9 @@ router.post('/password-reset', async (req, res) => {
     const genericResponse = { message: 'If an account with that email exists, a password reset link has been sent.' };
 
     if (!user) return res.json(genericResponse);
+    if (user && user.last_reset_request && new Date() - new Date(user.last_reset_request).getTime() < 5 * 60 * 1000) {
+      return res.json(genericResponse);
+    }
 
     const token = crypto.randomBytes(32).toString('hex');
     await pool.query('UPDATE users SET reset_token = $1, reset_expires = NOW() + INTERVAL \'1 hour\' WHERE id = $2', [token, user.id]);
