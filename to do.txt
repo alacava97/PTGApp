@@ -3,18 +3,19 @@
 - Convention setup pages
 
 - Things that require emailing
-	- Class reviews
 	- Button to send second form for approved classes w/ consent to teach (from home office)
-	- Second form copy of shared google form
-	- Column in db to mark 2nd form sent
-	- Column in db to mark 2nd form received
+		- Second form copy of shared google form
+		- Column in db to mark 2nd form sent
+		- Column in db to mark 2nd form received
 	- Approved class emailing
-	- Yes/no class proposals - only Corie has permission - delay send option
+	- Yes/no class proposals - only director has permission - delay send option
 		-"don't email" option in prop-info page
 		-mark "email sent" in db
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 	-Send instructors class review page
+		-Button in instructor record
+		-Button to send all
 
 -color block doesn't print instructor name
 -color block lines are too big
@@ -25,3 +26,4 @@
 -bubble chart
 -fix color block overflow
 -suggestion form
+-class attendance page
