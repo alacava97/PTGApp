@@ -34,3 +34,4 @@
 -prevent deleting rooms/class types/sponsors that have associated records
 -add other team members to dropdown on prop info page
 -lock closed conventions to perserve data
+-cascade delete classes from schedule (if a class is deleted, also remove it from the schedule)
