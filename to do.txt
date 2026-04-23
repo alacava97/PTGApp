@@ -1,7 +1,7 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
 - Convention setup pages
-	- release/close prop form
+	-release/close prop form
 	-year
 	-location
 	-rooms
@@ -31,7 +31,4 @@
 -fix color block overflow
 -suggestion form
 -class attendance page
--prevent deleting rooms/class types/sponsors that have associated records
 -add other team members to dropdown on prop info page
--lock closed conventions to perserve data
--cascade delete classes from schedule (if a class is deleted, also remove it from the schedule)

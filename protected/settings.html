@@ -246,10 +246,15 @@
 	      if (!confirm(`Delete this ${displayKey}?`)) return;
 
 	      try {
-	      	console.log(table);
-	      	console.log(id);
 	        const res = await fetch(`/api/delete/${table}/${id}`, { method: 'DELETE' });
-	        if (!res.ok) throw new Error('Delete failed');
+
+	        const data = await res.json();
+
+	        if (!res.ok) {
+	        	alert(data.error);
+	        	return;
+	        }
+
 	        li.remove();
 	      } catch (err) {
 	        console.error(`Delete ${displayKey} failed:`, err);

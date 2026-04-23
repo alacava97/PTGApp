@@ -1248,13 +1248,27 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const userId = req.user.id;
   const client = await pool.connect();
-    const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms', 'sponsors'];
+  const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms', 'sponsors'];
   if (!allowedTables.includes(table)) {
     return res.status(400).json({ error: `${table} is not allowed.` });
   }
 
   try {
     await client.query('BEGIN');
+
+    if (table === "types") {
+      const checkTypes = await client.query(`SELECT * FROM classes WHERE type = $1;`, [id]);
+      if (checkTypes.rowCount !== 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Type in use. Could not be deleted.' });
+      }
+    } else if (table === "rooms") {
+      const checkTypes = await client.query(`SELECT * FROM schedule WHERE room_id = $1;`, [id]);
+      if (checkTypes.rowCount !== 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Room in use. Could not be deleted.' });
+      }
+    }
 
     const { rows } = await client.query(`
       DELETE FROM ${table}

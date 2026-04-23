@@ -141,6 +141,7 @@
 			const years = conventions.map( convention => parseInt(convention.location_id));
 			const maxLocation = Math.max(...years);
 			ScheduleState.year_id = maxLocation;
+			ScheduleState.activeConvention = conventions.find(c => c.id == ScheduleState.year_id);
 
 			const data = await ScheduleAPI.load(maxLocation);
 			dataCache = data;
@@ -492,6 +493,11 @@
 	async function handleCreateSubmit(e) {
 		e.preventDefault();
 
+		if (ScheduleState.activeConvention.closed == true) {
+			alert('cannot edit closed conventions');
+			return;
+		}
+
 	    const { schedule, classes } = await ScheduleAPI.load(ScheduleState.year_id);
 
 	    const dpr = e.target.dataset
@@ -583,6 +589,11 @@
 	async function handleUpdateSubmit(e) {
 		e.preventDefault();
 
+		if (ScheduleState.activeConvention.closed == true) {
+			alert('cannot edit closed conventions');
+			return;
+		}
+
 		if (!activeEvent) return;
 
 		const updated = parseForm(e.target);
@@ -648,6 +659,11 @@
 	async function handleUpdateRoom(e) {
 		e.preventDefault();
 
+		if (ScheduleState.activeConvention.closed == true) {
+			alert('cannot edit closed conventions');
+			return;
+		}
+
 		const updated = parseForm(e.target);
 		const { rooms } = await ScheduleAPI.load(ScheduleState.year_id);
 		await ScheduleAPI.updateRoom(updated, ScheduleState.activeRoom);
@@ -656,6 +672,11 @@
 	}
 
 	async function handleDelete() {
+		if (ScheduleState.activeConvention.closed == true) {
+			alert('cannot edit closed conventions');
+			return;
+		}
+		
 		if (!activeEvent) return;
 		await ScheduleAPI.deleteSchedule(activeEvent.schedule_id);
 		DOM.eventModal.style.display = 'none';
@@ -673,7 +694,7 @@
 		const spacer = document.createElement('label');
 		spacer.classList.add('key-label');
 		spacer.textContent = "Select Convention";
-		spacer.appendChild(await renderYearSelect());
+		spacer.appendChild(await renderYearSelect(conventions));
 
 		const vertSep = document.createElement('div');
 		vertSep.classList.add('vertical-seperator');
@@ -858,7 +879,7 @@
 		return printBtn;
 	}
 
-	async function renderYearSelect() {
+	async function renderYearSelect(conventions) {
 		const yearDd = document.createElement('select');
 		yearDd.classList.add('year-select');
 		yearDd.id = 'year-select';
@@ -867,6 +888,7 @@
 
 		yearDd.addEventListener('change', async (e) => {
 			ScheduleState.year_id = e.target.value;
+			ScheduleState.activeConvention = conventions.find(c => c.id == ScheduleState.year_id);
 			refreshSchedule();
 		});
 
