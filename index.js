@@ -191,7 +191,7 @@ app.get('/api/public/schedule/:token', async (req, res) => {
     `, [req.params.token]);
 
     if (!result.rows.length) {
-    return res.status(404).json({ error: 'Not found' });
+      return res.status(404).json({ error: 'Not found' });
     }
 
     res.json(result.rows[0]);
@@ -252,6 +252,61 @@ app.get('/api/public/getTypes', async (req, res) => {
   } catch (err) {
     console.error(`Error fetching types:`, err);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/public/getPropInfo/:token', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        i.id,
+        i.name,
+        i.phone,
+        i.email,
+        i.rpt,
+        COALESCE(
+          json_agg(
+            json_build_object(
+              'class_id', c.id,
+              'title', c.title,
+              'description', c.description,
+              'level', c.level,
+              'type', c.type,
+              'length', c.length,
+              'sponsor_name', s.sponsor_name
+            )
+          ) FILTER (WHERE c.id IS NOT NULL),
+          '[]'
+        ) AS classes
+      FROM instructors i
+      LEFT JOIN class_instructors ci ON i.id = ci.instructor_id
+      LEFT JOIN classes c ON c.id = ci.class_id
+      LEFT JOIN sponsors s ON s.id = c.sponsor_id
+      WHERE i.public_token = $1
+      GROUP BY i.id;
+    `, [req.params.token]);
+
+    if (!result.rows.length) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const row = result.rows[0];
+
+    const response = {
+      instructor: {
+        id: row.id,
+        name: row.name,
+        phone: row.phone,
+        email: row.email,
+        rpt: row.rpt
+      },
+      classes: row.classes
+    };
+
+    res.json(response);
+  } catch (err) {
+    console.error('Error:', err);
+    res.status(500).json({ error: 'Database query failed' });
   }
 });
 

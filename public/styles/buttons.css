@@ -5,12 +5,15 @@
 	border-radius: 3px;
 	margin-bottom: 15px;
 	font-family: 'Montserrat', sans-serif;
+	text-align: center;
+	align-content: center;
 }
 
 .button:hover {
 	text-decoration: underline;
 	fond-weight: bold;
 	filter: brightness(0.9);
+	cursor: pointer;
 }
 
 .back-button {

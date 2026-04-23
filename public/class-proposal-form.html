@@ -27,14 +27,21 @@
 			<input id="email" type="email" name="email" autocomplete="email">
 			<label for="phone">Phone</label>
 			<input id="phone" type="tel" name="phone" autocomplete="tel">
-			<label for="sponsor">Sponsor</label>
-			<input id="sponsor" type="text" name="sponsor">
 			<span>
 				<label for="rpt">RPT</label>
 				<input id="rpt" type="checkbox" name="rpt" value="true">
 			</span>
 
+			<h2>Submit a new or existing class?</h2>
+			<div style="display:flex; gap:10px;">
+				<div id="new-class" class="button" style="background-color:#04AA6D;">New</div>
+				<div id="old-class" class="button">Existing</div>
+			</div>
+
 			<h2>Class Information</h2>
+			<label for="existing-classes" id="existing-class-label" style="display:none;">Select a class
+				<select id="existing-classes" style="display:block;width:100%;"></select>
+			</label>
 			<label for="title">Class Title</label>
 			<input id="title" type="text" name="title">
 			<label for="desc">Description</label>
@@ -57,8 +64,10 @@
 			<input id="uprights" name="uprights" type="number" min="0">
 			<label for="grands">Grands needed</label>
 			<input id="grands" name="grands" type="number" min="0">
+			<label for="sponsor">Sponsor</label>
+			<input id="sponsor" type="text" name="sponsor_name">
 
-			<button type="submit">Submit</button>
+			<button type="submit" style="margin-top:20px;">Submit</button>
 			<span id="message"></span>
 		</form>
 	</div>
@@ -93,5 +102,79 @@
 				document.getElementById('message').textContent = "Thank you for your submission. The institute team will review your class and get back to you soon!"
 			});
 		});
+
+		const data = await getData()
+		await getInstructorInfo(data.instructor);
+		classType();
+		populateClassSelect(data.classes);
 	});
+
+	async function getData() {
+		try {
+			const token = new URLSearchParams(window.location.search).get('token');
+			const response = await fetch(`/api/public/getPropInfo/${token}`);
+			if (!response.ok) throw new Error('Failed to fetch data');
+			const data = await response.json();
+			return data;
+		} catch (err) {
+			console.error('Error loading data:', err);
+		}
+	}
+
+	async function getInstructorInfo(data) {
+		Object.keys(data).forEach(key => {
+			const inputEl = document.querySelector(`[name="${key}"]`);
+			if(inputEl && inputEl.type == 'checkbox') {
+				inputEl.checked = data[key];
+			} else if (inputEl) {
+				inputEl.value = data[key];
+			}
+		})
+	}
+
+	function classType() {
+		const newBtn = document.getElementById('new-class');
+		const oldBtn = document.getElementById('old-class');
+
+		const newForm = document.getElementById('existing-class-label');
+
+		oldBtn.addEventListener('click', () => {
+			newForm.style.display = "block";
+			oldBtn.style.backgroundColor = "#04AA6D"
+			newBtn.style.backgroundColor = "";
+		});
+
+		newBtn.addEventListener('click', () => {
+			newForm.style.display = "none";
+			oldBtn.style.backgroundColor = "";
+			newBtn.style.backgroundColor = "#04AA6D";
+		})
+	}
+
+	function populateClassSelect(data) {
+		const select = document.getElementById('existing-classes');
+
+		const defaultOpt = document.createElement('option');
+		defaultOpt.value = "";
+		defaultOpt.textContent = "--Select an Option--";
+		select.appendChild(defaultOpt);
+
+		data.forEach(entry => {
+			const option = document.createElement('option');
+			option.value = entry.class_id;
+			option.textContent = entry.title;
+			select.appendChild(option);
+		});
+
+		select.addEventListener('change', () => {
+			const classId = select.value;
+			const selectedClass = data.find(c => c.class_id == classId);
+			Object.keys(selectedClass).forEach(key => {
+				const inputEl = document.querySelector(`[name="${key}"]`);
+				if(inputEl) {
+					inputEl.value = selectedClass[key];
+				}
+			})
+		})
+	}
 </script>
