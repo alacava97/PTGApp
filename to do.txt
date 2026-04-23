@@ -1,6 +1,10 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
 - Convention setup pages
+	- release/close prop form
+	-year
+	-location
+	-rooms
 
 - Things that require emailing
 	- Button to send second form for approved classes w/ consent to teach (from home office)
@@ -27,3 +31,6 @@
 -fix color block overflow
 -suggestion form
 -class attendance page
+-prevent deleting rooms/class types/sponsors that have associated records
+-add other team members to dropdown on prop info page
+-lock closed conventions to perserve data
