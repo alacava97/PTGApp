@@ -39,6 +39,7 @@ async function loadInstructorData(instructorId) {
 		setupCTE(instructorRecord, instructorId);
 		setupBoard(instructorRecord, instructorId);
 		setupDeleteInstructor(instructorId);
+		setupLinks(instructorRecord);
 	} catch (err) {
 		console.error('Internal server error:', err);
 	}
@@ -342,4 +343,22 @@ async function setupDeleteInstructor(instructorId) {
 		await deleteEntry('instructors', instructorId);
 		window.location.href = '/instructors.html';
 	});
+}
+
+/* -----------------------------
+   Links
+----------------------------- */
+
+function setupLinks(instructorRecord) {
+	const links = document.getElementById('links');
+	links.innerHTML = '';
+
+	const row = new Row();
+	row.addTitle("This instructor's unique class proposal link is:");
+
+	const classProp = document.createElement('a');
+	classProp.href = `https://myptginstitute.com/public/class-proposal-form.html?token=${instructorRecord.public_token}`;
+	classProp.textContent = classProp.href;
+	row.row.appendChild(classProp);
+	links.appendChild(row.row);
 }
