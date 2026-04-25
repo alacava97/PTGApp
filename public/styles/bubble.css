@@ -1,0 +1,123 @@
+body {
+	font-family: Arial;
+}
+
+.letter-size { 
+    width: 11in;
+    height: 8.5in;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: white;
+    text-align: center;
+    overflow: hidden;
+    min-height: 0;
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    grid-template-columns: 4fr 3fr;
+    gap: 20px;
+}
+
+h1, h2, h3, h4 {
+	text-align: left;
+	font-weight: bold;
+	margin: 0;
+}
+
+h1 {
+	font-size: 28pt;
+}
+
+h2 {
+	font-size: 21pt;
+}
+
+h3 {
+	font-style: italic;
+	font-size: 12pt;
+}
+
+h4 {
+	text-align: right;
+	font-style: italic;
+	font-weight: 400;
+	font-size: 16pt;
+	font-family: Times New Roman;
+}
+
+table, th, td {
+	border: 1px solid black;
+	border-collapse: collapse;
+	padding: 7px;
+	font-style: italic;
+	font-weight: 400;
+}
+
+th {
+	font-size: 11pt;	
+}
+
+td {
+	font-size: 10pt;
+}
+
+.time-table {
+	grid-column-start: 2;
+	grid-row: 1 / span 2;
+}
+
+.bubble-grid {
+	display: grid;
+	grid-template-columns: 20fr repeat(19, 1fr) 5fr;
+	grid-column: span 2;
+	border: 2.25pt solid black;
+	align-items: center;
+}
+
+.bubble-header, .day-header, .day-header-last, .room-header, .period-number {
+	font-weight: bold;
+	font-size: 9pt;
+}
+
+.bubble-header {
+	grid-row: 1 / span 2;
+    border-right: 2.25pt solid black;
+    height: 100%;
+    align-content: center;
+}
+
+.day-header {
+	grid-row: 1;
+	grid-column: span 5;
+
+}
+
+.day-header-last {
+	grid-row: 1;
+	grid-column: span 4;
+}
+
+.day-header, .day-header-last {
+	padding: 3px;
+	border-right: 2.25pt solid black;
+	box-sizing: border-box;
+}
+
+.room-header {
+	grid-row: 1 / span 2;
+	height: 100%;
+	align-content: center;
+}
+
+.period-number {
+    border-top: 1px solid gray;
+    border-right: 1px solid gray;
+}
+
+.period-number-last {
+	border-right: 2.25pt solid black;
+}
+
+.period-number, .period-number-last {
+	padding: 2px;
+}

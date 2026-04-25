@@ -28,7 +28,10 @@
 -make color block class type colors update when changed
 -change 'delete class' to delete instructor on instructor page
 -bubble chart
+	-header done. Need to import class types to filter and sort by.
 -fix color block overflow
 -suggestion form
 -class attendance page
 -add other team members to dropdown on prop info page
+-way to specify dates for convention
+	-expand to bubble chart

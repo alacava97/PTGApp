@@ -639,6 +639,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
     `SELECT 
     schedule.id AS schedule_id,
     schedule.notes AS notes,
+    schedule.year,
     classes.title,
 
     CASE schedule.day
@@ -677,11 +678,9 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   FROM schedule
   JOIN classes ON schedule.class_id = classes.id
 
-  -- starting period
   JOIN periods p_start 
     ON schedule.start_period = p_start.period
 
-  -- ending period
   JOIN periods p_end
     ON p_end.period = schedule.start_period + classes.length - 1
 
@@ -692,6 +691,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   GROUP BY
     schedule.id,
     schedule.notes,
+    schedule.year,
     classes.title,
     day,
     p_start.start,
@@ -881,6 +881,18 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
           schedule.id = $1
         GROUP BY schedule.id
       `, [id]);
+    } else if (table == 'conventions') {
+      result = await pool.query(`
+        SELECT
+          conventions.*,
+          locations.*
+        FROM
+          conventions
+        LEFT JOIN
+          locations ON conventions.location_id = locations.id
+        WHERE
+          conventions.id = $1
+      `, [id])
     } else {
       result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
     }

@@ -4,22 +4,14 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="public/styles/class-labels.css">
+	<link rel="stylesheet" href="public/styles/bubble.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Test</title>
 </head>
 <body style="background-color: #eeeeee">
 	
 	<div id="paper" class="letter-size">
-		<h1 id="class-title"></h1>
-		<h2 id="instructor"></h2>
-		<div id="dpr" class="flex-row">
-			<h3 id="day"></h3>
-			<h3 id="period"></h3>
-			<h3 id="room"></h3>
-		</div>
-		<div id="qrcode"></div>
-		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
+
 	</div>
 </body>
 <script src="public/js/script.js"></script>
@@ -29,11 +21,98 @@
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		const scheduleData = await read('schedule');
-		const data = scheduleData.find(s => s.schedule_id == 232)
-		const paper = document.getElementById('paper');
-		paper.innerHTML = ''
-		const label = await createLabel(data);
-		paper.appendChild(label)
-	})
+		const response = await fetch(`/api/readEntry/conventions/2`);
+		if(!response.ok) throw new Error(`Failed to fetch types`);
+		const convention = await response.json();
+		const periods = await read('periods');
+
+		const data = { schedule: scheduleData, convention: convention, periods: periods };
+		renderBubble(data, '2026', document.getElementById('paper'));
+	});
+
+	function renderBubble(data, year, container) {
+		const schedule = data.schedule.filter(e => e.year == year);
+
+		const h1 = document.createElement('h1');
+		h1.innerHTML = `${year} Technical Institute`;
+		container.appendChild(h1);
+
+		const h2 = document.createElement('h2');
+		h2.innerHTML = `Class Schedule | ${data.convention.city_state}`;
+		container.appendChild(h2);
+
+		const dateTable = document.createElement('table');
+		dateTable.classList.add('time-table');
+		const th = document.createElement('th');
+		th.textContent = data.convention.dates;
+		th.colSpan = 5;
+		dateTable.appendChild(th);
+
+		const pRow = document.createElement('tr');
+		const timeRow = document.createElement('tr');
+
+		for (i = 1; i < 6; i++) {
+			const p = document.createElement('td');
+			p.innerHTML = `Period ${i}`;
+			pRow.appendChild(p);
+
+			const time = data.periods.find(p => p.id == i);
+			const t = document.createElement('td');
+			t.innerHTML = `${time.start.slice(0, -3)}-${time.end.slice(0, -3)}`;
+			timeRow.appendChild(t);
+		};
+
+		dateTable.appendChild(pRow);
+		dateTable.appendChild(timeRow);
+		container.appendChild(dateTable);
+
+		const h3 = document.createElement('h3');
+		h3.innerHTML = `Schedule subject to change. Rev. ${new Date().toLocaleDateString('ne-US')}`;
+		container.appendChild(h3);
+
+		const h4 = document.createElement('h4');
+		h4.innerHTML = `Regional Meetings - Thursday | 6:45 - 7:45 a.m.`;
+		container.appendChild(h4);
+
+		const bubbleGrid = document.createElement('div');
+		bubbleGrid.classList.add('bubble-grid');
+
+		const bubbleHeader = document.createElement('div');
+		bubbleHeader.innerHTML = `1 Period Class | 2 Period Class | 4 Period Class`;
+		bubbleHeader.classList.add('bubble-header');
+		bubbleGrid.appendChild(bubbleHeader);
+
+		const days = ['Wed | 7/22', 'Thurs | 7/23', 'Fri | 7/24', 'Sat | 7/25'];
+		days.forEach((day, index) => {
+			const dayHeader = document.createElement('div');
+			if (index == 3) {
+				dayHeader.classList.add('day-header-last');
+			} else {
+				dayHeader.classList.add('day-header');
+			}
+			dayHeader.innerHTML = `${day}`;
+			bubbleGrid.appendChild(dayHeader);
+
+			for (j = 1; j < 6; j++) {
+				if (j == 5 && index == 3) continue;
+				const pNum = document.createElement('div');
+				pNum.classList.add('period-number');
+				if (j == 4 && index == 3 || j == 5 && index !== 3) pNum.classList.add('period-number-last');
+				pNum.textContent = j;
+				bubbleGrid.appendChild(pNum);
+			}
+		});
+
+		const roomHeader = document.createElement('div');
+		roomHeader.classList.add('room-header');
+		roomHeader.textContent = 'Room';
+		bubbleGrid.appendChild(roomHeader);
+		
+
+		container.appendChild(bubbleGrid);
+
+
+		console.log(schedule);
+	}
 </script>
 </html>
