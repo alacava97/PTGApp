@@ -32,6 +32,7 @@
 
 	function renderBubble(data, year, container) {
 		const schedule = data.schedule.filter(e => e.year == year);
+		const types = [...new Set(schedule.map(item => item.type))].sort();
 
 		const h1 = document.createElement('h1');
 		h1.innerHTML = `${year} Technical Institute`;
@@ -107,6 +108,46 @@
 		roomHeader.classList.add('room-header');
 		roomHeader.textContent = 'Room';
 		bubbleGrid.appendChild(roomHeader);
+
+		types.forEach(t => {
+			if (t !== 'No Type') {
+				const typeHeader = document.createElement('div');
+				typeHeader.classList.add('type-header');
+				typeHeader.innerHTML = t.toUpperCase();
+				bubbleGrid.appendChild(typeHeader);
+
+				const ts = schedule
+					.filter(s => s.type == t)
+					.sort((a, b) => {
+						const normalize = str =>
+							(str || '').toLowerCase().replace(/^the\s+/, '');
+
+						const getSortValue = item =>
+							item.short_title || item.title;
+
+						return normalize(getSortValue(a)).localeCompare(normalize(getSortValue(b)));
+					});
+
+				const titles = [...new Set(ts.map(ts => `${ts.short_title || ts.title} | ${ts.instructor_name.replace(/,\s*RPT/g, '')} <i>${ts.sponsor_name ? ', ' + ts.sponsor_name : ''}</i>`))];
+
+				titles.forEach(t => {
+					const title = document.createElement('div');
+					title.classList.add('class-title');
+					title.innerHTML = t;
+					bubbleGrid.appendChild(title);
+
+					days.forEach(index => {
+						for (k = 1; k < 6; k++) {
+							if (k == 5 && index == 3) continue;
+							const pNum = document.createElement('div');
+							pNum.classList.add('no-bubble');
+							if (j == 4 && index == 3 || j == 5 && index !== 3) pNum.classList.add('period-number-last');
+							bubbleGrid.appendChild(pNum);
+						}
+					});
+				});
+			}
+		});
 		
 
 		container.appendChild(bubbleGrid);

@@ -635,69 +635,80 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
   }else if (table === 'types') {
     query = `SELECT * FROM types ORDER BY position ASC`;
   } else  if (table === 'schedule' ) {
-    query =
-    `SELECT 
-    schedule.id AS schedule_id,
-    schedule.notes AS notes,
-    schedule.year,
-    classes.title,
+    query = `
+  SELECT *
+  FROM (
+    SELECT 
+      schedule.id AS schedule_id,
+      schedule.*,
+      classes.title,
+      classes.short_title,
+      sponsors.sponsor_name,
+      types.type,
 
-    CASE schedule.day
-      WHEN 1 THEN 'Monday'
-      WHEN 2 THEN 'Tuesday'
-      WHEN 3 THEN 'Wednesday'
-      WHEN 4 THEN 'Thursday'
-      WHEN 5 THEN 'Friday'
-      WHEN 6 THEN 'Saturday'
-      WHEN 7 THEN 'Sunday'
-      ELSE ''
-    END AS day,
+      CASE schedule.day
+        WHEN 1 THEN 'Monday'
+        WHEN 2 THEN 'Tuesday'
+        WHEN 3 THEN 'Wednesday'
+        WHEN 4 THEN 'Thursday'
+        WHEN 5 THEN 'Friday'
+        WHEN 6 THEN 'Saturday'
+        WHEN 7 THEN 'Sunday'
+        ELSE ''
+      END AS day,
 
-    p_start.start AS start,
-    p_end.end     AS "end",
+      p_start.start AS start,
+      p_end.end AS "end",
 
-    rooms.name AS room,
+      rooms.name AS room,
 
-    COALESCE(
-      string_agg(
-        instructors.name ||
-        CASE
-          WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
-          THEN ', RPT'
-          ELSE ''
-        END,
-        ', '
-      ),
-      'No instructors'
-    ) AS instructor_name,
-    
-    array_agg(DISTINCT instructors.id)
-      FILTER (WHERE instructors.id IS NOT NULL)
-      AS instructor_ids
+      COALESCE(
+        string_agg(
+          instructors.name ||
+          CASE
+            WHEN instructors.rpt IS NOT NULL AND instructors.rpt <> false
+            THEN ', RPT'
+            ELSE ''
+          END,
+          ' & '
+        ),
+        'No instructors'
+      ) AS instructor_name,
+      
+      array_agg(DISTINCT instructors.id)
+        FILTER (WHERE instructors.id IS NOT NULL)
+        AS instructor_ids
 
-  FROM schedule
-  JOIN classes ON schedule.class_id = classes.id
+    FROM schedule
+    JOIN classes ON schedule.class_id = classes.id
+    JOIN periods p_start ON schedule.start_period = p_start.period
+    JOIN periods p_end ON p_end.period = schedule.start_period + classes.length - 1
+    JOIN rooms ON schedule.room_id = rooms.id
+    LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
+    LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
+    LEFT JOIN types ON types.id = classes.type
+    LEFT JOIN sponsors ON classes.sponsor_id = sponsors.id
 
-  JOIN periods p_start 
-    ON schedule.start_period = p_start.period
-
-  JOIN periods p_end
-    ON p_end.period = schedule.start_period + classes.length - 1
-
-  JOIN rooms ON schedule.room_id = rooms.id
-  LEFT JOIN class_instructors ON classes.id = class_instructors.class_id
-  LEFT JOIN instructors ON instructors.id = class_instructors.instructor_id
-
-  GROUP BY
-    schedule.id,
-    schedule.notes,
-    schedule.year,
-    classes.title,
-    day,
-    p_start.start,
-    p_end.end,
-    classes.length,
-    rooms.name;
+    GROUP BY
+      schedule.id,
+      schedule.notes,
+      schedule.year,
+      classes.title,
+      classes.short_title,
+      sponsors.sponsor_name,
+      day,
+      p_start.start,
+      p_end.end,
+      classes.length,
+      types.type,
+      rooms.name
+  ) q
+  ORDER BY
+    LOWER(
+      TRIM(
+        regexp_replace(q.title, '^the\s+', '', 'i')
+      )
+    ) ASC;
   `
   } else if (table === 'audit_log') {
     query =
