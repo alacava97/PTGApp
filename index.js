@@ -643,8 +643,10 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       schedule.*,
       classes.title,
       classes.short_title,
+      classes.length,
       sponsors.sponsor_name,
       types.type,
+      schedule.day AS day_index,
 
       CASE schedule.day
         WHEN 1 THEN 'Monday'

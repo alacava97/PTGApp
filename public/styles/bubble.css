@@ -107,6 +107,9 @@ td {
 	grid-row: 1 / span 2;
 	height: 100%;
 	align-content: center;
+	font-size: 13pt;
+	font-weight: bold;
+	font-family: Arial;
 }
 
 .period-number {
@@ -139,9 +142,40 @@ td {
 	text-align: left;
 	padding: 2px;
 	border-bottom: 1px solid black;
+	overflow: hidden;
+	white-space: nowrap;
+	border-right: 2.25pt solid black;
 }
 
 .no-bubble {
-	border: 1px solid black;
+	border-right: 1px solid black;
+	border-bottom: 1px solid black;
 	height: 100%;
+	padding: 4px;
+	box-sizing: border-box;
+}
+
+.no-bubble-last {
+	border-right: 2.25pt solid black;
+}
+
+.room-name {
+	border-bottom: 1px solid black;
+    border-left: 2.25pt solid black;
+    font-family: Arial;
+    font-size: 10.5pt;
+    height: 100%;
+    text-align: left;
+    align-content: center;
+    padding-left: 2px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.bubble {
+	width: 100%;
+    height: 100%;
+    background-color: black;
+    border-radius: 50%;
 }

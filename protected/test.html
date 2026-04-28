@@ -83,7 +83,7 @@
 		bubbleHeader.classList.add('bubble-header');
 		bubbleGrid.appendChild(bubbleHeader);
 
-		const days = ['Wed | 7/22', 'Thurs | 7/23', 'Fri | 7/24', 'Sat | 7/25'];
+		let days = ['Wed | 7/22', 'Thurs | 7/23', 'Fri | 7/24', 'Sat | 7/25'];
 		days.forEach((day, index) => {
 			const dayHeader = document.createElement('div');
 			if (index == 3) {
@@ -103,6 +103,8 @@
 				bubbleGrid.appendChild(pNum);
 			}
 		});
+
+		days = ['Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 		const roomHeader = document.createElement('div');
 		roomHeader.classList.add('room-header');
@@ -128,23 +130,65 @@
 						return normalize(getSortValue(a)).localeCompare(normalize(getSortValue(b)));
 					});
 
-				const titles = [...new Set(ts.map(ts => `${ts.short_title || ts.title} | ${ts.instructor_name.replace(/,\s*RPT/g, '')} <i>${ts.sponsor_name ? ', ' + ts.sponsor_name : ''}</i>`))];
+				const seen = new Set();
+				const uniqueItems = [];
 
-				titles.forEach(t => {
-					const title = document.createElement('div');
-					title.classList.add('class-title');
-					title.innerHTML = t;
-					bubbleGrid.appendChild(title);
+				ts.forEach(item => {
+				  const key = `${item.short_title || item.title} | ${item.instructor_name}`;
+				  if (!seen.has(key)) {
+				    seen.add(key);
+				    uniqueItems.push(item);
+				  }
+				});
 
-					days.forEach(index => {
-						for (k = 1; k < 6; k++) {
-							if (k == 5 && index == 3) continue;
-							const pNum = document.createElement('div');
-							pNum.classList.add('no-bubble');
-							if (j == 4 && index == 3 || j == 5 && index !== 3) pNum.classList.add('period-number-last');
-							bubbleGrid.appendChild(pNum);
-						}
-					});
+				uniqueItems.forEach(item => {
+					const sessions = ts.filter(s => s.class_id == item.class_id);
+				  	const title = document.createElement('div');
+				  	title.classList.add('class-title');
+
+				  	title.innerHTML = `
+				    	${item.short_title || item.title} | 
+				    	${item.instructor_name.replace(/,\s*RPT/g, '')}
+				    	<i>${item.sponsor_name ? ', ' + item.sponsor_name : ''}</i>
+				 	 `;
+
+				  	bubbleGrid.appendChild(title);
+
+				  	days.forEach((day, index) => {
+				    	for (k = 1; k < 6; k++) {
+					      	if (k == 5 && index == 3) continue;
+
+					      	const match = sessions.find(s => 
+					      		s.day == day && s.start_period == k 
+					      	);
+
+					      	const pNum = document.createElement('div');
+
+					      	if (k == 5 && index !== 3) {
+					      		pNum.classList.add('no-bubble-last');
+					      	}
+					      	pNum.classList.add('no-bubble');
+					      	
+					      	if (match) {
+					      		const bubble = document.createElement('div');
+					      		bubble.classList.add('bubble');
+
+					      		const span = match.length;
+					      		pNum.style.gridColumn = `span ${span}`;
+
+					      		pNum.appendChild(bubble);
+
+					      		k += span - 1;
+					      	}
+
+					    	bubbleGrid.appendChild(pNum);
+					    }	
+				  	});
+
+				  	const room = document.createElement('div');
+				  	room.classList.add('room-name');
+				  	room.textContent = item.room;
+				  	bubbleGrid.appendChild(room);
 				});
 			}
 		});
