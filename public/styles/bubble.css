@@ -83,7 +83,10 @@ td {
 	grid-row: 1 / span 2;
     border-right: 2.25pt solid black;
     height: 100%;
-    align-content: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
 }
 
 .day-header {
@@ -144,6 +147,7 @@ td {
 	border-bottom: 1px solid black;
 	overflow: hidden;
 	white-space: nowrap;
+	text-overflow: ellipsis;
 	border-right: 2.25pt solid black;
 }
 

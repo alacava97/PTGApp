@@ -79,7 +79,14 @@
 		bubbleGrid.classList.add('bubble-grid');
 
 		const bubbleHeader = document.createElement('div');
-		bubbleHeader.innerHTML = `1 Period Class | 2 Period Class | 4 Period Class`;
+		bubbleHeader.innerHTML = `
+			<span class="bubble" style="height:10px;width:10px;display:inline-block;"></span>
+			<span>1 Period Class |</span>
+			<span class="bubble" style="height:10px;width:20px;display:inline-block;"></span>
+			<span>2 Period Class |</span>
+			<span class="bubble" style="height:10px;width:40px;display:inline-block;"></span>
+			<span>4 Period Class</span>`;
+
 		bubbleHeader.classList.add('bubble-header');
 		bubbleGrid.appendChild(bubbleHeader);
 
