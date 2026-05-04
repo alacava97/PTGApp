@@ -21,13 +21,8 @@
 		-Button in instructor record
 		-Button to send all
 
--color block doesn't print instructor name
--color block lines are too big
 -list of instructor/av needs in chronological order for Bruce
--refine review page css
 -make color block class type colors update when changed
--change 'delete class' to delete instructor on instructor page
--fix color block overflow
 -suggestion form
 -class attendance page
 -add other team members to dropdown on prop info page

@@ -351,7 +351,7 @@
 
 						const nameDiv = document.createElement('div');
 						nameDiv.innerHTML = `${periodEvent.instructors == 'No Instructor' ? '' : periodEvent.instructors.join(`<br>`)}`;
-						nameDiv.classList.add('name', 'no-print');
+						nameDiv.classList.add('name');
 						eventDiv.appendChild(nameDiv);
 
 						const displayNotes = document.createElement('div');
