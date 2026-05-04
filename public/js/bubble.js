@@ -1,25 +1,4 @@
-<!DOCTYPE html>
-<html>
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
-	<link rel="stylesheet" href="public/styles/bubble.css">
-	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>Test</title>
-</head>
-<body style="background-color: #eeeeee">
-	
-	<div id="paper">
-
-	</div>
-</body>
-<script src="public/js/script.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="public/js/qr.js"></script>
-
-<script>
-	document.addEventListener('DOMContentLoaded', async () => {
+async function renderBubble(year, container) {
 		const scheduleData = await read('schedule');
 		const response = await fetch(`/api/readEntry/conventions/2`);
 		if(!response.ok) throw new Error(`Failed to fetch types`);
@@ -27,10 +6,7 @@
 		const periods = await read('periods');
 
 		const data = { schedule: scheduleData, convention: convention, periods: periods };
-		renderBubble(data, '2026', document.getElementById('paper'));
-	});
 
-	function renderBubble(data, year, container) {
 		let MAX_ROWS_PER_PAGE = 26;
 
 		let currentPage = createPage(container);
@@ -154,9 +130,6 @@
 		
 
 		currentPage.appendChild(bubbleGrid);
-
-
-		console.log(schedule);
 	}
 
 	function createPage(container) {
@@ -257,5 +230,3 @@
 
 		return bubbleGrid;
 	}
-</script>
-</html>

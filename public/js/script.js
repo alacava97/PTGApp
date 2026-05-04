@@ -377,6 +377,7 @@ async function downloadElementAsPDF(element, title, d = {}) {
 	const res = await fetch(`/api/export-pdf/${title}`, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include',
 		body: JSON.stringify(payload)
 	});
 
@@ -385,9 +386,11 @@ async function downloadElementAsPDF(element, title, d = {}) {
 
 	const a = document.createElement('a');
 	a.href = url;
-	a.download = `${title}.pdf`;
+	a.download = `${title}_${new Date().toISOString().slice(0,10)}.pdf`;
+	document.body.appendChild(a);
 	a.click();
 	a.remove();
+	URL.revokeObjectURL(url);
 }
 
 async function createLabel(data) {

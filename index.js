@@ -1372,6 +1372,10 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     stylesheets.push('/public/styles/class-labels.css');
   }
 
+  if (filename === 'bubbleChart') {
+    stylesheets.push('/public/styles/bubble.css');
+  }
+
   const links = stylesheets
     .map(href => `<link rel="stylesheet" href="http://localhost:3000${href}">`)
     .join('\n');
@@ -1401,6 +1405,12 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
       printBackground: true
     },
     'class-labels': {
+      format: 'letter',
+      landscape: true,
+      printBackground: true,
+      preferCSSPageSize: true
+    },
+    bubbleChart: {
       format: 'letter',
       landscape: true,
       printBackground: true,
