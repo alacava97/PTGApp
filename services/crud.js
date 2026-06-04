@@ -2,8 +2,16 @@ const pool = require('../db/pool');
 const { getAllowedFields } = require('../utils/dbHelper');
 
 async function createRecord({ table, data, returning = ['id'] }, client = pool) {
-  const columns = Object.keys(data);
-  const values = Object.values(data);
+  const allowedFields = await getAllowedFields(table, client);
+
+  const filteredData = Object.fromEntries(
+    Object.entries(data).filter(([key]) =>
+      allowedFields.includes(key)
+    )
+  );
+
+  const columns = Object.keys(filteredData);
+  const values = Object.values(filteredData);
   const placeholders = columns.map((_, i) => `$${i + 1}`);
 
   const query = `
