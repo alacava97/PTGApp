@@ -22,24 +22,26 @@
 		<form id="class-proposal" class="form-grid">
 			<h2>Contact Information</h2>
 			<label for="name">Name</label>
-			<input id="name" type="text" name="name" autocomplete="name">
+			<input id="name" type="text" name="name" autocomplete="name" required>
 			<label for="email">Email</label>
-			<input id="email" type="email" name="email" autocomplete="email">
+			<input id="email" type="email" name="email" autocomplete="email" required>
 			<label for="phone">Phone</label>
-			<input id="phone" type="tel" name="phone" autocomplete="tel">
+			<input id="phone" type="tel" name="phone" autocomplete="tel" required>
 			<span>
 				<label for="rpt">RPT</label>
 				<input id="rpt" type="checkbox" name="rpt" value="true">
 			</span>
 
-			<h2>Submit a new or existing class?</h2>
-			<div style="display:flex; gap:10px;">
-				<div id="new-class" class="button" style="background-color:#04AA6D;">New</div>
-				<div id="old-class" class="button">Existing</div>
+			<div id="new-or-existing">
+				<h2>Submit a new or existing class?</h2>
+				<div style="display:flex; gap:10px;">
+					<div id="new-class" class="button" style="background-color:#04AA6D;">New</div>
+					<div id="old-class" class="button">Existing</div>
+				</div>
+					<label for="existing-classes" id="existing-class-label" style="display:none;">Select a class
+					<select id="existing-classes" name="existing_class" style="display:block;width:100%;"></select>
+				</label>
 			</div>
-						<label for="existing-classes" id="existing-class-label" style="display:none;">Select a class
-				<select id="existing-classes" style="display:block;width:100%;"></select>
-			</label>
 
 			<h2>Class Information</h2>
 			<label for="title">Class Title</label>
@@ -59,7 +61,7 @@
 				<option value="" disabled selected>Select a type</option>
 			</select>
 			<label for="length">Class Length<br>(1 period = 1.5 hours)</label>
-			<input id="length" name="length" type="number" min="1" max="5">
+			<input id="length" name="length" type="number" min="1" max="4">
 			<label for="uprights">Uprights needed</label>
 			<input id="uprights" name="uprights" type="number" min="0">
 			<label for="grands">Grands needed</label>
@@ -67,7 +69,7 @@
 			<label for="sponsor">Sponsor</label>
 			<input id="sponsor" type="text" name="sponsor_name">
 
-			<button type="submit" style="margin-top:20px;">Submit</button>
+			<button type="submit" style="margin-top: 20px;height: 30px;background-color: #04AA6D;border-radius: 5px;box-shadow:0px 3px 5px black">Submit</button>
 			<span id="message"></span>
 		</form>
 	</div>
@@ -86,12 +88,15 @@
 					a['type'].localeCompare(b['type'], undefined, {sensitivity: 'base'})
 				)
 				.forEach(row => {
-				row = row[1]
-				const option = document.createElement('option');
-				option.value = row.id;
-				option.textContent = row['type'];
-				document.getElementById('type').appendChild(option);
-			});
+					row = row[1]
+					if (row.type == "Fundraiser" || row.type == "No Type" || row.type == "Regional") {
+						return;
+					}
+					const option = document.createElement('option');
+					option.value = row.id;
+					option.textContent = row['type'];
+					document.getElementById('type').appendChild(option);
+				});
 		} catch (err) {
 			console.error(`Failed to load types:`, err);
 		}
@@ -104,20 +109,27 @@
 		});
 
 		const data = await getData()
-		await getInstructorInfo(data.instructor);
+		if (data) {
+			await getInstructorInfo(data.instructor);
+			populateClassSelect(data.classes);
+		}
 		classType();
-		populateClassSelect(data.classes);
 	});
 
 	async function getData() {
 		try {
 			const token = new URLSearchParams(window.location.search).get('token');
+			if (!token) {
+				document.getElementById('new-or-existing').style.display = "none";
+				return;
+			}
 			const response = await fetch(`/api/public/getPropInfo/${token}`);
 			if (!response.ok) throw new Error('Failed to fetch data');
 			const data = await response.json();
 			return data;
 		} catch (err) {
 			console.error('Error loading data:', err);
+			return;
 		}
 	}
 
