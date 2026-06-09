@@ -663,6 +663,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       p_end.end AS "end",
 
       rooms.name AS room,
+      rooms.position AS room_position,
 
       COALESCE(
         string_agg(
@@ -703,7 +704,8 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       p_end.end,
       classes.length,
       types.type,
-      rooms.name
+      rooms.name,
+      rooms.position
   ) q
   ORDER BY
     LOWER(

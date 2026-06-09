@@ -1,0 +1,13 @@
+.event {
+    background: lightgray;
+    padding: 5px;
+    border-radius: 5px;
+    box-shadow: 1px 1px 5px black;
+}
+
+.event-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 80%;
+}

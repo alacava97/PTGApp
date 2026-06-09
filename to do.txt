@@ -28,3 +28,8 @@
 -add other team members to dropdown on prop info page
 -way to specify dates for convention
 	-expand to bubble chart
+
+-admin panel
+	-view/edit institue team and permissions
+
+-Mobile layout nav

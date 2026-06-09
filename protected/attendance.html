@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/attendance.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Home</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<div class="main-content" id="main">
+		<h1>Attendance</h1>
+	</div>
+</body>
+<script src="public/js/script.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const data = await fetchData();
+		console.log(data)
+		loadSchedule(data);
+	});
+
+	async function fetchData() {
+		let data = await read('schedule');
+		data = data.filter(row => row.year == new Date().getFullYear());
+		data.sort((a, b) => {
+			return (
+				a.day_index - b.day_index ||
+				a.start_period - b.start_period ||
+				a.room_position - b.room_position
+				)
+		});
+		return data;
+	}
+
+	function loadSchedule(data) {
+		const days = [...new Set(data.map(row => row.day))];
+		const periods = [...new Set(data.map(row => row.start_period))];
+
+		console.log(days);
+		console.log(periods);
+
+		const main = document.getElementById('main');
+
+		days.forEach(day => {
+			const dayEl = document.createElement('h2');
+			dayEl.textContent = day;
+			main.appendChild(dayEl);
+
+			periods.forEach(period => {
+				const perEl = document.createElement('h3');
+				perEl.textContent = "Period " + period;
+				main.appendChild(perEl);
+
+				const container = document.createElement('div');
+				container.classList.add('event-container');
+
+				const filteredData = data.filter(row => row.day == day && row.start_period == period);
+				filteredData.forEach(row => {
+					const schedEl = document.createElement('div');
+					schedEl.innerHTML = `<b>${row.title}</b><br>${row.room}`;
+					schedEl.classList.add('event');
+					container.appendChild(schedEl);
+				});
+
+				main.appendChild(container);
+			})
+		})
+	}
+</script>
