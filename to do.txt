@@ -23,8 +23,6 @@
 
 -list of instructor/av needs in chronological order for Bruce
 -make color block class type colors update when changed
--suggestion form
--class attendance page
 -add other team members to dropdown on prop info page
 -way to specify dates for convention
 	-expand to bubble chart
