@@ -400,12 +400,12 @@ async function createLabel(data) {
 	label.innerHTML = `
 		<h1 id="class-title"></h1>
 		<h2 id="instructor"></h2>
+		<div id="qrcode" class="qrcode"></div>
 		<div id="dpr">
 			<h3 id="day"></h3>
 			<h3 id="period"></h3>
 			<h3 id="room"></h3>
 		</div>
-		<div id="qrcode" class="qrcode"></div>
 		<p>Scan the QR code above to review this class.<br>Thank you! We value your feedback!</p>
 	`;
 
@@ -418,10 +418,10 @@ async function createLabel(data) {
 
 	let names
 
-	if (Array.isArray(data.instructor_name)) {
-		names = data.instructor_name.join(', ');
+	if (Array.isArray(data.instructors)) {
+		names = data.instructors.join(', ');
 	} else {
-		names = data.instructor_name;
+		names = data.instructors;
 	}
 
 	const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday']
