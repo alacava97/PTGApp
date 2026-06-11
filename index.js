@@ -1370,7 +1370,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
     '/public/styles/print.css'
   ];
 
-  if (filename === 'class-labels') {
+  if (filename === 'class-signs') {
     stylesheets.push('/public/styles/class-labels.css');
   }
 
@@ -1406,7 +1406,7 @@ app.post('/api/export-pdf/:filename', requireLogin, async (req, res) => {
       height: `${height}px`,
       printBackground: true
     },
-    'class-labels': {
+    'class-signs': {
       format: 'letter',
       landscape: true,
       printBackground: true,
