@@ -11,12 +11,11 @@
 	<link rel="stylesheet" href="public/styles/attendance.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
-	<title>Home</title>
+	<title>Attendance</title>
 </head>
 <body>
 	<div id="navbar"></div>
 	<div class="main-content" id="main">
-		<h1>Attendance</h1>
 	</div>
 </body>
 <script src="public/js/script.js"></script>
@@ -44,10 +43,13 @@
 		const days = [...new Set(data.map(row => row.day))];
 		const periods = [...new Set(data.map(row => row.start_period))];
 
-		console.log(days);
-		console.log(periods);
-
 		const main = document.getElementById('main');
+
+		main.innerHTML = '';
+
+		const h1 = document.createElement('h1');
+		h1.textContent = "Attendance";
+		main.appendChild(h1);
 
 		days.forEach(day => {
 			const dayEl = document.createElement('h2');
@@ -62,16 +64,84 @@
 				const container = document.createElement('div');
 				container.classList.add('event-container');
 
-				const filteredData = data.filter(row => row.day == day && row.start_period == period);
+				const filteredData = data.filter(row => row.day == day && row.start_period <= period && period < Number(row.start_period) + row.length);
 				filteredData.forEach(row => {
 					const schedEl = document.createElement('div');
-					schedEl.innerHTML = `<b>${row.title}</b><br>${row.room}`;
 					schedEl.classList.add('event');
+
+					const schedInfo = document.createElement('div');
+					schedInfo.innerHTML = `<b>${row.title}</b><br>${row.instructor_name}<br>${row.room}`;
+					schedEl.appendChild(schedInfo);
+
+					const attendanceForm = createAttendanceForm(row);
+					schedEl.appendChild(attendanceForm);
+
+					const attendanceEl = document.createElement('div');
+					attendanceEl.classList.add('attendance-count', row.schedule_id);
+					attendanceEl.innerHTML = `Attendance: ${row.attendance || 0}`;
+					schedEl.appendChild(attendanceEl);
+
+					schedEl.addEventListener('click', () => {
+						attendanceForm.style.display = "flex";
+						attendanceForm.querySelector('input').focus();
+
+						attendanceEl.style.display = "none";
+					});
+				
 					container.appendChild(schedEl);
 				});
 
 				main.appendChild(container);
 			})
 		})
+	}
+
+	function createAttendanceForm(row) {
+		const form = document.createElement('form');
+		form.classList.add('input-container');
+		form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			const data = parseForm(form);
+			data.id = row.schedule_id;
+
+			handleFormSubmission(e, form, `/api/update/schedule/${row.schedule_id}`, method = 'PATCH', () => {
+				form.style.display = "none";
+				const attCount = form.closest('div').querySelector(".attendance-count");
+				attCount.style.display = "block";
+				document.querySelectorAll(`.${CSS.escape(row.schedule_id)}`).forEach(el => {
+				  el.textContent = `Attendance: ${data.attendance}`;
+				  el.value = data.attendance;
+				});
+			});
+		});
+		
+		const label = document.createElement('label');
+		label.textContent = "Attendance:";
+		label.htmlFor = row.schedule_id;
+		form.appendChild(label);
+
+		const input = document.createElement('input');
+		input.name = "attendance";
+		input.id = row.schedule_id;
+		input.classList.add(row.schedule_id)
+		input.value = row.attendance;
+		input.type = "number";
+		input.min = 0;
+		input.addEventListener('blur', (e) => {
+			if (form.contains(e.relatedTarget)) {
+				return;
+			}
+
+			form.style.display = "none";
+			form.closest('div').querySelector(".attendance-count").style.display = "block";
+		});
+		form.appendChild(input);
+
+		const submit = document.createElement('button');
+		submit.type = "submit";
+		submit.textContent = "Submit";
+		form.appendChild(submit);
+
+		return form;
 	}
 </script>
