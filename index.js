@@ -255,6 +255,18 @@ app.get('/api/public/getTypes', async (req, res) => {
   }
 });
 
+app.get('/api/public/getLevels', async (req, res) => {
+  const query = `SELECT * FROM levels WHERE include = TRUE`;
+
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching levels:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/api/public/getPropInfo/:token', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -1113,6 +1125,17 @@ app.get('/api/getPropTypes', async (req, res) => {
     res.status(500).json({ error: 'Database query failed' });
   }
 });
+
+app.get('/api/getLevels', async (req, res) => {
+  try {
+    const result = await pool.query(`SELECT * FROM levels`);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Eroor:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
 //end read
 
 //update
