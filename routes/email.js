@@ -49,13 +49,17 @@ const transporter = nodemailer.createTransport({
 // });
 
 router.post('/class-prop-confirmation', async (req, res) => {
-	const { name, email } = req.body;
+	const { name, email, formData } = req.body;
 
 	if (!email) {
 		return res.status(400).json({
 			error: 'email required',
 		});
 	}
+
+	const formFields = Object.entries(formData)
+		.map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value || ''}`)
+		.join('<br>');
 
 	try {
 		await transporter.sendMail({
@@ -65,6 +69,9 @@ router.post('/class-prop-confirmation', async (req, res) => {
 			html: `
 				<p>Hello ${name},</p>
 				<p>Thank you for submitting a class proposal for next year's PTG national convention. The institute team has received your information and will review it for consideration.</p>
+
+				<p>${formFields}</p>
+
 				<p>This inbox is not monitored, so please reach out to institute@ptg.org with any further communication.</p>
 				<p>Best,<br>The Institute Team</p>
 			`

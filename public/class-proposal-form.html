@@ -22,8 +22,10 @@
 	<div class="main-content">
 		<form id="class-proposal" class="form-grid">
 			<h2>Contact Information</h2>
-			<label for="name">Name</label>
-			<input id="name" type="text" name="name" autocomplete="name" required>
+			<label for="fname">First Name</label>
+			<input id="fname" type="text" name="fname" required>
+			<label for="lname">Last Name</label>
+			<input id="lname" type="text" name="lname">
 			<label for="email">Email</label>
 			<input id="email" type="email" name="email" autocomplete="email" required>
 			<label for="phone">Phone</label>
@@ -79,47 +81,86 @@
 		const res = await fetch('/auth/session', { credentials: 'include' });
 		const user = await res.json();
 		const token = new URLSearchParams(window.location.search).get('token');
+		const data = await DataAPI.load();
 
-		populateLevelSelect();
-		populateTypeSelect();
+		populateLevelSelect(data.levels);
+		populateTypeSelect(data.types);
 
 		const form = document.getElementById('class-proposal');
-		form.addEventListener('submit', (e) => {
+		form.addEventListener('submit', async (e) => {
+			e.preventDefault();
 			const formData = parseForm(form);
+			const message = document.getElementById('message');
 
-			handleFormSubmission(e, form, `/api/public/createClassProposals`, 'POST', async () => {
-				document.getElementById('message').textContent = "Thank you for your submission. The institute team will review your class and get back to you soon!";
-
-				const res = await fetch('/api/email/class-prop-confirmation', {
-					method: "POST",
-					headers: {
-						"Content-Type": 'application/json',
-					},
-					body: JSON.stringify({
-						name: formData.name,
-						email: formData.email
-					}),
+			if (formData.lname) {
+				formData.name = formData.fname + " " + formData.lname;
+			} else {
+				formData.name = formData.fname;
+			}
+			
+			try {
+				const res = await fetch(`/api/public/createClassProposals`, {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(formData)
 				});
 
-				if (token) {
-					const params = new URLSearchParams();
-					params.append('token', token);
-					window.location.href = '/public/class-proposal-confirmation.html?' + params.toString();
-				} else {
-					window.location.href = '/public/class-proposal-confirmation.html';
+				const result = await res.json();
+				if (message) {
+					message.textContent = result.message || result.error || 'Unknown response';
 				}
-				
 
-				
-			});
+				if (res.ok) {
+					const level = formData.level ? data.levels.find(level => level.id == formData.level).level : '' ;
+					const type = formData.type ? data.types.find(type => type.id == formData.type).type : '' ;
+
+					const forEmail = {
+						Name: formData.name,
+						Email: formData.email,
+						Phone: formData.phone,
+						RPT: formData.rpt,
+						Class_Title: formData.title,
+						Class_Description: formData.description,
+						Level: level,
+						Type: type,
+						Periods: formData.length,
+						Uprights: formData.uprights,
+						Grands: formData.grands,
+						Sponsor: formData.sponsor
+					};
+
+					const email = await fetch('/api/email/class-prop-confirmation', {
+						method: 'POST',
+						headers: {
+							"Content-Type": 'application/json',
+						},
+						body: JSON.stringify({
+							name: formData.fname,
+							email: formData.email,
+							formData: forEmail
+						}),
+					});
+
+					if (token) {
+						const params = new URLSearchParams();
+						params.append('token', token);
+						window.location.href = '/public/class-proposal-confirmation.html?' + params.toString();
+					} else {
+						window.location.href = '/public/class-proposal-confirmation.html';
+					}
+				}
+			} catch (err) {
+				console.error('Form submission failed:', err);
+				message.textContent = 'Network error or server issue';
+			}
 		});
 
 		//------For Existing Classes------//
 
-		const data = await getData(token)
-		if (data) {
-			await getInstructorInfo(data.instructor);
-			populateClassSelect(data.classes);
+		const instData = await getData(token)
+		if (instData) {
+			await getInstructorInfo(instData.instructor);
+			populateClassSelect(instData.classes);
 		}
 		classType();
 
@@ -130,10 +171,23 @@
 		}
 	});
 
-	async function populateLevelSelect() {
-		const levelRes = await fetch(`/api/public/getLevels`);
-		if (!levelRes.ok) throw new Error(`Failed to fetch levels`);
-		const levels = await levelRes.json();
+	async function fetchJSON(url, options = {}) {
+	  	const res = await fetch(url, options);
+		if (!res.ok) throw new Error(await res.text());
+		return res.json();
+	}
+
+	const DataAPI = {
+		load: async () => {
+			const [levels, types] = await Promise.all([
+				fetchJSON(`/api/public/getLevels`),
+				fetchJSON(`/api/public/getTypes`)
+			]);
+			return { levels, types };
+		}
+	}
+
+	async function populateLevelSelect(levels) {
 		const levelSelect = document.getElementById('level');
 		levelSelect.innerHTML = `<option value="" disabled selected>Select a level</option>`;
 
@@ -147,11 +201,7 @@
 
 	}
 
-	async function populateTypeSelect() {
-		const response = await fetch(`/api/public/getTypes`);
-		if(!response.ok) throw new Error(`Failed to fetch types`);
-		const types = await response.json();
-
+	async function populateTypeSelect(types) {
 		Object.entries(types)
 			.sort(([, a], [, b]) =>
 				a['type'].localeCompare(b['type'], undefined, {sensitivity: 'base'})
@@ -310,6 +360,8 @@
 
 		if (!res.ok) throw new Error(`Could not update level: ${res.status}`);
 
-		populateLevelSelect();
+		const { levels } = await DataAPI.load();
+
+		populateLevelSelect(levels);
 	}
 </script>
