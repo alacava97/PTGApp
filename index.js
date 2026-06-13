@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth');
 const { getAllowedFields } = require('./utils/dbHelper');
 const { createRecord } = require('./services/crud');
 const { createPublicToken } = require('./services/token.js');
+const emailRoutes = require('./routes/email');
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use(
 );
 
 app.use('/auth', authRoutes);
+app.use('/api/email', emailRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/api/public/getReviews/:token', async (req, res) => {
@@ -256,7 +258,7 @@ app.get('/api/public/getTypes', async (req, res) => {
 });
 
 app.get('/api/public/getLevels', async (req, res) => {
-  const query = `SELECT * FROM levels WHERE include = TRUE`;
+  const query = `SELECT * FROM levels WHERE include = TRUE ORDER BY id`;
 
   try {
     const result = await pool.query(query);
@@ -1128,7 +1130,7 @@ app.get('/api/getPropTypes', async (req, res) => {
 
 app.get('/api/getLevels', async (req, res) => {
   try {
-    const result = await pool.query(`SELECT * FROM levels`);
+    const result = await pool.query(`SELECT * FROM levels ORDER BY id`);
     res.json(result.rows);
   } catch (err) {
     console.error(`Eroor:`, err);

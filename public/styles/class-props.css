@@ -1,7 +1,7 @@
 .widget {
-    position: relative;
+    position: absolute;
     display: flex;
-    left: 275px;
+    left: calc(100% + 20px);
     bottom: 31px;
     flex-direction: column;
     height: 0px;
@@ -30,4 +30,8 @@
     width: 100%;
     flex-direction: row;
     justify-content: space-between;
+}
+
+#level-widget {
+    position: relative;
 }

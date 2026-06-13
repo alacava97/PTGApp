@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="styles/styles.css">
+	<link rel="stylesheet" href="styles/buttons.css">
+	<link rel="stylesheet" href="styles/themes.css">
+	<link rel="stylesheet" href="styles/modals.css">
+	<link rel="stylesheet" href="styles/class-props.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Confirmation</title>
+</head>
+<body>
+	<header>
+		<div class="title">
+			<h1>Class Proposal</h1>
+			<h2>2027 Piano Technicians' Guild Convention</h2>
+		</div>
+	</header>
+	<div class="main-content">
+		<div style="max-width:400px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align: center;">
+			<h3>Thank you for your class proposal. A confirmation email has been sent to the email you provided. The institute team will review your submission.</h3>
+			<a id="link" href="/public/class-proposal-form.html" style="text-decoration: underline;">submit another class proposal</a>
+		</div>
+	</div>
+</body>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const token = new URLSearchParams(window.location.search).get('token');
+		if (token) {
+			const params = new URLSearchParams();
+			params.append('token', token);
+			const a = document.getElementById('link').href = "/public/class-proposal-form.html?" + params.toString();
+		}	
+	});
+</script>

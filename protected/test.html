@@ -20,40 +20,7 @@
 
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		
 	});
-
-	function generateQRCode(url, container) {
-	    return new Promise(resolve => {
-	        new QRCode(container, {
-	            text: url,
-	            width: 128,
-	            height: 128,
-	            colorDark: "#000000",
-	            colorLight: "#ffffff",
-	            correctLevel: QRCode.CorrectLevel.H
-	        });
-
-	        const checkCanvas = setInterval(() => {
-	            const canvas = container.querySelector('canvas');
-	            if (canvas) {
-	                clearInterval(checkCanvas);
-	                resolve(canvas.toDataURL('image/png'));
-	            }
-	        }, 10);
-	    });
-	}
-
-	async function downloadQRCode(url, container) {
-	    const dataUrl = await generateQRCode(url, container);
-
-	    const link = document.createElement('a');
-	    link.href = dataUrl;
-	    link.download = 'qrcode.png';
-	    link.click();
-	}
-
-	generateQRCode("https://myptginstitute.com/public/class-proposal-form.html", document.getElementById("paper"))
 
 	
 </script>
