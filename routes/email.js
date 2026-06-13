@@ -67,13 +67,15 @@ router.post('/class-prop-confirmation', async (req, res) => {
 			to: email,
 			subject: 'Thank you for your class proposal',
 			html: `
-				<p>Hello ${name},</p>
-				<p>Thank you for submitting a class proposal for next year's PTG national convention. The institute team has received your information and will review it for consideration.</p>
+				<p>Dear ${name},</p>
+				<p>Thank you for submitting your class proposal to the PTG Institute Team! We appreciate hearing from you, and look forward to reading through your proposal as we prepare for the 2027 PTG Convention.</p>
+				<p>We’ll review class submissions as they come in, finalizing decisions in late September, and let you know by October 5th. A copy of your proposal is included below. If you wish to <a href="myptginstitute.com/public/class-proposal-form.html">submit any additional class proposals</a>, make sure they’re in by Sunday, September 20th, 2026.</p>
+				<p>Have any questions or concerns? We're happy to help! Send an email to institute@ptg.org.</p>
+				<p>All the best,</p>
+				<p>The PTG Institute Team<br>institute@ptg.org</p>
+				<p><i>Please note: <b>this inbox is not monitored.</b> All communications should be addressed to institute@ptg.org.</i></p>
 
 				<p>${formFields}</p>
-
-				<p>This inbox is not monitored, so please reach out to institute@ptg.org with any further communication.</p>
-				<p>Best,<br>The Institute Team</p>
 			`
 		});
 
