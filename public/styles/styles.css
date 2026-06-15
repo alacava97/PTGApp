@@ -343,26 +343,13 @@ body > h3 {
 .form-grid {
 	display: grid;
 	grid-template-columns: 1fr;
-	gap: 5px;
+	gap: 10px;
 }
 
 .right {
 	float: right;
 	clear: right;
 	margin-right: 5%;
-}
-
-#class-proposal {
-	max-width: 400px;
-}
-
-#class-proposal > input,
-#class-proposal > textarea,
-#class-proposal  select {
-	border: 1px solid #d1d1d1;
-	border-radius: 2px;
-	padding: 5px;
-	border-radius: 5px;
 }
 
 .switch {

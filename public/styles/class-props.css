@@ -35,3 +35,31 @@
 #level-widget {
     position: relative;
 }
+
+.subtitle {
+    color: gray;
+    font-size: 10pt;
+    font-style: italic;
+    text-align: left;
+}
+
+#class-proposal {
+    max-width: 400px;
+}
+
+input,
+textarea,
+select {
+    display: block;
+    width: 100%;
+    border: 1px solid #d1d1d1;
+    border-radius: 2px;
+    padding: 5px;
+    border-radius: 5px;
+    box-sizing:border-box;
+}
+
+input[type="checkbox"] {
+    display: inline;
+    width: auto;
+}

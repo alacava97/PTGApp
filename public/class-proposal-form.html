@@ -22,18 +22,31 @@
 	<div class="main-content">
 		<form id="class-proposal" class="form-grid">
 			<h2>Contact Information</h2>
-			<label for="fname">First Name</label>
-			<input id="fname" type="text" name="fname" required>
-			<label for="lname">Last Name</label>
-			<input id="lname" type="text" name="lname">
-			<label for="email">Email</label>
-			<input id="email" type="email" name="email" autocomplete="email" required>
-			<label for="phone">Phone</label>
-			<input id="phone" type="tel" name="phone" autocomplete="tel" required>
+			<label for="fname">First Name
+				<input id="fname" type="text" name="fname" required>
+			</label>
+
+			<label for="lname">Last Name
+				<input id="lname" type="text" name="lname">
+			</label>
+
+			<label for="email">Email
+				<input id="email" type="email" name="email" autocomplete="email" required>
+			</label>
+
+			<label for="phone">Phone
+				<input id="phone" type="tel" name="phone" autocomplete="tel" required>
+			</label>
+
 			<span>
-				<label for="rpt">RPT</label>
-				<input id="rpt" type="checkbox" name="rpt" value="true">
+				<label for="rpt">RPT
+					<input id="rpt" type="checkbox" name="rpt" value="true">
+				</label>	
 			</span>
+
+			<label for="additional-instructors">Additional Instructors
+				<textarea id="additional-instructors" name="additional_instructors" style="field-sizing:content;min-height:65px;" placeholder="If there are additional instructors, list them here"></textarea>
+			</label>
 
 			<div id="new-or-existing">
 				<h2>Submit a new or existing class?</h2>
@@ -47,28 +60,50 @@
 			</div>
 
 			<h2>Class Information</h2>
-			<label for="title">Class Title</label>
-			<input id="title" type="text" name="title">
-			<label for="desc">Description</label>
-			<textarea id="desc" name="description"></textarea>
-			<label for="level">Level</label>
-			<select id="level" name="level">
-				<option value="" disabled selected>Select a level</option>
-			</select>
-			<div id="level-widget"></div>
-			<label for="type">Type</label>
-			<select id="type" name="type">
-				<option value="" disabled selected>Select a type</option>
-			</select>
-			<label for="length">Class Length<br>(1 period = 1.5 hours)</label>
-			<input id="length" name="length" type="number" min="1" max="4">
-			<label for="uprights">Uprights needed</label>
-			<input id="uprights" name="uprights" type="number" min="0">
-			<label for="grands">Grands needed</label>
-			<input id="grands" name="grands" type="number" min="0">
-			<label for="sponsor">Sponsor</label>
-			<input id="sponsor" type="text" name="sponsor_name">
+			<label for="title">Class Title
+				<input id="title" type="text" name="title">
+			</label>
 
+			<label for="desc">Description
+				<textarea id="desc" name="description"></textarea>
+			</label>
+
+			<label for="level">Level
+				<select id="level" name="level">
+					<option value="" disabled selected>Select a level</option>
+				</select>
+			</label>
+
+			<div id="level-widget"></div>
+
+			<label for="type">Category
+				<select id="type" name="type">
+					<option value="" disabled selected>Select a category</option>
+				</select>
+			</label>
+
+			<label for="length">Class Length
+				<div class="subtitle">How many periods per class session? (1 period = 1.5 hours)</div>
+				<select id="length" name="length">
+					<option value="1">1 Period</option>
+					<option value="2">2 Periods</option>
+					<option value="4">4 Periods (all day)</option>
+				</select>
+			</label>
+
+			<label for="uprights">Uprights needed
+				<input id="uprights" name="uprights" type="number" min="0">
+			</label>
+
+			<label for="grands">Grands needed
+				<input id="grands" name="grands" type="number" min="0">
+			</label>
+
+			<label for="sponsor">Sponsor
+				<div class="subtitle">Are you being payed by a third party to teach this class?</div>
+				<input id="sponsor" type="text" name="sponsor_name">
+			</label>
+			
 			<button type="submit" style="margin-top: 20px;height: 30px;background-color: #04AA6D;border-radius: 5px;box-shadow:0px 3px 5px black">Submit</button>
 			<span id="message"></span>
 		</form>

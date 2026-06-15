@@ -426,7 +426,7 @@ async function createLabel(data) {
 
 	const days = ['Wednesday', 'Thursday', 'Friday', 'Saturday']
 
-	title.textContent = data.short_title ? data.short_title : data.title;
+	title.textContent = data.title;
 	inst.textContent = names;
 	day.textContent = days[data.day-3];
 	if (data.half_period == true) {
