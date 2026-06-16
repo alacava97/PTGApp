@@ -1,0 +1,39 @@
+.dropdown-row {
+	display: flex;
+    text-align: left;
+    width: 100%;
+    background-color: #eeeeee;
+    padding: 10px;
+    border: 1px solid #a7a7a7;
+}
+
+.dropdown-row-info {
+	display: grid;
+	gap: 5px;
+	grid-template-columns: repeat(6, auto);
+	width: 100%;
+	justify-items: center;
+}
+
+.main-content {
+	margin-top: 10px;
+	justify-content: normal;
+	gap: 5px;
+}
+
+.admin-row {
+	display: flex;
+	flex-direction: row;
+}
+
+.ddrow-header {
+	font-weight: bold;
+}
+
+.vertical-separator {
+	width: 1px;
+    height: 100%;
+    margin: auto 0;
+    background-color: #999999;
+    display: inline-block;
+}

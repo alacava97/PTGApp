@@ -32,10 +32,6 @@
 		const user = await res.json();
 	});
 
-	function loadNavs(role) {
-		const institute = document.createElement('span');
-	}
-
 	async function initHomePage() {
 		await populateYearDropdown(document.getElementById('year-select'), 2);
 		await loadData();
