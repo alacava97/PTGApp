@@ -8,11 +8,29 @@
 }
 
 .dropdown-row-info {
-	display: grid;
-	gap: 5px;
-	grid-template-columns: repeat(6, auto);
 	width: 100%;
-	justify-items: center;
+	border-collapse: collapse;
+}
+
+.dropdown-row-info > tbody > tr:first-child {
+    background-color: #04AA6D;
+    color: white;
+}
+
+.dropdown-row-info > tbody > tr > td,
+.dropdown-row-info > tbody > tr > th {
+	padding: 5px 10px;
+	text-align: left;
+}
+
+.dropdown-row-info > tbody > tr:nth-child(even) {
+	background-color: #eeeeee;
+}
+
+.dropdown-row-info > tbody > tr:nth-child(odd):not(:first-child) {
+	border-top: 1px solid #bebebe;
+	border-bottom: 1px solid #bebebe;
+	background-color: #e3e3e3;
 }
 
 .main-content {

@@ -17,14 +17,15 @@
 	</header>
 	<div class="main-content">
 		<div class="dropdown-row">Institute Team Members</div>
-		<div class="dropdown-row-info" id="institute-team">
-			<div class="ddrow-header">Institute ID</div>
-			<div class="vertical-separator"></div>
-			<div class="ddrow-header">Name</div>
-			<div class="vertical-separator"></div>
-			<div class="ddrow-header">Roll</div>
-			<div class="vertical-separator"></div>
-		</div>
+		<table class="dropdown-row-info" id="institute-team">
+			<tbody id="i-team-tbody">
+				<tr>
+					<th class="ddrow-header">Institute ID</th>
+					<th class="ddrow-header">Name</th>
+					<th class="ddrow-header">Roll</th>
+				</tr>
+			</tbody>
+		</table>
 	</div>
 </body>
 <script src="public/js/script.js"></script>
@@ -51,19 +52,19 @@
 	}
 
 	function renderInstTeam(data) {
-		const iTeam = document.getElementById('institute-team');
+		const iTeam = document.getElementById('i-team-tbody');
 
 		data.forEach((m, index) => {
-			Object.keys(m).forEach(key => {
-				const c = document.createElement('div');
-				c.classList.add('dropdown-col');
-				c.textContent = m[key];
-				iTeam.appendChild(c);
+			const tr = document.createElement('tr');
 
-				const sep = document.createElement('div');
-				sep.classList.add('vertical-separator');
-				iTeam.appendChild(sep);
+			Object.keys(m).forEach(key => {
+				const td = document.createElement('td');
+				td.classList.add('dropdown-col');
+				td.textContent = m[key];
+				tr.appendChild(td);
 			});
+
+			iTeam.appendChild(tr);
 		});
 	}
 	
