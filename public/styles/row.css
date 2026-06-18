@@ -1,3 +1,11 @@
+.row-titles {
+	display: flex;
+    flex-direction: column;
+    gap: 5px;
+    width: fit-content;
+    white-space: nowrap;
+}
+
 .row-title {
 	font-weight: bold;
 	font-size: 16px;
@@ -10,12 +18,16 @@
 }
 
 .row, .static-row {
-	display: grid;
+	display: flex;
+	flex-direction: row;
 	position: relative;
 	padding: 7px 5%;
 	border: #CCCCCC solid 1px;
-	background-color: #EEEEEE;
 	overflow: hidden;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0 20px;
+	flex-wrap: wrap;
 }
 
 .row:hover {
@@ -44,4 +56,24 @@
 
 #list > *:nth-child(even):hover {
 	background-color: color-mix(in srgb, #EEEEEE 90%, black);
+}
+
+.row-arrow {
+	width: fit-content;
+	white-space: nowrap;
+}
+
+.status {
+    padding: 5px 10px;
+    border-radius: 5px;
+    margin-left: auto;
+}
+
+.row-dd {
+	flex-basis: 100%;
+	background-color: #eeeeee;
+	box-sizing: border-box;
+	padding: 5px;
+	display: none;
+	margin: 5px 0;
 }

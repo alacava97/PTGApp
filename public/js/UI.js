@@ -2,6 +2,10 @@ class Row {
 	constructor() {
 		this.row = document.createElement('div');
 		this.row.classList.add('row');
+
+		this.titles = document.createElement('div');
+		this.titles.classList.add('row-titles');
+		this.row.appendChild(this.titles);
 	}
 
 	static() {
@@ -16,7 +20,7 @@ class Row {
 		}
 		this.title.innerHTML = html;
 		this.title.classList.add('row-title');
-		this.row.appendChild(this.title);
+		this.titles.appendChild(this.title);
 	}
 
 	addSubtitle(html, id) {
@@ -26,12 +30,12 @@ class Row {
 		}
 		this.subtitle.innerHTML = html;
 		this.subtitle.classList.add('row-subtitle');
-		this.row.appendChild(this.subtitle);
+		this.titles.appendChild(this.subtitle);
 	}
 
 	addArrow(link) {
 		this.arrow = document.createElement('span');
-		this.arrow.classList.add('arrow');
+		this.arrow.classList.add('row-arrow');
 		this.arrow.innerHTML = `More Info &#9654;`;
 		this.row.addEventListener('click', (e) => {
 			e.stopPropagation();
@@ -49,7 +53,7 @@ class Row {
 
 	editArrow() {
 		this.editArrow = document.createElement('span');
-		this.editArrow.classList.add('arrow');
+		this.editArrow.classList.add('row-arrow');
 		this.editArrow.innerHTML = `edit &#9654;`;
 		this.row.appendChild(this.editArrow);
 	}
@@ -65,5 +69,27 @@ class Row {
 		this.separator = document.createElement('div');
 		this.separator.classList.add('seperator');
 		this.row.appendChild(this.separator);
+	}
+
+	addStatus(statusText) {
+		this.status = document.createElement('div');
+		this.status.classList.add('status');
+		this.status.textContent = statusText;
+		this.row.appendChild(this.status);
+	}
+
+	addDDMenu() {
+		this.ddArrow = document.createElement('span');
+		this.ddArrow.classList.add('row-arrow');
+		this.ddArrow.innerHTML = `&#9654`;
+		this.row.appendChild(this.ddArrow);
+
+		this.dd = document.createElement('div');
+		this.dd.classList.add('row-dd');
+		this.row.appendChild(this.dd);
+
+		this.row.addEventListener('click', () => {
+			this.dd.style.display = 'flex';
+		});
 	}
 }

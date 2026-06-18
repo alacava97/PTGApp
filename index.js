@@ -738,6 +738,12 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       LEFT JOIN
         users u on u.id = a.user_id
     `;
+  } else if (table === 'conventions') {
+    query =`
+      SELECT c.*, l.*
+      FROM conventions c
+      LEFT JOIN locations l on c.location_id = l.id;
+    `
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
   }

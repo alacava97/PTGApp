@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/row.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Conventions</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header class="clearfix">
+		<h1>Conventions</h1>
+		<div id="new-btn" class="new-btn">new</div>
+	</header>
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by year or location">
+	<div id="list"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const { conventions } = await DataAPI.load();
+		displayRecords(conventions)
+
+		searchBar(conventions);
+
+		const newConvention = new Modal('newModal');
+		newConvention.content(`<h2>New Convention</h2>
+			<form id="new-convention-form">
+				<label for="year">Year</label>
+				<input id="year" type="number" name="year" placeholder="year" autocomplete="off" required>
+				<div class="seperator"></div>
+
+				<label for="dates">Start Date</label>
+				<input id="startDate" type="date" name="start_date">
+
+				<label for="endDate">End Date</label>
+				<input id="endDate" type="date" name="end_date">
+				<div class="seperator"></div>
+
+				<label for="conventionDropdown">Type</label>
+				<Select id="conventionDropdown" name="location_id" required>
+					<option value="" selected disabled>Select a convention hall</option>
+				</Select>
+				<div class="seperator"></div>
+
+				<button type="submit" class="button">Create Record</button>
+			</form>
+
+			<div id="message"></div>`);
+		document.getElementById('new-btn').addEventListener('click', () => newConvention.show());
+
+		const startInput = document.getElementById('startDate');
+		const endInput = document.getElementById('endDate');
+
+		startInput.addEventListener('change', (e) => {
+		    endInput.min = e.target.value;
+		});
+
+		endInput.addEventListener('change', (e) => {
+		    startInput.max = e.target.value;
+		});
+	
+		async function conSuccess() {
+			const { conventions } = await DataAPI.load();
+			console.log(conventions);
+			displayRecords(conventions);
+		}
+		newConvention.formSubmit(conSuccess, 'conventions', type = 'create');
+
+		const conventionHalls = document.getElementById('conventionDropdown');
+		populateDropdown(conventionHalls, 'locations', 'location_name');
+	});
+
+	async function fetchJSON(url, options = {}) {
+		const res = await fetch(url, options);
+		if (!res.ok) throw new Error(await res.text());
+		return res.json();
+	}
+
+	const DataAPI = {
+		load: async () => {
+			const [ conventions ] = await Promise.all([
+				fetchJSON(`/api/read/conventions`)
+			]);
+
+			return { conventions };
+		}
+	}
+
+	function displayRecords(data) {
+		const list = document.getElementById('list');
+		list.innerHTML = '';
+
+		Object.entries(data).toReversed().forEach(record => {
+			record = record[1]
+			const entry = new Row();
+
+			const name = `${record.year} - ${record.city_state}`
+			const subtitle = `${record.location_name}`;
+
+			entry.addTitle(name);
+			entry.addSubtitle(subtitle);
+
+			if (record.closed == true) {
+				entry.addStatus('closed');
+				entry.status.style.backgroundColor = "#2196f3"
+			} else {
+				entry.addStatus('open');
+				entry.status.style.backgroundColor = "#04aa0a"
+			}
+
+			entry.addDDMenu();
+			entry.dd.textContent = 'to put here: delete button, link to this years class prop form (and qr), date input to select when to close class prop form, options to edit year, city, location. Update class prop form to update year based on convention db, and function to close form after selected date';
+
+			list.appendChild(entry.row);
+		})
+	}
+	
+</script>
+</html>

@@ -1,10 +1,17 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
+
 - Convention setup pages
+	-fix dd to close, just opens now
 	-release/close prop form
-	-year
+		-Set close date
+		-Button only for director to open form/send email blast
+	-year and dates - link to bubble chart and prop form
+		-prop form will need some function to read year from url and update accordingly
 	-location
-	-rooms
+
+- Convention locations page
+	-move edit rooms from settings to here
 
 - Things that require emailing
 	- Button to send second form for approved classes w/ consent to teach (from home office)
@@ -24,10 +31,9 @@
 -list of instructor/av needs in chronological order for Bruce
 -make color block class type colors update when changed
 -add other team members to dropdown on prop info page
--way to specify dates for convention
-	-expand to bubble chart
 
 -admin panel
 	-view/edit institue team and permissions
+	-Replace current layout with UI.row layout, turn table into row-dd
 
 -Mobile layout nav
