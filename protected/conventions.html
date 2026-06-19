@@ -25,6 +25,8 @@
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
 <script src="public/js/UI.js"></script>
+<script src="public/js/qr.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		const { conventions } = await DataAPI.load();
@@ -102,67 +104,128 @@
 		console.log(data);
 
 		Object.entries(data).forEach(async record => {
-			record = record[1]
+			//create entry row
+			record = record[1];
 			const entry = new Row();
-
-			const name = `${record.year} - ${record.city_state}`
-			const subtitle = `${record.location_name}`;
-
-			entry.addTitle(name);
-			entry.addSubtitle(subtitle);
-
-			if (record.closed == true) {
-				entry.addStatus('closed');
-				entry.status.style.backgroundColor = "#2196f3"
-			} else {
-				entry.addStatus('open');
-				entry.status.style.backgroundColor = "#04aa0a"
-			}
-
-			entry.addDDMenu();
-
-			const startDate = record.start_date;
-			const endDate = record.end_date;
-
-			const updateForm = document.createElement('form');
-			updateForm.innerHTML = `
-				<label for="year-${record.id}">Year</label>	
-				<input id="year-${record.id}" name="year" type="number" value="${record.year}">
-				
-				<label for="start-date-${record.id}">Start Date</label>
-				<input id="start-date-${record.id}" name="start_date" type="date" value="${startDate ? startDate.split('T')[0] : ''}">
-				
-				<label for="end-date-${record.id}">End Date</label>
-				<input id="end-date-${record.id}" name="end_date" type="date" value="${endDate ? endDate.split('T')[0] : ''}">
-
-				<label for="city-state-${record.id}">City</label>
-				<input id="city-state-${record.id}" name="city_state" type="text" value="${record.city_state}">
-				
-				<label for="location-${record.id}">Location</label>	
-				<select id="location-${record.id}" name="location_id">
-					<option value="" disabled>Select a convention hall</option>
-				</select>
-				
-				<button type="submit">Update</button>
-				<div id="message-${record.id}"></div>
-			`
-
-			const locationSelect = updateForm.querySelector(`#location-${record.id}`);
-			await populateDropdown(locationSelect, 'locations', 'location_name');
-			locationSelect.querySelector(`option[value="${record.location_id}"]`).selected = true;
-
-			updateForm.addEventListener('submit', (e) => {
-				handleFormSubmission(e, updateForm, `/api/update/conventions/${record.id}`, 'PATCH', () => {
-					console.log(record);
-				})
-			});
-
-			entry.dd.textContent = 'to put here: delete button, link to this years class prop form (and qr), date input to select when to close class prop form. Update class prop form to update year based on convention db, and function to close form after selected date';
-
-			entry.dd.appendChild(updateForm);
+			await renderEntry(record, entry);
 
 			list.appendChild(entry.row);
 		})
+	}
+
+	async function renderEntry(record, entry) {
+		const name = `${record.year} - ${record.city_state}`
+		const subtitle = `${record.location_name}`;
+
+		entry.addTitle(name);
+		entry.addSubtitle(subtitle);
+
+		if (record.closed == true) {
+			entry.addStatus('closed');
+			entry.status.style.backgroundColor = "#2196f3"
+		} else {
+			entry.addStatus('open');
+			entry.status.style.backgroundColor = "#04aa0a"
+		}
+
+		//render dropdown menu
+		entry.addDDMenu();
+
+		//render update form
+		const startDate = record.start_date;
+		const endDate = record.end_date;
+
+		const updateForm = document.createElement('form');
+		updateForm.innerHTML = `
+			<div style="grid-column:span 2;text-align:center;"><b>Convention Info</b></div>
+			<label for="year-${record.id}">Year</label>	
+			<input id="year-${record.id}" name="year" type="number" value="${record.year}">
+			
+			<label for="start-date-${record.id}">Start Date</label>
+			<input id="start-date-${record.id}" name="start_date" type="date" value="${startDate ? startDate.split('T')[0] : ''}">
+			
+			<label for="end-date-${record.id}">End Date</label>
+			<input id="end-date-${record.id}" name="end_date" type="date" value="${endDate ? endDate.split('T')[0] : ''}">
+			
+			<label for="location-${record.id}">Location</label>	
+			<select id="location-${record.id}" name="location_id">
+				<option value="" disabled>Select a convention hall</option>
+			</select>
+			
+			<button type="submit">Update</button>
+			<div id="message-${record.id}" style="text-align:center;width:100%;grid-column:span 2;"></div>
+		`
+
+		const locationSelect = updateForm.querySelector(`#location-${record.id}`);
+		await populateDropdown(locationSelect, 'locations', 'location_name');
+		locationSelect.querySelector(`option[value="${record.location_id}"]`).selected = true;
+
+		updateForm.addEventListener('submit', (e) => {
+			handleFormSubmission(e, updateForm, `/api/update/conventions/${record.id}`, 'PATCH', async (result) => {
+				const updated = await fetchJSON(`/api/readEntry/conventions/${record.id}`);
+				const newEntry = new Row();
+				await renderEntry(updated, newEntry);
+				entry.row.replaceWith(newEntry.row);
+				newEntry.row.querySelector('.row-dd').style.display = 'flex';
+				alert(result.message);
+			});
+		});
+
+		entry.dd.appendChild(updateForm);
+
+		//separator
+		const sep = document.createElement('div');
+		sep.classList.add('vertical-separator');
+		entry.dd.appendChild(sep);
+
+		//class prop section
+		const props = document.createElement('div');
+		props.classList.add('props');
+
+		const propTitle = document.createElement('div');
+		propTitle.textContent = 'Class Proposals';
+		propTitle.style.fontWeight = 'bold';
+		props.appendChild(propTitle);
+
+		const closeDateLabel = document.createElement('label');
+		closeDateLabel.textContent = 'Class Proposal Deadline';
+		closeDateLabel.classList.add('prop-label');
+
+		const closeDate = document.createElement('input');
+		closeDate.type = 'date';
+		closeDate.value = record.props_closed;
+		closeDate.addEventListener('change', async (e) => {
+			fetchJSON(`/api/update/conventions/${record.id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					props_closed: e.target.value
+				})
+			})
+		})
+		closeDateLabel.appendChild(closeDate);
+
+		props.appendChild(closeDateLabel);
+
+		const classPropLink = document.createElement('a');
+		classPropLink.href = `/public/class-proposal-form.html?year=${record.year}`;
+		classPropLink.innerHTML = `&#x1F517 Class Proposal Form ${record.year}`;
+		props.appendChild(classPropLink);
+
+		const qrCode = document.createElement('div');
+		generateQRCode(`/public/class-proposal-form.html?year=${record.year}`, qrCode);
+		props.appendChild(qrCode);
+
+		entry.dd.appendChild(props);
+
+		entry.dd.appendChild(sep.cloneNode(true));
+
+		const deleteButton = document.createElement('button');
+		deleteButton.classList.add('delete-button');
+		deleteButton.textContent = 'Delete Convention';
+		entry.dd.appendChild(deleteButton);
 	}
 	
 </script>

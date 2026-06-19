@@ -276,7 +276,7 @@ async function handleFormSubmission(e, form, endpoint, method = 'PUT', afterSubm
 			if (form.reset) form.reset();
 			const modal = form.closest('.modal');
 			if (modal) modal.style.display = "none";
-			await afterSubmit();
+			await afterSubmit(result);
 		}
 	} catch (err) {
 		console.error('Form submission failed:', err);

@@ -65,9 +65,13 @@ class Row {
 		this.row.appendChild(this.deleteButton);
 	}
 
-	addSeparator() {
+	addSeparator(type) {
 		this.separator = document.createElement('div');
-		this.separator.classList.add('seperator');
+		if (type == 'horizontal') {
+			this.separator.classList.add('separator');
+		} else if (type == 'vertical') {
+			this.separator.classList.add('vertical-separator');
+		}
 		this.row.appendChild(this.separator);
 	}
 
@@ -90,6 +94,12 @@ class Row {
 
 		this.row.addEventListener('click', () => {
 			this.dd.style.display = 'flex';
+		});
+
+		document.addEventListener('click', (e) => {
+			if (!this.row.contains(e.target)) {
+				this.dd.style.display = 'none';
+			}
 		});
 	}
 }

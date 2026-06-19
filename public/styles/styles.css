@@ -449,14 +449,14 @@ body > h3 {
 }
 
 
-.seperator {
+.seperator, .separator {
 	width: 80%;
 	background-color: #d8d8d8;
 	height: 1px;
 	margin: 5px auto;
 }
 
-.vertical-seperator {
+.vertical-seperator, .vertical-separator {
 	width: 1px;
 	height: 30px;
 	margin: auto 0;

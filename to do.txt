@@ -2,18 +2,14 @@
 - Flag high priority class proposals - add initials and a note
 
 - Convention setup pages
-	-fix dd to close, just opens now
-	-release/close prop form
-		-Set close date
-		-Button only for director to open form/send email blast
-	-year and dates - link to bubble chart and prop form
-		-prop form will need some function to read year from url and update accordingly
-	-Add "after submit" function to update form
-		-Return updated record from backend and update form fields to match
-		-"record updated" message
+	-Delete button opens confirmation modal, sets record to inactive
 
 - Convention locations page
 	-move edit rooms from settings to here
+
+- Prop form
+	-"sorry class submissions are closed for 'year'" page if past closed date.
+	-"Form not available" page if no year in url
 
 - Things that require emailing
 	- Button to send second form for approved classes w/ consent to teach (from home office)

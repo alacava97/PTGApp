@@ -76,4 +76,7 @@
 	padding: 5px;
 	display: none;
 	margin: 5px 0;
+	gap: 10px;
+	justify-content: space-around;
+	align-items: center;
 }

@@ -743,6 +743,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       SELECT c.*, l.location_name, l.city_state
       FROM conventions c
       LEFT JOIN locations l on c.location_id = l.id
+      WHERE c.disabled <> TRUE
       ORDER BY c.id DESC;
     `
   } else {
@@ -921,13 +922,15 @@ app.get('/api/readEntry/:table/:id', requireLogin, async (req, res) => {
       result = await pool.query(`
         SELECT
           conventions.*,
-          locations.*
+          locations.city_state,
+          locations.location_name
         FROM
           conventions
         LEFT JOIN
           locations ON conventions.location_id = locations.id
         WHERE
-          conventions.id = $1
+          conventions.id = $1 AND
+          conventions.disabled <> TRUE
       `, [id])
     } else {
       result = await pool.query(`SELECT * FROM ${table} WHERE id = $1`, [id]);

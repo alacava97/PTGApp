@@ -22,13 +22,13 @@ form {
     gap: 5px;
 }
 
-label {
+form > label {
 	white-space: nowrap;
-	gap: 5px;
 	text-align: right;
+	align-content: center;
 }
 
-input {
+form > input {
 	width: 100%;
 	box-sizing: border-box;
 }
@@ -39,4 +39,32 @@ select {
 
 button {
 	grid-column: span 2;
+}
+
+.props {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: center;
+}
+
+a {
+	white-space: nowrap;
+}
+
+.prop-label {
+	display: flex;
+	flex-direction: column;
+}
+
+.delete-button {
+	height: 25px;
+}
+
+.row-dd {
+	height: 260px;
+}
+
+.vertical-separator {
+	height: 80%;
 }
