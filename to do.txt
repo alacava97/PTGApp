@@ -8,7 +8,7 @@
 		-Button only for director to open form/send email blast
 	-year and dates - link to bubble chart and prop form
 		-prop form will need some function to read year from url and update accordingly
-	-location
+	-Add submit handler to update form
 
 - Convention locations page
 	-move edit rooms from settings to here

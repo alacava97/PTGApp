@@ -15,3 +15,23 @@
 	gap: 10px;
 	padding: 10px;
 }
+
+form {
+	display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+label {
+	white-space: nowrap;
+	display: flex;
+	gap: 5px;
+}
+
+input {
+	width: 100%;
+}
+
+select {
+	width: fit-content;
+}
