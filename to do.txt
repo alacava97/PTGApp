@@ -35,3 +35,5 @@
 	-Replace current layout with UI.row layout, turn table into row-dd
 
 -Mobile layout nav
+
+-Change team, class, and isntructor pages to use dropdowns instead of link to info page
