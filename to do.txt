@@ -9,6 +9,7 @@
 	-year and dates - link to bubble chart and prop form
 		-prop form will need some function to read year from url and update accordingly
 	-Add submit handler to update form
+	-Fix janky input and label
 
 - Convention locations page
 	-move edit rooms from settings to here
