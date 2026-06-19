@@ -17,21 +17,26 @@
 }
 
 form {
-	display: flex;
-    flex-direction: column;
+	display: grid;
+    grid-template-columns: auto auto;
     gap: 5px;
 }
 
 label {
 	white-space: nowrap;
-	display: flex;
 	gap: 5px;
+	text-align: right;
 }
 
 input {
 	width: 100%;
+	box-sizing: border-box;
 }
 
 select {
 	width: fit-content;
+}
+
+button {
+	grid-column: span 2;
 }

@@ -740,9 +740,10 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
     `;
   } else if (table === 'conventions') {
     query =`
-      SELECT c.*, l.*
+      SELECT c.*, l.location_name, l.city_state
       FROM conventions c
-      LEFT JOIN locations l on c.location_id = l.id;
+      LEFT JOIN locations l on c.location_id = l.id
+      ORDER BY c.id DESC;
     `
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;

@@ -99,7 +99,9 @@
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
-		Object.entries(data).toReversed().forEach(async record => {
+		console.log(data);
+
+		Object.entries(data).forEach(async record => {
 			record = record[1]
 			const entry = new Row();
 
@@ -124,39 +126,36 @@
 
 			const updateForm = document.createElement('form');
 			updateForm.innerHTML = `
-				<label for="year-${record.id}">
-					Year
-					<input id="year-${record.id}" name="year" type="number" value="${record.year}">
-				</label>
+				<label for="year-${record.id}">Year</label>	
+				<input id="year-${record.id}" name="year" type="number" value="${record.year}">
+				
+				<label for="start-date-${record.id}">Start Date</label>
+				<input id="start-date-${record.id}" name="start_date" type="date" value="${startDate ? startDate.split('T')[0] : ''}">
+				
+				<label for="end-date-${record.id}">End Date</label>
+				<input id="end-date-${record.id}" name="end_date" type="date" value="${endDate ? endDate.split('T')[0] : ''}">
 
-				<label for="start-date-${record.id}">
-					Start Date
-					<input id="start-date-${record.id}" name="start_date" type="date" value="${startDate ? startDate.split('T')[0] : ''}">
-				</label>
-
-				<label for="end-date-${record.id}">
-					End Date
-					<input id="end-date-${record.id}" name="end_date" type="date" value="${endDate ? endDate.split('T')[0] : ''}">
-				</label>
-
-				<label for="city-state-${record.id}">
-					City 
-					<input id="city-state-${record.id}" name="city_state" type="text" value="${record.city_state}">
-				</label>
-
-				<label for="location-${record.id}">
-					Location
-					<select id="location-${record.id}" name="location_id">
-						<option value="" disabled>Select a convention hall</option>
-					</select>
-				</label>
-
+				<label for="city-state-${record.id}">City</label>
+				<input id="city-state-${record.id}" name="city_state" type="text" value="${record.city_state}">
+				
+				<label for="location-${record.id}">Location</label>	
+				<select id="location-${record.id}" name="location_id">
+					<option value="" disabled>Select a convention hall</option>
+				</select>
+				
 				<button type="submit">Update</button>
+				<div id="message-${record.id}"></div>
 			`
 
 			const locationSelect = updateForm.querySelector(`#location-${record.id}`);
 			await populateDropdown(locationSelect, 'locations', 'location_name');
 			locationSelect.querySelector(`option[value="${record.location_id}"]`).selected = true;
+
+			updateForm.addEventListener('submit', (e) => {
+				handleFormSubmission(e, updateForm, `/api/update/conventions/${record.id}`, 'PATCH', () => {
+					console.log(record);
+				})
+			});
 
 			entry.dd.textContent = 'to put here: delete button, link to this years class prop form (and qr), date input to select when to close class prop form. Update class prop form to update year based on convention db, and function to close form after selected date';
 
