@@ -112,7 +112,70 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	    input?.addEventListener('blur', finalizeAdd);
 	});
 
-	//to do: attach inline edit, attach delete button
+	// to do: clean up inline edit and delete button
+	  function attachInlineEdit(span, li) {
+	    span.addEventListener('click', () => {
+	      const oldText = span.textContent;
+	      const input = document.createElement('input');
+	      input.type = 'text';
+	      input.value = oldText;
+	      input.classList.add('inline-edit');
+	      span.textContent = '';
+	      span.appendChild(input);
+	      input.focus();
+
+	      const save = async () => {
+	        const newText = input.value.trim();
+	        if (newText === oldText || !newText) return (span.textContent = oldText);
+	        try {
+	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
+	            method: 'PATCH',
+	            headers: { 'Content-Type': 'application/json' },
+	            body: JSON.stringify({ [displayKey]: newText })
+	          });
+	          if (!res.ok) throw new Error('Update failed');
+	          span.textContent = newText;
+	        } catch (err) {
+	          console.error(`Failed to update ${displayKey}:`, err);
+	          span.textContent = oldText;
+	        }
+	      };
+
+	      input.addEventListener('blur', save);
+	      input.addEventListener('keydown', e => {
+	        if (e.key === 'Enter') input.blur();
+	        if (e.key === 'Escape') span.textContent = oldText;
+	      });
+	    });
+	  }
+
+	function attachDeleteButton(li) {
+	    const del = document.createElement('button');
+	    del.textContent = '×';
+	    del.className = 'delete-btn2';
+	    li.appendChild(del);
+
+	    del.addEventListener('click', async (e) => {
+	      	e.stopPropagation();
+	      	const id = li.dataset.id;
+	      	if (!confirm(`Delete this ${displayKey}?`)) return;
+
+	      	try {
+	        	const res = await fetch(`/api/delete/${table}/${id}`, { method: 'DELETE' });
+
+	        	const data = await res.json();
+
+	        	if (!res.ok) {
+	        		alert(data.error);
+	        		return;
+	       		}
+
+	        	li.remove();
+	      	} catch (err) {
+	        	console.error(`Delete ${displayKey} failed:`, err);
+	      	}
+	    });
+	  }
 	
 	return { list, addBtn };
 }
