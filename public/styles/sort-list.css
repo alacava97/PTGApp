@@ -1,0 +1,39 @@
+.sort-list {
+	list-style-type: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 5px;
+}
+
+.sort-list > li{
+	background-color: #fff;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+	padding: 5px;
+}
+
+.sort-list > li:hover {
+	background-color: #f7f7f7;
+}
+
+.sort-list > li.dragging {
+	opacity: 0.5;
+}
+
+.add-btn {
+  margin-top: 10px;
+  width: 100%;
+  padding: 8px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.add-btn:hover {
+  background: #0056b3;
+}

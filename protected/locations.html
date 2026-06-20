@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="public/styles/styles.css">
+	<link rel="stylesheet" href="public/styles/buttons.css">
+	<link rel="stylesheet" href="public/styles/themes.css">
+	<link rel="stylesheet" href="public/styles/modals.css">
+	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/row.css">
+	<link rel="stylesheet" href="public/styles/conventions.css">
+	<link rel="stylesheet" href="public/styles/sort-list.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Convention Locations</title>
+</head>
+<body>
+	<div id="navbar"></div>
+	<header class="clearfix">
+		<h1>Convention Locations</h1>
+		<div id="new-btn" class="new-btn">new</div>
+	</header>
+	<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by location">
+	<div id="list"></div>
+</body>
+<script src="public/js/script.js"></script>
+<script src="public/js/modals.js"></script>
+<script src="public/js/UI.js"></script>
+<script src="public/js/sort-list.js"></script>
+<script>
+	document.addEventListener('DOMContentLoaded', async () => {
+		const { locations, rooms } = await DataAPI.load();
+
+		await displayRecords(locations, rooms)
+
+		searchBar(locations);
+
+		const newLocation = new Modal('newModal');
+		newLocation.content(`<h2>New Location</h2>
+			<form id="new-location-form">
+				<label for="location-name">Location Name</label>
+				<input id="location-name" type="text" name="location_name">
+				<div class="seperator"></div>
+
+				<label for="city-state">City and State</label>
+				<input id="city-state" type="text" name="city_state">
+				<div class="seperator"></div>
+
+				<button type="submit" class="button">Create Record</button>
+			</form>
+
+			<div id="message"></div>`);
+		document.getElementById('new-btn').addEventListener('click', () => newLocation.show());
+	
+		async function onSuccess() {
+			const { locations, rooms } = await DataAPI.load();
+			await displayRecords(locations, rooms);
+		}
+		newLocation.formSubmit(onSuccess, 'locations', type = 'create');
+	});
+
+	async function fetchJSON(url, options = {}) {
+		const res = await fetch(url, options);
+		if (!res.ok) throw new Error(await res.text());
+		return res.json();
+	}
+
+	const DataAPI = {
+		load: async () => {
+			const [ locations, rooms ] = await Promise.all([
+				fetchJSON(`/api/read/locations`),
+				fetchJSON(`/api/read/rooms`)
+			]);
+
+			return { locations, rooms };
+		}
+	}
+
+	async function displayRecords(locations, rooms) {
+		const list = document.getElementById('list');
+		list.innerHTML = '';
+		Object.entries(locations).forEach(async record => {
+			const locationRooms = rooms.filter(room => room.location_id === record[1].id);
+			//create entry row
+			record = record[1];
+			const entry = new Row();
+			await renderEntry(record, entry, locationRooms);
+
+			list.appendChild(entry.row);
+		})
+	}
+
+	async function renderEntry(record, entry, rooms) {
+		const name = `${record.location_name} - ${record.city_state}`
+
+		entry.addTitle(name);
+
+		//render dropdown menu
+		entry.addDDMenu();
+
+		//render update form
+		const updateForm = document.createElement('form');
+		updateForm.innerHTML = `
+			<div style="grid-column:span 2;text-align:center;"><b>Location Info</b></div>		
+			<label for="location-name-${record.id}">Location Name</label>
+			<input id="location-name-${record.id}" type="text" name="location_name" value="${record.location_name}">
+
+			<label for="city-state-${record.id}">City and State</label>
+			<input id="city-state${record.id}" type="text" name="city_state" value="${record.city_state}">
+			
+			<button type="submit">Update</button>
+			<div id="message-${record.id}" style="text-align:center;width:100%;grid-column:span 2;"></div>
+		`
+
+		updateForm.addEventListener('submit', (e) => {
+			handleFormSubmission(e, updateForm, `/api/update/locations/${record.id}`, 'PATCH', async (result) => {
+				const updated = await fetchJSON(`/api/readEntry/locations/${record.id}`);
+				const newEntry = new Row();
+				await renderEntry(updated, newEntry);
+				entry.row.replaceWith(newEntry.row);
+				newEntry.row.querySelector('.row-dd').style.display = 'flex';
+				alert(result.message);
+			});
+		});
+
+		entry.dd.appendChild(updateForm);
+
+		//separator
+		const sep = document.createElement('div');
+		sep.classList.add('vertical-separator');
+		entry.dd.appendChild(sep);
+
+		const listContainer = document.createElement('div');
+		const { list, addBtn} = setupSortList(rooms, 'name', 'rooms');
+		list.dataset.loc_id = record.id;
+
+		listContainer.appendChild(list);
+		listContainer.appendChild(addBtn);
+		entry.dd.appendChild(listContainer);
+
+		entry.dd.appendChild(sep.cloneNode(true))
+
+		const deleteButton = document.createElement('button');
+		deleteButton.classList.add('delete-button');
+		deleteButton.textContent = 'Delete Location';
+		entry.dd.appendChild(deleteButton);
+	}
+	
+</script>
+</html>

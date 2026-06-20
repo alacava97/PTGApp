@@ -84,8 +84,7 @@ class Row {
 
 	addDDMenu() {
 		this.ddArrow = document.createElement('span');
-		this.ddArrow.classList.add('row-arrow');
-		this.ddArrow.innerHTML = `&#9654`;
+		this.ddArrow.classList.add('fa', 'fa-caret-down');
 		this.row.appendChild(this.ddArrow);
 
 		this.dd = document.createElement('div');

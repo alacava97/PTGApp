@@ -72,22 +72,6 @@ body > h3 {
 	background-color: #B22222;
 }
 
-.add-btn {
-  margin-top: 10px;
-  width: 100%;
-  padding: 8px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.add-btn:hover {
-  background: #0056b3;
-}
-
 
 .delete-btn2 {
   border: none;

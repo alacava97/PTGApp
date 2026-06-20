@@ -47,7 +47,7 @@
 			const list = document.getElementById('room-list');
 			list.innerHTML = '';
 			list.innerHTML = 'Loading Rooms...';
-			setupEditableSortableList({
+			setupSortList({
 				table: 'rooms',
 				data: newRooms,
 				listId: 'room-list',
@@ -59,7 +59,7 @@
 		const rooms = await getRooms();
 		const sponsors = await read('sponsors');
 
-	  setupEditableSortableList({
+	  setupSortList({
 	  	table: 'types',
 	    data: types,
 	    listId: 'class-type-list',
@@ -67,7 +67,7 @@
 	    displayKey: 'type',
 	  });
 
-	  setupEditableSortableList({
+	  setupSortList({
 	  	table: 'rooms',
 	  	data: rooms,
 	  	listId: 'room-list',
@@ -75,7 +75,7 @@
 	  	displayKey: 'name',
 	  });
 
-	  setupEditableSortableList({
+	  setupSortList({
 	  	table: 'sponsors',
 	  	data: sponsors,
 	  	listId: 'sponsor-list',
@@ -84,16 +84,7 @@
 	  });
 	});
 
-	/**
-	 * Reusable list handler for editable, sortable database-driven lists.
-	 * 
-	 * @param {Object} config
-	 * @param {string} config.data - Table name for API routes
-	 * @param {string} config.listId - ID of UL/OL element
-	 * @param {string} config.addButtonId - ID of "Add" button
-	 * @param {string} config.displayKey - Property name to display as text
-	 */
-	function setupEditableSortableList({ table, data, listId, addButtonId, displayKey }) {
+	function setupSortList({ table, data, listId, addButtonId, displayKey }) {
 	  const list = document.getElementById(listId);
 	  const addBtn = document.getElementById(addButtonId);
 
