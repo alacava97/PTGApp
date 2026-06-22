@@ -144,7 +144,7 @@
 			ScheduleState.year_id = maxLocation;
 			ScheduleState.activeConvention = conventions.find(c => c.id == ScheduleState.year_id);
 
-			const data = await ScheduleAPI.load(maxLocation);
+			const data = await ScheduleAPI.load(maxLocation, ScheduleState.year_id);
 			dataCache = data;
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);

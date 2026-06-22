@@ -1086,11 +1086,8 @@ app.get('/api/getRooms/:id', async (req, res) => {
 
     const result = await pool.query(`
       SELECT
-        rooms.*,
-        conventions.year AS year
+        rooms.*
       FROM rooms
-      LEFT JOIN
-        conventions ON conventions.location_id = rooms.location_id
       WHERE
         rooms.location_id = $1
     `, [id])
