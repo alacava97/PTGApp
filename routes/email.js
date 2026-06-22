@@ -49,7 +49,7 @@ const transporter = nodemailer.createTransport({
 // });
 
 router.post('/class-prop-confirmation', async (req, res) => {
-	const { name, email, formData } = req.body;
+	const { name, email, formData, convention } = req.body;
 
 	if (!email) {
 		return res.status(400).json({
@@ -61,6 +61,16 @@ router.post('/class-prop-confirmation', async (req, res) => {
 		.map(([key, value]) => `${key.replace(/_/g, ' ')}: ${value || ''}`)
 		.join('<br>');
 
+
+	const date = convention.props_closed;
+
+	const formatted = new Intl.DateTimeFormat("en-US", {
+	  	weekday: "long",
+	  	year: "numeric",
+	  	month: "long",
+	  	day: "numeric",
+	}).format(new Date(date));
+
 	try {
 		await transporter.sendMail({
 			from: process.env.EMAIL_USER,
@@ -68,8 +78,8 @@ router.post('/class-prop-confirmation', async (req, res) => {
 			subject: 'Thank you for your class proposal',
 			html: `
 				<p>Dear ${name},</p>
-				<p>Thank you for submitting your class proposal to the PTG Institute Team! We appreciate hearing from you, and look forward to reading through your proposal as we prepare for the 2027 PTG Convention.</p>
-				<p>We’ll review class submissions as they come in, finalizing decisions in late September, and let you know by October 5th. A copy of your proposal is included below. If you wish to <a href="myptginstitute.com/public/class-proposal-form.html">submit any additional class proposals</a>, make sure they’re in by Sunday, September 20th, 2026.</p>
+				<p>Thank you for submitting your class proposal to the PTG Institute Team! We appreciate hearing from you, and look forward to reading through your proposal as we prepare for the ${convention.year} PTG Convention.</p>
+				<p>We’ll review class submissions as they come in, finalizing decisions in late September, and let you know by October 5th. A copy of your proposal is included below. If you wish to <a href="myptginstitute.com/public/class-proposal-form.html?id=${convention.id}">submit any additional class proposals</a>, make sure they’re in by ${formatted}</p>
 				<p>Have any questions or concerns? We're happy to help! Send an email to institute@ptg.org.</p>
 				<p>All the best,</p>
 				<p>The PTG Institute Team<br>institute@ptg.org</p>

@@ -120,12 +120,19 @@
 		entry.addTitle(name);
 		entry.addSubtitle(subtitle);
 
+		const conStatusButton = document.createElement('button');
+		conStatusButton.style.color = 'white';
+
 		if (record.closed == true) {
 			entry.addStatus('closed');
 			entry.status.style.backgroundColor = "#2196f3"
+			conStatusButton.textContent = 'Open Convention';
+			conStatusButton.style.backgroundColor = '#04aa0a';
 		} else {
 			entry.addStatus('open');
 			entry.status.style.backgroundColor = "#04aa0a"
+			conStatusButton.textContent = 'Close Convention';
+			conStatusButton.style.backgroundColor = '#2196f3';
 		}
 
 		//render dropdown menu
@@ -160,6 +167,12 @@
 		await populateDropdown(locationSelect, 'locations', 'location_name');
 		locationSelect.querySelector(`option[value="${record.location_id}"]`).selected = true;
 
+		if (record.closed == true) {
+			updateForm.querySelectorAll('input, select, button[type="submit"]').forEach(el => {
+				el.disabled = true;
+			});
+		}
+
 		updateForm.addEventListener('submit', (e) => {
 			handleFormSubmission(e, updateForm, `/api/update/conventions/${record.id}`, 'PATCH', async (result) => {
 				const updated = await fetchJSON(`/api/readEntry/conventions/${record.id}`);
@@ -172,11 +185,6 @@
 		});
 
 		entry.dd.appendChild(updateForm);
-
-		//separator
-		const sep = document.createElement('div');
-		sep.classList.add('vertical-separator');
-		entry.dd.appendChild(sep);
 
 		//class prop section
 		const props = document.createElement('div');
@@ -195,6 +203,7 @@
 		closeDate.type = 'date';
 		closeDate.value = record.props_closed;
 		closeDate.addEventListener('change', async (e) => {
+			e.preventDefault();
 			fetchJSON(`/api/update/conventions/${record.id}`, {
 				method: 'PATCH',
 				headers: {
@@ -205,12 +214,15 @@
 				})
 			})
 		})
+		if (record.closed == true) {
+			closeDate.disabled = true;
+		}
 		closeDateLabel.appendChild(closeDate);
 
 		props.appendChild(closeDateLabel);
 
 		const classPropLink = document.createElement('a');
-		classPropLink.href = `/public/class-proposal-form.html?year=${record.year}`;
+		classPropLink.href = `/public/class-proposal-form.html?id=${record.id}`;
 		classPropLink.innerHTML = `&#x1F517 Class Proposal Form ${record.year}`;
 		props.appendChild(classPropLink);
 
@@ -220,12 +232,37 @@
 
 		entry.dd.appendChild(props);
 
-		entry.dd.appendChild(sep.cloneNode(true));
+		conStatusButton.addEventListener('click', async (e) => {
+			e.preventDefault();
+			await fetchJSON(`/api/update/conventions/${record.id}`, {
+				method: 'PATCH',
+				headers: {
+					'Content-Type': 'application/json'
+				},
+				body: JSON.stringify({
+					closed: !record.closed
+				})
+			});
+
+			const updated = await fetchJSON(`/api/readEntry/conventions/${record.id}`);
+			const newEntry = new Row();
+			await renderEntry(updated, newEntry);
+			entry.row.replaceWith(newEntry.row);
+			newEntry.row.querySelector('.row-dd').style.display = 'flex';
+		});
+		updateForm.appendChild(conStatusButton);
 
 		const deleteButton = document.createElement('button');
 		deleteButton.classList.add('delete-button');
 		deleteButton.textContent = 'Delete Convention';
-		entry.dd.appendChild(deleteButton);
+		deleteButton.addEventListener('click', async (e) => {
+			e.preventDefault();
+			if (window.confirm('Do you want to permanently delete this convention and all related calendars and events?')) {
+				await fetchJSON(`/api/delete/conventions/${record.id}`, {method: 'DELETE'});
+				entry.row.remove();
+			}
+		})
+		updateForm.appendChild(deleteButton);
 	}
 	
 </script>

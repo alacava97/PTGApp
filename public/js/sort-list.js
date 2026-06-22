@@ -10,7 +10,7 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	data.sort((a, b) => {
 		return a.position - b.position
 	}).forEach(entry => {
-		const li = renderListItem(entry[displayKey]);
+		const li = renderListItem(entry, displayKey);
 		li.draggable="true";
 		li.dataset.id = entry.id;
 		list.appendChild(li);
@@ -98,7 +98,7 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	        	});
 	        	const data = await res.json();
 	        	li.remove();
-	        	list.appendChild(renderListItem(data.record.name));
+	        	list.appendChild(renderListItem(data.record, displayKey));
 	      	} catch (err) {
 	        	console.error(`Add item failed:`, err);
 	        	li.remove();
@@ -112,47 +112,61 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	    input?.addEventListener('blur', finalizeAdd);
 	});
 
+	function renderListItem(entry, displayKey) {
+		const li = document.createElement('li');
+		li.dataset.id = entry.id;
+
+		const span = document.createElement('span');
+		span.textContent = entry[displayKey];
+		attachInlineEdit(span, li);
+		li.appendChild(span);
+		attachDeleteButton(li);
+
+		return li;
+	}
+
 	// to do: clean up inline edit and delete button
-	  function attachInlineEdit(span, li) {
+  	function attachInlineEdit(span, li) {
 	    span.addEventListener('click', () => {
-	      const oldText = span.textContent;
-	      const input = document.createElement('input');
-	      input.type = 'text';
-	      input.value = oldText;
-	      input.classList.add('inline-edit');
-	      span.textContent = '';
-	      span.appendChild(input);
-	      input.focus();
+	    	if (span.querySelector('input.inline-edit')) return;
+	      	const oldText = span.textContent;
+	      	const input = document.createElement('input');
+	      	input.type = 'text';
+	      	input.value = oldText;
+	      	input.classList.add('inline-edit');
+	      	span.textContent = '';
+	      	span.appendChild(input);
+	      	input.focus();
 
-	      const save = async () => {
-	        const newText = input.value.trim();
-	        if (newText === oldText || !newText) return (span.textContent = oldText);
-	        try {
-	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
-	            method: 'PATCH',
-	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ [displayKey]: newText })
-	          });
-	          if (!res.ok) throw new Error('Update failed');
-	          span.textContent = newText;
-	        } catch (err) {
-	          console.error(`Failed to update ${displayKey}:`, err);
-	          span.textContent = oldText;
-	        }
-	      };
+	      	const save = async () => {
+	        	const newText = input.value.trim();
+	        	if (newText === oldText || !newText) return (span.textContent = oldText);
+	        	try {
+	          		const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
+	            	method: 'PATCH',
+	            	headers: { 'Content-Type': 'application/json' },
+	            	body: JSON.stringify({ [displayKey]: newText })
+	          	});
+	          	if (!res.ok) throw new Error('Update failed');
+	          	span.textContent = newText;
+		        } catch (err) {
+		          	console.error(`Failed to update ${displayKey}:`, err);
+		          	span.textContent = oldText;
+		        }
+      		};
 
-	      input.addEventListener('blur', save);
-	      input.addEventListener('keydown', e => {
-	        if (e.key === 'Enter') input.blur();
-	        if (e.key === 'Escape') span.textContent = oldText;
-	      });
+	      	input.addEventListener('blur', save);
+	      	input.addEventListener('keydown', e => {
+		        if (e.key === 'Enter') input.blur();
+		        if (e.key === 'Escape') span.textContent = oldText;
+	      	});
 	    });
-	  }
+  	}
 
 	function attachDeleteButton(li) {
 	    const del = document.createElement('button');
 	    del.textContent = '×';
-	    del.className = 'delete-btn2';
+	    del.classList.add('sort-list-delete');
 	    li.appendChild(del);
 
 	    del.addEventListener('click', async (e) => {
@@ -175,16 +189,7 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	        	console.error(`Delete ${displayKey} failed:`, err);
 	      	}
 	    });
-	  }
+  	}
 	
 	return { list, addBtn };
-}
-
-function renderListItem(display) {
-	const li = document.createElement('li');
-	const span = document.createElement('span');
-	span.textContent = display;
-	li.appendChild(span);
-
-	return li;
 }

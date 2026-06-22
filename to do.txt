@@ -1,18 +1,6 @@
 - Sponsor report/dashboard
 - Flag high priority class proposals - add initials and a note
 
-- Convention setup pages
-	-Delete button opens confirmation modal, sets record to inactive
-	-Add a close/reopen button
-		-Disable editing on closed conventions
-
-- Convention locations page
-	-move edit rooms from settings to here
-
-- Prop form
-	-"sorry class submissions are closed for 'year'" page if past closed date.
-	-"Form not available" page if no year in url
-
 - Things that require emailing
 	- Button to send second form for approved classes w/ consent to teach (from home office)
 		- Second form copy of shared google form
@@ -41,3 +29,4 @@
 -Change team, class, and isntructor pages to use dropdowns instead of link to info page
 -Update schedule page dd to be by convention rather than year
 	-Update review form to log convention id, pass from schedule in url
+	-Test convention delete guards against deleting populated conventions

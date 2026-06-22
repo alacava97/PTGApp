@@ -59,12 +59,6 @@
 		newLocation.formSubmit(onSuccess, 'locations', type = 'create');
 	});
 
-	async function fetchJSON(url, options = {}) {
-		const res = await fetch(url, options);
-		if (!res.ok) throw new Error(await res.text());
-		return res.json();
-	}
-
 	const DataAPI = {
 		load: async () => {
 			const [ locations, rooms ] = await Promise.all([
@@ -79,10 +73,9 @@
 	async function displayRecords(locations, rooms) {
 		const list = document.getElementById('list');
 		list.innerHTML = '';
-		Object.entries(locations).forEach(async record => {
-			const locationRooms = rooms.filter(room => room.location_id === record[1].id);
+		locations.sort((a, b) => a.location_name.localeCompare(b.location_name)).forEach(async record => {
+			const locationRooms = rooms.filter(room => room.location_id === record.id);
 			//create entry row
-			record = record[1];
 			const entry = new Row();
 			await renderEntry(record, entry, locationRooms);
 
@@ -106,7 +99,7 @@
 			<input id="location-name-${record.id}" type="text" name="location_name" value="${record.location_name}">
 
 			<label for="city-state-${record.id}">City and State</label>
-			<input id="city-state${record.id}" type="text" name="city_state" value="${record.city_state}">
+			<input id="city-state-${record.id}" type="text" name="city_state" value="${record.city_state}">
 			
 			<button type="submit">Update</button>
 			<div id="message-${record.id}" style="text-align:center;width:100%;grid-column:span 2;"></div>
@@ -125,25 +118,22 @@
 
 		entry.dd.appendChild(updateForm);
 
-		//separator
-		const sep = document.createElement('div');
-		sep.classList.add('vertical-separator');
-		entry.dd.appendChild(sep);
-
 		const listContainer = document.createElement('div');
 		const { list, addBtn} = setupSortList(rooms, 'name', 'rooms');
 		list.dataset.loc_id = record.id;
+
+		const listTitle = document.createElement('div');
+		listTitle.innerHTML = `<b style="text-align:center;display:block;">Rooms</b>`;
+		listContainer.appendChild(listTitle);
 
 		listContainer.appendChild(list);
 		listContainer.appendChild(addBtn);
 		entry.dd.appendChild(listContainer);
 
-		entry.dd.appendChild(sep.cloneNode(true))
-
 		const deleteButton = document.createElement('button');
 		deleteButton.classList.add('delete-button');
 		deleteButton.textContent = 'Delete Location';
-		entry.dd.appendChild(deleteButton);
+		updateForm.appendChild(deleteButton);
 	}
 	
 </script>

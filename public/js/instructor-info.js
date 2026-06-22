@@ -22,15 +22,22 @@ async function fetchClassForInstructors(instructorId) {
 	return res.json();
 }
 
+async function latestConvention() {
+	const res = await fetch(`/api/getLatestConvention`);
+	if(!res.ok) throw new Error('Network error');
+	return res.json();
+}
+
 /* -----------------------------
    Page Setup
 ----------------------------- */
 
 async function loadInstructorData(instructorId) {
 	try {
-		const [instructorRecord, classes] = await Promise.all([
+		const [instructorRecord, classes, conId] = await Promise.all([
 			fetchInstructor(instructorId),
-			fetchClassForInstructors(instructorId)
+			fetchClassForInstructors(instructorId),
+			latestConvention()
 		]);
 
 		setupName(instructorRecord, instructorId);
@@ -39,7 +46,7 @@ async function loadInstructorData(instructorId) {
 		setupCTE(instructorRecord, instructorId);
 		setupBoard(instructorRecord, instructorId);
 		setupDeleteInstructor(instructorId);
-		setupLinks(instructorRecord);
+		setupLinks(instructorRecord, conId);
 	} catch (err) {
 		console.error('Internal server error:', err);
 	}
@@ -349,7 +356,7 @@ async function setupDeleteInstructor(instructorId) {
    Links
 ----------------------------- */
 
-function setupLinks(instructorRecord) {
+function setupLinks(instructorRecord, conId) {
 	const links = document.getElementById('links');
 	links.innerHTML = '';
 
@@ -357,7 +364,7 @@ function setupLinks(instructorRecord) {
 	row.addTitle("This instructor's unique class proposal link is:");
 
 	const classProp = document.createElement('a');
-	classProp.href = `https://myptginstitute.com/public/class-proposal-form.html?token=${instructorRecord.public_token}`;
+	classProp.href = `https://myptginstitute.com/public/class-proposal-form.html?token=${instructorRecord.public_token}&id=${conId[0].id}`;
 	classProp.textContent = classProp.href;
 	row.row.appendChild(classProp);
 	links.appendChild(row.row);

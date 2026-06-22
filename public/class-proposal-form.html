@@ -11,12 +11,24 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Class Proposal</title>
+	<style>
+		.oops {
+			margin: 20px auto;
+			max-width: 500px;
+		}
+
+		.oops a {
+			display: inline-block;
+			text-decoration: underline;
+			color: blue;
+		}
+	</style>
 </head>
 <body>
 	<header>
 		<div class="title">
 			<h1>Class Proposal Form</h1>
-			<h2>2027 Piano Technicians' Guild Convention</h2>
+			<h2 id="yearh2">2027 Piano Technicians' Guild Convention</h2>
 		</div>
 	</header>
 	<div class="main-content">
@@ -113,10 +125,65 @@
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
+		const params = new URLSearchParams(window.location.search);
+
+		const id = params.get('id');
+		const token = params.get('token');
+
+		const data = await DataAPI.load();
+		const convention = data.conventions.find(c => c.id == id);
+
+		const baseUrl = `/public/class-proposal-form.html?id=${encodeURIComponent(data?.conventions?.[0]?.id || '')}`;
+
+		const redirectUrl = token
+		  	? `${baseUrl}&token=${encodeURIComponent(token)}`
+		  	: baseUrl;
+
+		const yearh2 = document.getElementById('yearh2');
+		const mc = document.querySelector('.main-content');
+		
+		let closed = false;
+
+		if (!id || !convention) {
+			renderError();
+			return;
+		}
+
+		if (convention.props_closed) {
+		  	const propsClosed = new Date(convention.props_closed);
+
+		  	if (!isNaN(propsClosed.getTime())) {
+			    closed = propsClosed < new Date();
+		  	}
+		}
+
+		if (convention.closed === true || closed === true) {
+		  	renderError();
+		  	return;
+		}
+
+
+		function renderError() {
+		  	yearh2.innerHTML = `Something went wrong`;
+
+		  	mc.classList.add('oops');
+		  	mc.innerHTML = `
+		    	<p>
+		      		Looks like this convention isn't accepting class proposals or doesn't exist.
+		      		<a href="${redirectUrl}">
+		        	click here
+		      		</a>
+		      		to be redirected to the most recent class proposal form.
+		    	</p>
+		    	<p>Please contact <a href="mailto:institute@ptg.org">institute@ptg.org</a> if you are having a problem.</p>
+		  	`;
+		}
+
 		const res = await fetch('/auth/session', { credentials: 'include' });
 		const user = await res.json();
-		const token = new URLSearchParams(window.location.search).get('token');
-		const data = await DataAPI.load();
+
+		const year = convention.year;
+		yearh2.innerHTML = `${year} Piano Technicians' Guild Convention<br>${convention.city_state}`
 
 		populateLevelSelect(data.levels);
 		populateTypeSelect(data.types);
@@ -125,6 +192,7 @@
 		form.addEventListener('submit', async (e) => {
 			e.preventDefault();
 			const formData = parseForm(form);
+			formData.year = year;
 			const message = document.getElementById('message');
 
 			if (formData.lname) {
@@ -172,16 +240,17 @@
 						body: JSON.stringify({
 							name: formData.fname,
 							email: formData.email,
-							formData: forEmail
+							formData: forEmail,
+							convention: convention
 						}),
 					});
 
 					if (token) {
 						const params = new URLSearchParams();
 						params.append('token', token);
-						window.location.href = '/public/class-proposal-confirmation.html?' + params.toString();
+						window.location.href = `/public/class-proposal-confirmation.html?id=${id}&year=${year}` + params.toString();
 					} else {
-						window.location.href = '/public/class-proposal-confirmation.html';
+						window.location.href = `/public/class-proposal-confirmation.html?id=${id}&year=${year}`;
 					}
 				}
 			} catch (err) {
@@ -193,6 +262,7 @@
 		//------For Existing Classes------//
 
 		const instData = await getData(token)
+		console.log(instData);
 		if (instData) {
 			await getInstructorInfo(instData.instructor);
 			populateClassSelect(instData.classes);
@@ -206,19 +276,14 @@
 		}
 	});
 
-	async function fetchJSON(url, options = {}) {
-	  	const res = await fetch(url, options);
-		if (!res.ok) throw new Error(await res.text());
-		return res.json();
-	}
-
 	const DataAPI = {
 		load: async () => {
-			const [levels, types] = await Promise.all([
+			const [levels, types, conventions] = await Promise.all([
 				fetchJSON(`/api/public/getLevels`),
-				fetchJSON(`/api/public/getTypes`)
+				fetchJSON(`/api/public/getTypes`),
+				fetchJSON(`/api/public/getConventions`)
 			]);
-			return { levels, types };
+			return { levels, types, conventions};
 		}
 	}
 

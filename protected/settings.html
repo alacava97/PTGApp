@@ -8,6 +8,7 @@
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
 	<link rel="stylesheet" href="public/styles/nav-styles.css">
+	<link rel="stylesheet" href="public/styles/sort-list.css">
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>PTG Convention Web App</title>
@@ -24,12 +25,6 @@
 			<button id="add-type" class="add-btn">+ Add Type</button>
 		</div>
 		<div>
-			<h2>Rooms</h2>
-			<span>Select Convention</span><select id="year-select" class="year-select"></select>
-			<ul id="room-list" class="transparent type-ul"></ul>
-			<button id="add-room" class="add-btn">+ Add Room</button>
-		</div>
-		<div>
 			<h2>Sponsors</h2>
 			<ul id="sponsor-list" class="transparent type-ul"></ul>
 			<button id="add-sponsor" class="add-btn">+ Add Sponsor</button>
@@ -37,227 +32,26 @@
 	</div>
 </body>
 <script src="public/js/script.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="public/js/sort-list.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const yearDd = document.getElementById('year-select')
-		await populateYearDropdown(yearDd);
-		yearDd.addEventListener('change', async () => {
-			const newRooms = await getRooms();
-			const list = document.getElementById('room-list');
-			list.innerHTML = '';
-			list.innerHTML = 'Loading Rooms...';
-			setupSortList({
-				table: 'rooms',
-				data: newRooms,
-				listId: 'room-list',
-				addButtonId: 'add-room',
-				displayKey: 'name',
-			});
-		});
-		const types = await read('types');
-		const rooms = await getRooms();
-		const sponsors = await read('sponsors');
+		const { types, sponsors } = await DataAPI.load();
+		const typeList = document.getElementById('class-type-list');
+		typeList.appendChild(setupSortList(types, 'type', 'types', document.getElementById('add-type')).list);
 
-	  setupSortList({
-	  	table: 'types',
-	    data: types,
-	    listId: 'class-type-list',
-	    addButtonId: 'add-type',
-	    displayKey: 'type',
-	  });
-
-	  setupSortList({
-	  	table: 'rooms',
-	  	data: rooms,
-	  	listId: 'room-list',
-	  	addButtonId: 'add-room',
-	  	displayKey: 'name',
-	  });
-
-	  setupSortList({
-	  	table: 'sponsors',
-	  	data: sponsors,
-	  	listId: 'sponsor-list',
-	  	addButtonId: 'add-sponsor',
-	  	displayKey: 'sponsor_name'
-	  });
+		const sponsorList = document.getElementById('sponsor-list');
+		sponsorList.appendChild(setupSortList(sponsors, 'sponsor_name', 'sponsors', document.getElementById('add-sponsor')).list);
 	});
 
-	function setupSortList({ table, data, listId, addButtonId, displayKey }) {
-	  const list = document.getElementById(listId);
-	  const addBtn = document.getElementById(addButtonId);
+	const DataAPI = {
+		load: async () => {
+			const [ types, sponsors ] = await Promise.all([
+				fetchJSON(`/api/read/types`),
+				fetchJSON(`/api/read/sponsors`)
+			]);
 
-	  if (!list) {
-	    console.error(`List element #${listId} not found`);
-	    return;
-	  }
-	  list.innerHTML = '';
-
-	  data.sort((a, b) => {
-	  	return a.position - b.position;
-	  })
-
-	  data.forEach(item => renderListItem(item));
-
-	  // --- Initialize Drag Sorting ---
-	  new Sortable(list, {
-	    animation: 150,
-	    ghostClass: 'dragging',
-	    onEnd: async () => {
-	      const newOrder = [...list.children].map((li, index) => ({
-	        id: li.dataset.id,
-	        position: index + 1
-	      }));
-
-	      try {
-	        await fetch('/api/update-order', {
-	          method: 'PATCH',
-	          headers: { 'Content-Type': 'application/json' },
-	          body: JSON.stringify({ order: newOrder, table })
-	        });
-	      } catch (err) {
-	        console.error('Failed to update order:', err);
-	      }
-	    }
-	  });
-
-	  // --- Add New Item ---
-	  addBtn?.addEventListener('click', () => {
-	    const li = document.createElement('li');
-	    li.className = 'type-list new-item';
-	    const input = document.createElement('input');
-	    input.type = 'text';
-	    input.placeholder = `New ${displayKey}...`;
-	    input.classList.add('inline-edit');
-	    li.appendChild(input);
-	    list.appendChild(li);
-	    input.focus();
-
-	    let finalized = false;
-
-	    const finalizeAdd = async () => {
-	    	if (finalized == true) return;
-	    	finalized = true;
-	      input.blur();
-	      const value = input.value.trim();
-	      if (!value) return li.remove();
-	      try {
-	      	let newData
-
-	      	if (table == "rooms") {
-	      		const loc_id = document.getElementById('year-select').value;
-      			newData = { [displayKey]: value, 'location_id': loc_id };
-	      	} else {
-	      		newData = { [displayKey]: value };
-	      	}
-	        const res = await fetch(`/api/create/${table}`, {
-	          method: 'POST',
-	          headers: { 'Content-Type': 'application/json' },
-	          body: JSON.stringify(newData)
-	        });
-	        const data = await res.json();
-	        li.remove();
-	        renderListItem(data.record);
-	      } catch (err) {
-	        console.error(`Add ${displayKey} failed:`, err);
-	        li.remove();
-	      }
-	    };
-
-	    input.addEventListener('keydown', e => {
-	      if (e.key === 'Enter') finalizeAdd();
-	      if (e.key === 'Escape') li?.remove();
-	    });
-	    input?.addEventListener('blur', finalizeAdd);
-	  });
-
-	  // --- Helper: Render a Single Item ---
-	  function renderListItem(item) {
-	    const li = document.createElement('li');
-	    li.classList.add('type-list');
-	    li.dataset.id = item.id;
-
-	    const span = document.createElement('span');
-	    span.textContent = item[displayKey];
-	    li.appendChild(span);
-	    attachInlineEdit(span, li);
-	    attachDeleteButton(li);
-
-	    list.appendChild(li);
-	  }
-
-	  // --- Helper: Inline Edit ---
-	  function attachInlineEdit(span, li) {
-	    span.addEventListener('click', () => {
-	      const oldText = span.textContent;
-	      const input = document.createElement('input');
-	      input.type = 'text';
-	      input.value = oldText;
-	      input.classList.add('inline-edit');
-	      span.textContent = '';
-	      span.appendChild(input);
-	      input.focus();
-
-	      const save = async () => {
-	        const newText = input.value.trim();
-	        if (newText === oldText || !newText) return (span.textContent = oldText);
-	        try {
-	          const res = await fetch(`/api/update/${table}/${li.dataset.id}`, {
-	            method: 'PATCH',
-	            headers: { 'Content-Type': 'application/json' },
-	            body: JSON.stringify({ [displayKey]: newText })
-	          });
-	          if (!res.ok) throw new Error('Update failed');
-	          span.textContent = newText;
-	        } catch (err) {
-	          console.error(`Failed to update ${displayKey}:`, err);
-	          span.textContent = oldText;
-	        }
-	      };
-
-	      input.addEventListener('blur', save);
-	      input.addEventListener('keydown', e => {
-	        if (e.key === 'Enter') input.blur();
-	        if (e.key === 'Escape') span.textContent = oldText;
-	      });
-	    });
-	  }
-
-	  // --- Helper: Delete Button ---
-	  function attachDeleteButton(li) {
-	    const del = document.createElement('button');
-	    del.textContent = '×';
-	    del.className = 'delete-btn2';
-	    li.appendChild(del);
-
-	    del.addEventListener('click', async (e) => {
-	      e.stopPropagation();
-	      const id = li.dataset.id;
-	      if (!confirm(`Delete this ${displayKey}?`)) return;
-
-	      try {
-	        const res = await fetch(`/api/delete/${table}/${id}`, { method: 'DELETE' });
-
-	        const data = await res.json();
-
-	        if (!res.ok) {
-	        	alert(data.error);
-	        	return;
-	        }
-
-	        li.remove();
-	      } catch (err) {
-	        console.error(`Delete ${displayKey} failed:`, err);
-	      }
-	    });
-	  }
-	}
-
-	async function getRooms() {
-		const locationId = document.getElementById('year-select').value;
-		const rooms = await apiGetCall('getRooms', locationId);
-		return rooms;
+			return { types, sponsors };
+		}
 	}
 
 </script>

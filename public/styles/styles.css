@@ -66,23 +66,11 @@ body > h3 {
 .delete-button {
 	background-color: red;
 	color: white;
+	height: min-content;
 }
 
 .delete-button:hover {
 	background-color: #B22222;
-}
-
-
-.delete-btn2 {
-  border: none;
-  background: transparent;
-  color: #888;
-  font-size: 2rem;
-  line-height: 1;
-  cursor: pointer;
-  visibility: hidden;
-  width: 25px;
-  padding-right: 5%;
 }
 /* End Buttons */
 
@@ -238,25 +226,6 @@ body > h3 {
 	padding: 0;
 }
 
-.dragging {
-	opacity: 0.6;
-	background: #f0f0f0;
-}
-
-.inline-edit {
-  width: 100%;
-  border: none;
-  font: inherit;
-  padding: 2px 4px;
-  box-sizing: border-box;
-  background-color: #f9f9f9;
-}
-
-.inline-edit:focus {
-  outline: 2px solid #007bff;
-  background-color: white;
-}
-
 #class-type-list {
   list-style: none;
   padding: 0;
@@ -277,10 +246,6 @@ body > h3 {
 
 .type-list:hover {
   background: #f7f7f7;
-}
-
-.type-list:hover .delete-btn2 {
-  visibility: visible;
 }
 
 .loading {
@@ -442,10 +407,12 @@ body > h3 {
 
 .vertical-seperator, .vertical-separator {
 	width: 1px;
-	height: 30px;
-	margin: auto 0;
+	margin: auto;
 	background-color: #999999;
 	display: inline-block;
+	position: absolute;
+  top: 5%;
+  bottom: 5%;
 }
 
 .class-section,

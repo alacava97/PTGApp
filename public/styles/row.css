@@ -28,6 +28,7 @@
 	justify-content: space-between;
 	gap: 0 20px;
 	flex-wrap: wrap;
+	background-color: #EEEEEE;
 }
 
 .row:hover {
@@ -73,10 +74,11 @@
 	flex-basis: 100%;
 	background-color: #eeeeee;
 	box-sizing: border-box;
-	padding: 5px;
+	padding: 20px 5px;
 	display: none;
 	margin: 5px 0;
-	gap: 10px;
+	gap: 50px 10px;
 	justify-content: space-around;
-	align-items: center;
+	align-items: flex-start;
+	flex-wrap: wrap;
 }

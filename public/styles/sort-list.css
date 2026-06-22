@@ -2,8 +2,11 @@
 	list-style-type: none;
 	padding: 0;
 	margin: 0;
-	display: flex;
-	flex-direction: column;
+	min-width: 210px;
+
+	display: grid;
+
+	height: max-content;
 	gap: 5px;
 }
 
@@ -12,6 +15,13 @@
 	border: 1px solid #ddd;
 	border-radius: 5px;
 	padding: 5px;
+	width: 100%;
+	box-sizing: border-box;
+	display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 210px;
 }
 
 .sort-list > li:hover {
@@ -36,4 +46,33 @@
 
 .add-btn:hover {
   background: #0056b3;
+}
+
+.inline-edit {
+  border: none;
+  font: inherit;
+  padding: 2px 4px;
+  box-sizing: border-box;
+  background-color: #f9f9f9;
+}
+
+.inline-edit:focus {
+  outline: 2px solid #007bff;
+  background-color: white;
+}
+
+.sort-list-delete {
+  border: none;
+  background: transparent;
+  color: #888;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  visibility: hidden;
+  width: 25px;
+  padding-right: 5%;
+}
+
+.sort-list li:hover .sort-list-delete {
+  visibility: visible;
 }

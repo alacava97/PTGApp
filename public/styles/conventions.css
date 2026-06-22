@@ -59,14 +59,9 @@ a {
 	flex-direction: column;
 }
 
-.delete-button {
-	height: 25px;
-}
-
-.row-dd {
-	height: 260px;
-}
-
-.vertical-separator {
-	height: 80%;
+.sort-list {
+	grid-auto-flow: column;
+  	grid-template-rows: repeat(9, minmax(0, auto));
+  	grid-auto-columns: 1fr;
+	max-height: 500px;
 }

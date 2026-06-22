@@ -16,7 +16,7 @@
 	<header>
 		<div class="title">
 			<h1>Class Proposal</h1>
-			<h2>2027 Piano Technicians' Guild Convention</h2>
+			<h2 id="yearh2">2027 Piano Technicians' Guild Convention</h2>
 		</div>
 	</header>
 	<div class="main-content">
@@ -28,11 +28,19 @@
 </body>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const token = new URLSearchParams(window.location.search).get('token');
+		const params = new URLSearchParams(window.location.search);
+
+		const id = params.get('id');
+		const token = params.get('token');
+		const year = params.get('year');
+		
+		document.getElementById('yearh2').innerHTML = `${year} Piano Technicians' Guild Convention`
 		if (token) {
 			const params = new URLSearchParams();
 			params.append('token', token);
-			const a = document.getElementById('link').href = "/public/class-proposal-form.html?" + params.toString();
-		}	
+			const a = document.getElementById('link').href = `/public/class-proposal-form.html?id=${id}` + params.toString();
+		} else {
+			const a = document.getElementById('link').href = `/public/class-proposal-form.html?id=${id}`
+		}
 	});
 </script>

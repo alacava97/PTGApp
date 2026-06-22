@@ -89,16 +89,17 @@ class Row {
 
 		this.dd = document.createElement('div');
 		this.dd.classList.add('row-dd');
+		this.dd.addEventListener('click', (e) => { e.stopPropagation() });
 		this.row.appendChild(this.dd);
 
-		this.row.addEventListener('click', () => {
-			this.dd.style.display = 'flex';
+		this.row.addEventListener('click', (e) => {
+			e.stopPropagation();
+			this.dd.style.display =
+				this.dd.style.display === 'flex' ? 'none' : 'flex';
 		});
 
 		document.addEventListener('click', (e) => {
-			if (!this.row.contains(e.target)) {
-				this.dd.style.display = 'none';
-			}
+			this.dd.style.display = 'none';
 		});
 	}
 }

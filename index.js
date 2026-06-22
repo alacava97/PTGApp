@@ -269,12 +269,30 @@ app.get('/api/public/getLevels', async (req, res) => {
   }
 });
 
+app.get('/api/public/getConventions', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `
+      SELECT c.*, l.city_state
+      FROM conventions c
+      LEFT JOIN locations l ON l.id = c.location_id
+      ORDER BY year DESC`
+    );
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching convention:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.get('/api/public/getPropInfo/:token', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
         i.id,
-        i.name,
+        i.fname,
+        i.lname,
         i.phone,
         i.email,
         i.rpt,
@@ -309,7 +327,8 @@ app.get('/api/public/getPropInfo/:token', async (req, res) => {
     const response = {
       instructor: {
         id: row.id,
-        name: row.name,
+        fname: row.fname,
+        lname: row.lname,
         phone: row.phone,
         email: row.email,
         rpt: row.rpt
@@ -392,6 +411,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       toDisplay = record.name;
     } else if (table === 'instructors') {
       data.public_token = createPublicToken();
+      data.name = (data.fname + ' ' + data.lname).trim();
       record = await createRecord({ table, data, returning: ['*'] }, client);
       toDisplay = `Created new instructor: '${record.name}'`;
     } else {
@@ -1145,6 +1165,27 @@ app.get('/api/getLevels', async (req, res) => {
   }
 });
 
+app.get('/api/getLatestConvention', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id
+      FROM conventions
+      WHERE
+        year = (SELECT MAX(year) FROM conventions)
+    `)
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error getting rooms:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
 //end read
 
 //update
@@ -1307,7 +1348,7 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
   const { table, id } = req.params;
   const userId = req.user.id;
   const client = await pool.connect();
-  const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms', 'sponsors'];
+  const allowedTables = ['schedule', 'classes', 'instructors', 'types', 'rooms', 'sponsors', 'conventions'];
   if (!allowedTables.includes(table)) {
     return res.status(400).json({ error: `${table} is not allowed.` });
   }
@@ -1326,6 +1367,12 @@ app.delete('/api/delete/:table/:id', requireLogin, async (req, res) => {
       if (checkTypes.rowCount !== 0) {
         await client.query('ROLLBACK');
         return res.status(400).json({ error: 'Room in use. Could not be deleted.' });
+      }
+    } else if (table === "conventions") {
+      const checkConventions = await client.query(`SELECT * FROM schedule WHERE convention = $1;`, [id]);
+      if (checkConventions.rowCount !== 0) {
+        await client.query('ROLLBACK');
+        return res.status(400).json({ error: 'Convention in use. Could not be deleted.' });
       }
     }
 
