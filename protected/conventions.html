@@ -201,7 +201,7 @@
 
 		const closeDate = document.createElement('input');
 		closeDate.type = 'date';
-		closeDate.value = record.props_closed;
+		closeDate.valueAsDate = new Date(record.props_closed);
 		closeDate.addEventListener('change', async (e) => {
 			e.preventDefault();
 			fetchJSON(`/api/update/conventions/${record.id}`, {
