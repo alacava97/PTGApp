@@ -465,7 +465,7 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
 });
 
 app.post('/api/addSchedule', requireLogin, async (req, res) => {
-  const { class_id, day, start_period, room, year } = req.body;
+  const { class_id, day, start_period, room, convention, year } = req.body;
   const userId = req.user.id;
   const client = await pool.connect();
   const token = createPublicToken();
@@ -475,11 +475,11 @@ app.post('/api/addSchedule', requireLogin, async (req, res) => {
 
     const { rows } = await client.query(
     `
-      INSERT INTO schedule (class_id, day, start_period, room_id, year, public_token)
-      VALUES ($1, $2, $3, $4, $5, $6)
+      INSERT INTO schedule (class_id, day, start_period, room_id, year, convention, public_token)
+      VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *
     `,
-      [class_id, day, start_period, room, year, token]
+      [class_id, day, start_period, room, year, convention, token]
     );
     const record = rows[0];
 
@@ -764,7 +764,7 @@ app.get('/api/read/:table', requireLogin, async (req, res) => {
       FROM conventions c
       LEFT JOIN locations l on c.location_id = l.id
       WHERE c.disabled <> TRUE
-      ORDER BY c.id DESC;
+      ORDER BY year DESC;
     `
   } else {
     query = `SELECT * FROM ${table} ORDER BY id ASC`;
@@ -1165,7 +1165,7 @@ app.get('/api/getLatestConvention', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        id, location_id
+        id, location_id, year
       FROM conventions
       WHERE
         year = (SELECT MAX(year) FROM conventions)

@@ -153,13 +153,7 @@
 		    delButton.addEventListener('click', () => { document.getElementById('delete-confirmation-modal').style.display = 'flex' });
 
 			createSearchableDropdown('searchable', 'results', data.classes, 'title');
-
-			Object.values(data.rooms).forEach(room => {
-				const opt = document.createElement('option');
-				opt.value = room.id;
-				opt.textContent = room.name;
-				DOM.roomDropdown.appendChild(opt);
-			});
+			populateRoomDropdown(data.rooms);
 		} catch (err) {
 			console.error('Failed to initialize schedule:', err);
 		}
@@ -462,7 +456,7 @@
 	    DOM.classTitle.href = `/class-info.html?id=${periodEvent.class_id}`
 
 	    DOM.instructor.textContent = periodEvent.instructors;
-	    DOM.classInfo.href = `/public/class-review.html?id=${periodEvent.public_token}`
+	    DOM.classInfo.href = `/public/class-review.html?token=${periodEvent.public_token}&convention_id=${ScheduleState.activeConvention.id}`
 	    DOM.day.value = periodEvent.day;
 	    DOM.period.value = periodEvent.start_period;
 	    DOM.roomDropdown.value = periodEvent.room_id;
@@ -561,19 +555,17 @@
 			
 			return
 		}
-
 		findSameRoom(schedule, selectedClass.id, dpr.room)
 
-		const yearSelect = document.getElementById('year-select')
-		const selectedIndex = yearSelect.selectedIndex;
-		const selectedYear = yearSelect.options[selectedIndex].text;
+		console.log(ScheduleState.activeConvention.id)
 
       	await ScheduleAPI.addSchedule({
 	      	class_id: cId,
 	      	day: dpr.day,
 	      	start_period: dpr.period,
 	      	room: dpr.room,
-	      	year: selectedYear
+	      	year: ScheduleState.activeConvention.year,
+	      	convention: ScheduleState.activeConvention.id
       	});
 
       	DOM.classModal.style.display = 'none';
@@ -597,6 +589,7 @@
 		if (!activeEvent) return;
 
 		const updated = parseForm(e.target);
+		console.log(updated);
 		const { schedule } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id)
 
 		const conflict = findScheduleConflict(
@@ -807,6 +800,7 @@
 		input.addEventListener('change', async (event) => {
 			const input = event.target;
 			await updateTypeColor(type.id, input.value);
+			wrapper.style.backgroundColor = input.value;
 		});
 
 		wrapper.appendChild(input);
@@ -932,6 +926,17 @@
 		return yearDd;
 	}
 
+	function populateRoomDropdown(rooms) {
+		DOM.roomDropdown.innerHTML = '';
+
+		rooms.forEach(room => {
+			const opt = document.createElement('option');
+			opt.value = room.id;
+			opt.textContent = room.name;
+			DOM.roomDropdown.appendChild(opt);
+		});
+	}
+
 	/* -----------------------------
 	 	Utilities
 	----------------------------- */
@@ -963,6 +968,8 @@
 		{ ignoredId = null } = {}
 	) {	
 		let instructors = [];
+		if (!instructorId) return;
+
 		instructorId.forEach(id => {
 			const instructor = dataCache.instructors.filter(i => i.id == id)[0];
 			instructors.push(instructor)
@@ -1015,6 +1022,7 @@
 	async function refreshSchedule() {
 		const { schedule, rooms, periods } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
   		await renderSchedule(schedule, rooms, periods);
+  		populateRoomDropdown(rooms);
 	}
 
 </script>

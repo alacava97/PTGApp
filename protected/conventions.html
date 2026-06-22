@@ -258,8 +258,21 @@
 		deleteButton.addEventListener('click', async (e) => {
 			e.preventDefault();
 			if (window.confirm('Do you want to permanently delete this convention and all related calendars and events?')) {
-				await fetchJSON(`/api/delete/conventions/${record.id}`, {method: 'DELETE'});
-				entry.row.remove();
+				try {
+					const response = await fetch(`/api/delete/conventions/${record.id}`, {method: 'DELETE'});
+
+					const data = await response.json();
+
+					if (!response.ok) {
+						alert(data.error);
+						return;
+					}
+
+					entry.row.remove();
+				} catch (err) {
+					console.error(err);
+				}
+			
 			}
 		})
 		updateForm.appendChild(deleteButton);

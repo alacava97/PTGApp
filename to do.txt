@@ -17,7 +17,6 @@
 		-Button to send all
 
 -list of instructor/av needs in chronological order for Bruce
--make color block class type colors update when changed
 -add other team members to dropdown on prop info page
 
 -admin panel
@@ -27,6 +26,3 @@
 -Mobile layout nav
 
 -Change team, class, and isntructor pages to use dropdowns instead of link to info page
--Update schedule page dd to be by convention rather than year
-	-Update review form to log convention id, pass from schedule in url
-	-Test convention delete guards against deleting populated conventions

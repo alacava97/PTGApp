@@ -200,7 +200,9 @@
 <script src="/public/js/script.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const token = getId();
+		const params = new URLSearchParams(window.location.search);
+		const conId = params.get('convention_id');
+		const token = params.get('token');
 
 		fetch(`/api/public/schedule/${token}`)
 			.then(res => res.json())
@@ -224,6 +226,7 @@
 				const formData = parseForm(form);
 				formData.schedule_id = data.schedule_id;
 				formData.created_at = new Date();
+				formData.convention_id = new URLSearchParams(window.location.search).get('convention_id');
 				const res = await create('reviews', formData);
 
 				if (!res || res.error) {
@@ -231,8 +234,7 @@
 					return;
 				}
 
-				alert('Review submitted successfully!');
-				form.reset();
+				window.location.href = '/public/class-review-success.html';
 			} catch(err) {
 				console.error('Review submission error:', err);
 				alert('Something went wrong submitting your review');
