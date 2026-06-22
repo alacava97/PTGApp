@@ -138,13 +138,12 @@
 		}
 
 		try {
-			const { conventions } = await ScheduleAPI.load(ScheduleState.year_id);
-			const years = conventions.map( convention => parseInt(convention.location_id));
-			const maxLocation = Math.max(...years);
-			ScheduleState.year_id = maxLocation;
-			ScheduleState.activeConvention = conventions.find(c => c.id == ScheduleState.year_id);
+			const latestCon = await fetchJSON('/api/getLatestConvention');
+			ScheduleState.activeConvention = latestCon[0];
 
-			const data = await ScheduleAPI.load(maxLocation, ScheduleState.year_id);
+			const { conventions } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
+
+			const data = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 			dataCache = data;
 			await renderKey(data.types, data.conventions);
 			await renderSchedule(data.schedule, data.rooms, data.periods);
@@ -223,7 +222,7 @@
 	let ScheduleState = {
 		selectedLocation: null,
 		activeEvent: null,
-		year_id: 1,
+		location_id: 1,
 		activeRoom: null,
 		info: 'pianos'
 	};
@@ -475,7 +474,7 @@
 	}
 
 	async function fillRoomModal(roomId) {
-		const { rooms } = await ScheduleAPI.load(ScheduleState.year_id);
+		const { rooms } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 		const room = rooms.find(r => r.id == roomId);
 		document.getElementById('room-info').textContent = room.name;
 		document.getElementById('t').value = room.t || 0;
@@ -499,7 +498,7 @@
 			return;
 		}
 
-	    const { schedule, classes } = await ScheduleAPI.load(ScheduleState.year_id);
+	    const { schedule, classes } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 
 	    const dpr = e.target.dataset
 	    const cId = DOM.searchable.getAttribute('row-id');
@@ -598,7 +597,7 @@
 		if (!activeEvent) return;
 
 		const updated = parseForm(e.target);
-		const { schedule } = await ScheduleAPI.load(ScheduleState.year_id)
+		const { schedule } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id)
 
 		const conflict = findScheduleConflict(
 		  	{
@@ -666,7 +665,7 @@
 		}
 
 		const updated = parseForm(e.target);
-		const { rooms } = await ScheduleAPI.load(ScheduleState.year_id);
+		const { rooms } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 		await ScheduleAPI.updateRoom(updated, ScheduleState.activeRoom);
 		document.getElementById('room-modal').style.display = 'none';
 		await refreshSchedule();
@@ -698,7 +697,7 @@
 		spacer.appendChild(await renderYearSelect(conventions));
 
 		const vertSep = document.createElement('div');
-		vertSep.classList.add('vertical-seperator');
+		vertSep.classList.add('vertical-separator');
 		spacer.appendChild(vertSep);
 		DOM.colorKey.appendChild(spacer);
 
@@ -864,7 +863,7 @@
 
 		printBtn.appendChild(loading);
 		printBtn.addEventListener('click', async (e) => {
-			const { schedule } = await ScheduleAPI.load(ScheduleState.year_id);
+			const { schedule } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 			e.target.disabled = true;
 			loading.style.display = 'flex';
 			let toPrint = [];
@@ -918,11 +917,15 @@
 		yearDd.classList.add('year-select');
 		yearDd.id = 'year-select';
 
-		await populateYearDropdown(yearDd, 1);
+		conventions.forEach(c => {
+			const option = document.createElement('option');
+			option.innerHTML = `${c.year} - ${c.city_state}`;
+			option.value = c.id;
+			yearDd.appendChild(option);
+		});
 
 		yearDd.addEventListener('change', async (e) => {
-			ScheduleState.year_id = e.target.value;
-			ScheduleState.activeConvention = conventions.find(c => c.id == ScheduleState.year_id);
+			ScheduleState.activeConvention = conventions.find(c => c.id == e.target.value);
 			refreshSchedule();
 		});
 
@@ -1010,7 +1013,7 @@
 	}
 
 	async function refreshSchedule() {
-		const { schedule, rooms, periods } = await ScheduleAPI.load(ScheduleState.year_id);
+		const { schedule, rooms, periods } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
   		await renderSchedule(schedule, rooms, periods);
 	}
 

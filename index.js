@@ -1112,10 +1112,6 @@ app.get('/api/getRooms/:id', async (req, res) => {
         rooms.location_id = $1
     `, [id])
 
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'Entry not found' });
-    }
-
     res.json(result.rows);
   } catch (err) {
     console.error(`Error getting rooms:`, err);
@@ -1169,7 +1165,7 @@ app.get('/api/getLatestConvention', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        id
+        id, location_id
       FROM conventions
       WHERE
         year = (SELECT MAX(year) FROM conventions)

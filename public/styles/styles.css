@@ -407,12 +407,10 @@ body > h3 {
 
 .vertical-seperator, .vertical-separator {
 	width: 1px;
-	margin: auto;
+	margin: auto 0;
 	background-color: #999999;
 	display: inline-block;
-	position: absolute;
-  top: 5%;
-  bottom: 5%;
+	height: 30px;
 }
 
 .class-section,
