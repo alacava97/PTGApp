@@ -1,6 +1,6 @@
 function requireLogin(req, res, next) {
   if (!req.session.user) {
-    if (req.originalUrl.startsWith('/api')) {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/admin')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -16,5 +16,18 @@ function requireLogin(req, res, next) {
   next();  
 }
 
-module.exports = { requireLogin };
+function requireAdmin(req, res, next) {
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
 
+  if (req.session.user.role !== 'admin' || !req.session.user.special_permission) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+
+  req.user = req.session.user;
+
+  next();
+}
+
+module.exports = { requireLogin, requireAdmin };

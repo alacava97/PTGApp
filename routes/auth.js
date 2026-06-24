@@ -51,6 +51,10 @@ router.post('/login', async (req, res) => {
       id: user.id,
       email: user.email,
       role: user.role,
+      title: user.title,
+      name: user.name,
+      institute_team: user.institute_team,
+      special_permission: user.special_permission
     };
 
     req.session.save(err => {
@@ -60,7 +64,7 @@ router.post('/login', async (req, res) => {
       }
 
       // Respond after session saved
-      res.json({ success: true, user: { id: user.id, email: user.email, role: user.role } });
+      res.json({ success: true, user: req.session.user });
     });
 
   } catch (err) {

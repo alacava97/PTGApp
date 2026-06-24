@@ -15,6 +15,7 @@ const { getAllowedFields } = require('./utils/dbHelper');
 const { createRecord } = require('./services/crud');
 const { createPublicToken } = require('./services/token.js');
 const emailRoutes = require('./routes/email');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 
@@ -48,6 +49,7 @@ app.use(
 
 app.use('/auth', authRoutes);
 app.use('/api/email', emailRoutes);
+app.use('/admin', adminRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/api/public/getReviews/:token', async (req, res) => {

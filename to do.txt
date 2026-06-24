@@ -22,6 +22,7 @@
 -admin panel
 	-view/edit institue team and permissions
 	-Replace current layout with UI.row layout, turn table into row-dd
+	-Create "permission denied" page
 
 -Mobile layout nav
 

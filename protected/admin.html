@@ -22,7 +22,7 @@
 				<tr>
 					<th class="ddrow-header">Institute ID</th>
 					<th class="ddrow-header">Name</th>
-					<th class="ddrow-header">Roll</th>
+					<th class="ddrow-header">Role</th>
 				</tr>
 			</tbody>
 		</table>
@@ -31,8 +31,16 @@
 <script src="public/js/script.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
+		const res = await fetch('/auth/session', { credentials: 'include' });
+		const user = await res.json();
+		console.log(user);
+
 		const { instTeam } = await DataAPI.load();
 		renderInstTeam(instTeam);
+
+		const adminRes = await fetch('/admin/getUsers', { credentials: 'include' });
+		console.log(await adminRes.json())
+
 	});
 
 	async function fetchJSON(url, options = {}) {
