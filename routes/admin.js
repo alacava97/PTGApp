@@ -33,7 +33,34 @@ router.get(`/getUsers`, async (req, res) => {
     console.error(`Error fetching users:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
-})
+});
+
+router.get(`/getInstitute`, async (req, res) => {
+  const query = `
+  	SELECT
+	  	id,
+	  	name,
+	  	email,
+	  	title,
+	  	special_permission
+		FROM
+			users
+		WHERE
+		  hidden IS NOT true AND
+		  institute_team = true AND
+		  role = 'admin'
+	  	ORDER BY
+	  		id;
+		`;
+
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching users:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 module.exports = router;

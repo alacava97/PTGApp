@@ -7,6 +7,7 @@
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/styles.css">
 	<link rel="stylesheet" href="public/styles/dd-row.css">
+	<link rel="stylesheet" href="public/styles/row.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Admin Portal</title>
 </head>
@@ -15,28 +16,19 @@
 	<header class="clearfix">
 		<h1>Admin Tools</h1>
 	</header>
-	<div class="main-content">
-		<div class="dropdown-row">Institute Team Members</div>
-		<table class="dropdown-row-info" id="institute-team">
-			<tbody id="i-team-tbody">
-				<tr>
-					<th class="ddrow-header">Institute ID</th>
-					<th class="ddrow-header">Name</th>
-					<th class="ddrow-header">Role</th>
-				</tr>
-			</tbody>
-		</table>
-	</div>
+	<div id="list"></div>
 </body>
 <script src="public/js/script.js"></script>
+<script src="public/js/UI.js"></script>
 <script>
-	document.addEventListener('DOMContentLoaded', async () => {
-		const res = await fetch('/auth/session', { credentials: 'include' });
-		const user = await res.json();
-		console.log(user);
+	const DOM = {
+		main: document.getElementById('list')
+	}
 
-		const { instTeam } = await DataAPI.load();
+	document.addEventListener('DOMContentLoaded', async () => {
+		const { instTeam, users } = await DataAPI.load();
 		renderInstTeam(instTeam);
+		renderUserList(users);
 
 		const adminRes = await fetch('/admin/getUsers', { credentials: 'include' });
 		console.log(await adminRes.json())
@@ -51,29 +43,119 @@
 
 	const DataAPI = {
 		load: async () => {
-			const [ instTeam ] = await Promise.all([
-				fetchJSON(`/api/read/institute_team`)
+			const [ instTeam, users ] = await Promise.all([
+				fetchJSON(`/admin/getInstitute`),
+				fetchJSON(`/admin/getUsers`)
 			]);
 
-			return { instTeam };
+			return { instTeam, users };
 		}
 	}
 
+
+
 	function renderInstTeam(data) {
-		const iTeam = document.getElementById('i-team-tbody');
+		const teamRow = new Row();
+		teamRow.addTitle('Institute Team Members');
+		teamRow.addDDMenu();
+
+		const table = document.createElement('table');
+		const tr = document.createElement('tr');
+
+		const headers = ['Institute ID', 'Name', 'Email', 'Role', 'Admin Access', 'Remove'];
+		headers.forEach(h => {
+			const th = document.createElement('th');
+			th.textContent = h;
+			th.classList.add('ddrow-header');
+			tr.appendChild(th);
+		})
+
+		table.appendChild(tr);
 
 		data.forEach((m, index) => {
 			const tr = document.createElement('tr');
 
 			Object.keys(m).forEach(key => {
-				const td = document.createElement('td');
-				td.classList.add('dropdown-col');
-				td.textContent = m[key];
-				tr.appendChild(td);
+				if (key == 'special_permission') {
+					const td = document.createElement('td');
+					const input = document.createElement('input');
+					input.type = 'checkbox';
+					input.checked = m[key];
+					input.addEventListener('change', async () => {
+						if (input.checked == true) {
+							if(window.confirm(`Are you sure you want to give ${m.name} admin access? This will allow them to give anybody admin access to the app. This access includes the ability to create, modify, or permanently delete data.`)) {
+								await fetch(`/api/update/users/${m.id}`, {
+									method: 'PATCH',
+									headers: { 'content-type': 'application/json' },
+									body: JSON.stringify({ special_permission: true })
+								})
+								.then(res => {
+									if(!res.ok) {
+										throw new Error('There was a problem.')
+									}
+									return res.json();
+								})
+								.catch(error => console.error('Error:', error));
+							} else {
+								input.checked = false;
+							};
+						} else {
+							await fetch(`/api/update/users/${m.id}`, {
+								method: 'PATCH',
+								headers: { 'content-type': 'application/json' },
+								body: JSON.stringify({ special_permission: false })
+							})
+							.then(res => {
+								if(!res.ok) {
+									throw new Error('There was a problem.')
+								}
+								return res.json();
+							})
+							.catch(error => console.error('Error:', error));
+						}
+					});
+					td.appendChild(input);
+					tr.appendChild(td);
+				} else {
+					const td = document.createElement('td');
+					td.classList.add('dropdown-col');
+					td.textContent = m[key];
+					tr.appendChild(td);
+				}
 			});
 
-			iTeam.appendChild(tr);
+			const td = document.createElement('td');
+			const deleteButton = document.createElement('button');
+			deleteButton.classList.add('delete-x');
+			deleteButton.textContent = '×';
+			deleteButton.addEventListener('click',async  () => {
+				if(window.confirm(`Are you sure you want to remove ${m.name} from the institute team? They will loose all access to the application.`)) {
+					await fetch(`/api/update/users/${m.id}`, {
+						method: 'PATCH',
+						headers: { 'content-type': 'application/json' },
+						body: JSON.stringify({ role: 'user' })
+					})
+					.then(res => {
+						if(!res.ok) {
+							throw new Error('There was a problem.')
+						}
+						return res.json();
+					})
+					.catch(error => console.error('Error:', error));
+				}
+			});
+			td.appendChild(deleteButton);
+			tr.appendChild(td);
+
+			table.appendChild(tr);
 		});
+
+		teamRow.dd.appendChild(table);
+		DOM.main.appendChild(teamRow.row);
+	}
+
+	function renderUserList(data) {
+		
 	}
 	
 </script>

@@ -72,6 +72,21 @@ body > h3 {
 .delete-button:hover {
 	background-color: #B22222;
 }
+
+.delete-x {
+	border: none;
+  background: transparent;
+  color: #888;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  width: 25px;
+  padding-right: 5%;
+}
+
+.delete-x:hover {
+	color: #ff0000;
+}
 /* End Buttons */
 
 /* Forms/inputs */

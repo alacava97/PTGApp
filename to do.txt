@@ -20,9 +20,9 @@
 -add other team members to dropdown on prop info page
 
 -admin panel
-	-view/edit institue team and permissions
-	-Replace current layout with UI.row layout, turn table into row-dd
 	-Create "permission denied" page
+	-Create user list, add the ability to make users admin
+	-Add inline edits to user records
 
 -Mobile layout nav
 
