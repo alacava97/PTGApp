@@ -18,16 +18,23 @@ function requireLogin(req, res, next) {
 
 function requireAdmin(req, res, next) {
   if (!req.session.user) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return denyAccess(req, res);
   }
 
   if (req.session.user.role !== 'admin' || !req.session.user.special_permission) {
-    return res.status(401).json({ error: 'Unauthorized' });
+    return denyAccess(req, res);
   }
 
   req.user = req.session.user;
-
   next();
+}
+
+function denyAccess(req, res) {
+  if (req.originalUrl.startsWith('/admin')) {
+    return res.status(403).json({ error: 'Access denied' });
+  }
+
+  return res.redirect('/public/oops.html');
 }
 
 module.exports = { requireLogin, requireAdmin };

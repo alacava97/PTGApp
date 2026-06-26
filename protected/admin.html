@@ -8,9 +8,16 @@
 	<link rel="stylesheet" href="public/styles/styles.css">
 	<link rel="stylesheet" href="public/styles/dd-row.css">
 	<link rel="stylesheet" href="public/styles/row.css">
+	<link rel="stylesheet" href="public/styles/sort-list.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Admin Portal</title>
 </head>
+<style>
+	.editable:hover {
+		text-decoration: underline;
+		cursor: pointer;
+	}
+</style>
 <body>
 	<div id="navbar"></div>
 	<header class="clearfix">
@@ -26,20 +33,16 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
+		const res = await fetch('/auth/session', { credentials: 'include' });
+		const user = await res.json();
+		if (!user.special_permission) {
+			window.location.replace('/public/oops.html');
+		}
+
 		const { instTeam, users } = await DataAPI.load();
 		renderInstTeam(instTeam);
 		renderUserList(users);
-
-		const adminRes = await fetch('/admin/getUsers', { credentials: 'include' });
-		console.log(await adminRes.json())
-
 	});
-
-	async function fetchJSON(url, options = {}) {
-		const res = await fetch(url, options);
-		if (!res.ok) throw new Error(await res.text());
-		return res.json();
-	}
 
 	const DataAPI = {
 		load: async () => {
@@ -83,7 +86,7 @@
 					input.checked = m[key];
 					input.addEventListener('change', async () => {
 						if (input.checked == true) {
-							if(window.confirm(`Are you sure you want to give ${m.name} admin access? This will allow them to give anybody admin access to the app. This access includes the ability to create, modify, or permanently delete data.`)) {
+							if(window.confirm(`Are you sure you want to give ${m.name} admin access? This will allow them to give anybody admin access to the app. This access includes the ability to create, modify, and permanently delete data.`)) {
 								await fetch(`/api/update/users/${m.id}`, {
 									method: 'PATCH',
 									headers: { 'content-type': 'application/json' },
@@ -120,6 +123,10 @@
 					const td = document.createElement('td');
 					td.classList.add('dropdown-col');
 					td.textContent = m[key];
+					if (key != 'id') {
+						attachInlineEdit(td, m, key)
+						td.classList.add('editable');
+					}
 					tr.appendChild(td);
 				}
 			});
@@ -139,6 +146,7 @@
 						if(!res.ok) {
 							throw new Error('There was a problem.')
 						}
+						tr.remove();
 						return res.json();
 					})
 					.catch(error => console.error('Error:', error));
@@ -155,7 +163,152 @@
 	}
 
 	function renderUserList(data) {
-		
+		const userRow = new Row();
+		userRow.addTitle('Accounts');
+		userRow.addDDMenu();
+
+		const blurb = document.createElement('div');
+		blurb.innerHTML = `The accounts on this list do not have access to the application. Accounts can be granted access and added to the institute team by checking the checkbox in the 'Access' column.`;
+		blurb.classList.add('blurb');
+		userRow.dd.appendChild(blurb);
+
+		const table = document.createElement('table');
+		const tr = document.createElement('tr');
+		const headers = ['User ID', 'Name', 'Email', 'Access', 'Delete'];
+		headers.forEach(h => {
+			const th = document.createElement('th');
+			th.textContent = h;
+			th.classList.add('ddrow-header');
+			tr.appendChild(th);
+		});
+
+		table.appendChild(tr);
+
+		if (data.length == 0) {
+			const tr = document.createElement('tr');
+			tr.innerHTML = `<i>There are currently no records to display here</i>`;
+			table.appendChild(tr);
+		} else {
+			data.forEach((u, index) => {
+				const tr = document.createElement('tr');
+
+				Object.keys(u).forEach(key => {
+					const td = document.createElement('td');
+
+					if (key == 'access') {
+						const input = document.createElement('input');
+						input.type = 'checkbox';
+						input.checked = u.access === true;
+						input.addEventListener('change', async () => {
+							if (input.checked == true) {
+								if(window.confirm(`Are you sure you want to give ${u.name} access? This will allow them to create, modify, and permanently delete data.`)) {
+									await fetch(`/api/update/users/${u.id}`, {
+										method: 'PATCH',
+										headers: { 'content-type': 'application/json' },
+										body: JSON.stringify({ role: 'admin' })
+									})
+									.then(res => {
+										if(!res.ok) {
+											throw new Error('There was a problem.')
+										}
+										return res.json();
+									})
+									.catch(error => console.error('Error:', error));
+								} else {
+									input.checked = false;
+								};
+							} else {
+								await fetch(`/api/update/users/${u.id}`, {
+									method: 'PATCH',
+									headers: { 'content-type': 'application/json' },
+									body: JSON.stringify({ role: 'user' })
+								})
+								.then(res => {
+									if(!res.ok) {
+										throw new Error('There was a problem.')
+									}
+									return res.json();
+								})
+								.catch(error => console.error('Error:', error));
+							}
+						});
+						td.appendChild(input);
+					} else {
+						td.textContent = u[key];
+						if (key != 'id') {
+							attachInlineEdit(td, u, key);
+							td.classList.add('editable');
+						}
+					}
+					tr.appendChild(td);
+				});
+
+				const td = document.createElement('td');
+				const deleteButton = document.createElement('button');
+				deleteButton.classList.add('delete-x');
+				deleteButton.textContent = '×';
+				deleteButton.addEventListener('click',async  () => {
+					if(window.confirm(`Are you sure you want to delete ${u.name} from the database?`)) {
+						await fetch(`/admin/deleteUser/${u.id}`, {
+							method: 'DELETE',
+							headers: { 'content-type': 'application/json' }
+						})
+						.then(res => {
+							if(!res.ok) {
+								throw new Error('There was a problem.')
+							}
+							tr.remove();
+							return res.json();
+						})
+						.catch(error => console.error('Error:', error));
+					}
+				});
+				td.appendChild(deleteButton);
+				tr.appendChild(td);
+
+				table.appendChild(tr);
+			});
+		}
+
+		userRow.dd.appendChild(table);
+		DOM.main.appendChild(userRow.row);
+	}
+
+	function attachInlineEdit(el, entry, key) {
+	    el.addEventListener('click', () => {
+	    	if (el.querySelector('input.inline-edit')) return;
+	      	const oldText = el.textContent;
+	      	const input = document.createElement('input');
+	      	input.type = 'text';
+	      	input.value = oldText;
+	      	input.classList.add('inline-edit');
+	      	el.textContent = '';
+	      	el.appendChild(input);
+	      	input.focus();
+
+	      	const save = async () => {
+	        	const newText = input.value.trim();
+	        	if (newText === oldText || !newText) return (el.textContent = oldText);
+	        	try {
+	          		const res = await fetch(`/api/update/users/${entry.id}`, {
+	            	method: 'PATCH',
+	            	headers: { 'Content-Type': 'application/json' },
+	            	body: JSON.stringify({ [key]: newText })
+	          	});
+	          	if (!res.ok) throw new Error('Update failed');
+	          	el.textContent = newText;
+		        } catch (err) {
+		          	console.error(`Failed to update ${key}:`, err);
+		          	el.textContent = oldText;
+		        }
+	  		};
+
+	      	input.addEventListener('blur', save);
+	      	input.addEventListener('keydown', e => {
+		        if (e.key === 'Enter') input.blur();
+		        if (e.key === 'Escape') el.textContent = oldText;
+	      	});
+	    });
 	}
 	
 </script>

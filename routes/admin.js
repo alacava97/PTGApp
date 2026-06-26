@@ -14,14 +14,15 @@ router.get(`/getUsers`, async (req, res) => {
 	  	id,
 	  	name,
 	  	email,
-	  	role,
-	  	institute_team,
-	  	title,
-	  	special_permission
+  		CASE
+  			WHEN role = 'user' THEN 'FALSE'
+  			ELSE 'TRUE'
+  		END AS access
 	FROM
 		users
 	WHERE
-	  hidden IS NOT true
+	  hidden IS NOT true AND
+	  role = 'user'
   	ORDER BY
   		id;
 	`;
@@ -60,6 +61,48 @@ router.get(`/getInstitute`, async (req, res) => {
     console.error(`Error fetching users:`, err);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+router.delete(`/deleteUser/:id`, async (req, res) => {
+	const { id } = req.params;
+	const userId = req.user.id;
+	const client = await pool.connect();
+	
+	try {
+		await client.query('BEGIN');
+
+		const {rows } = await client.query(`
+			DELETE FROM users
+			WHERE id = $1
+			RETURNING *;
+		`, [id]);
+
+		if (rows.length === 0) {
+			return res.status(404).json({ error: 'Entry not found' });
+		}
+
+		const record = rows[0];
+
+		const toDisplay = `Deleted ${record.name}`;
+
+		await client.query(`
+			INSERT INTO audit_log
+				(user_id, action, table_name, record_id, old_data, to_display)
+			VALUES
+				($1, 'DELETE', 'users', $2, $3, $4)
+			`, [userId, record.id, record, toDisplay]
+		);
+
+		await client.query('COMMIT');
+
+		res.json({ message: 'Entry deleted', record });
+	} catch (err) {
+		await client.query('ROLLBACK');
+		console.error('Error deleting entry:', err);
+		res.status(500).json({ error: 'Internal server error' });
+	} finally {
+		client.release();
+	}
 });
 
 

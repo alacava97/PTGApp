@@ -28,7 +28,7 @@
 	<header>
 		<div class="title">
 			<h1>Class Proposal Form</h1>
-			<h2 id="yearh2">2027 Piano Technicians' Guild Convention</h2>
+			<h2 id="yearh2">2027 Piano Technicians Guild Convention</h2>
 		</div>
 	</header>
 	<div class="main-content">
@@ -112,7 +112,7 @@
 			</label>
 
 			<label for="sponsor">Sponsor
-				<div class="subtitle">Are you being payed by a third party to teach this class?</div>
+				<div class="subtitle">Are you being paid by a third party to teach this class?</div>
 				<input id="sponsor" type="text" name="sponsor_name">
 			</label>
 			
@@ -183,7 +183,11 @@
 		const user = await res.json();
 
 		const year = convention.year;
-		yearh2.innerHTML = `${year} Piano Technicians' Guild Convention<br>${convention.city_state}`
+		const startDate = new Date(convention.start_date)
+		const sD = startDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit'});
+		const endDate = new Date(convention.end_date)
+		const eD = endDate.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit'});
+		yearh2.innerHTML = `${year} Piano Technicians Guild Convention<br>${convention.city_state} ${sD} - ${eD}`
 
 		populateLevelSelect(data.levels);
 		populateTypeSelect(data.types);

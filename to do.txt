@@ -20,9 +20,7 @@
 -add other team members to dropdown on prop info page
 
 -admin panel
-	-Create "permission denied" page
-	-Create user list, add the ability to make users admin
-	-Add inline edits to user records
+	-Email scheduling
 
 -Mobile layout nav
 
