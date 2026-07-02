@@ -994,7 +994,7 @@ app.get('/api/schedule/:year', requireLogin, async (req, res) => {
         rooms.name as room,
         rooms.id as room_id,
         periods.start as start,
-        periods.end as end,
+        (SELECT periods.end FROM periods WHERE periods.period = schedule.start_period + classes.length - 1) AS end,
         COALESCE(
           array_agg(
             instructors.name ||

@@ -434,6 +434,7 @@ async function createLabel(data) {
 	title.textContent = data.title;
 	inst.textContent = names;
 	day.textContent = days[data.day-3];
+
 	if (data.half_period == true) {
 		period.textContent = `${formatTime(data.end)} - ${formatTime(data.end, 1)}`
 	} else {

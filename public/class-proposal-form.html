@@ -266,7 +266,6 @@
 		//------For Existing Classes------//
 
 		const instData = await getData(token)
-		console.log(instData);
 		if (instData) {
 			await getInstructorInfo(instData.instructor);
 			populateClassSelect(instData.classes);

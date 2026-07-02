@@ -868,6 +868,7 @@
 	            const data = schedule.find(event => event.schedule_id == eventId);
 	            if (data) {
 	                const label = await createLabel(data);
+	                console.log(data);
 	                toPrint.push(label);
 	            }
 	        }
