@@ -374,7 +374,7 @@
 					    const checkbox = document.createElement('input');
 					    checkbox.type = 'checkbox';
 					    checkbox.value = periodEvent.schedule_id;
-					    checkbox.classList.add('bottom-right');
+					    checkbox.classList.add('bottom-right', 'label-check');
 					    checkbox.checked = true;
 					    checkbox.addEventListener('click', (e) => { e.stopPropagation() });
 					    eventDiv.appendChild(checkbox);
@@ -733,14 +733,14 @@
 			allNone.appendChild(selectOption);
 		});
 		allNone.addEventListener('change', (e) => {
-			const checks = document.querySelectorAll('input[type=checkbox]');
+			const checks = document.querySelectorAll('.label-check');
 			checks.forEach(check => {
 				if (e.target.value == 0) {
 					check.checked = true;
 				} else if (e.target.value == 1) {
 					check.checked = false;
 				}
-			})
+			});
 		})
 		ddLabel.appendChild(allNone);
 		ddLabel.appendChild(renderPrintLabelsButton());
@@ -857,25 +857,35 @@
 
 		printBtn.appendChild(loading);
 		printBtn.addEventListener('click', async (e) => {
-			const { schedule } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
-			e.target.disabled = true;
+			const button = e.currentTarget;
+			button.disabled = true;
 			loading.style.display = 'flex';
-			let toPrint = [];
 
-			const selected = document.querySelectorAll('input[type="checkbox"]:checked');
-	        for (const box of selected) {
-	            const eventId = box.closest('.event').id;
-	            const data = schedule.find(event => event.schedule_id == eventId);
-	            if (data) {
-	                const label = await createLabel(data);
-	                console.log(data);
-	                toPrint.push(label);
-	            }
-	        }
+			try {
+				const { schedule } = await ScheduleAPI.load(ScheduleState.activeConvention.location_id);
 
-			await downloadElementAsPDF(toPrint, 'class-signs');
-			loading.style.display = "none";
-			e.target.disabled = false;
+				let selectedEvents = [...document.querySelectorAll('.label-check:checked')]
+					.map(checkbox => {
+						const eventId = checkbox.closest('.event').id;
+						return schedule.find(e => e.schedule_id == eventId);
+					})
+					.filter(Boolean);
+
+				selectedEvents.sort((a, b) => 
+					(a.day - b.day) ||
+					(a.start_period - b.start_period) ||
+					(a.room_id - b.room_id)
+				);
+
+				const toPrint = await Promise.all(
+					selectedEvents.map(createLabel)
+				);
+
+				await downloadElementAsPDF(toPrint, 'class-signs');
+			} finally {
+				loading.style.display = "none";
+				button.disabled = false;
+			}
 		});
 
 		return printBtn;
