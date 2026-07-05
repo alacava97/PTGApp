@@ -1170,7 +1170,7 @@ app.get('/api/getLatestConvention', async (req, res) => {
         id, location_id, year
       FROM conventions
       WHERE
-        year = (SELECT MAX(year) FROM conventions)
+        year = (SELECT MIN(year) FROM conventions WHERE conventions.closed <> TRUE)
     `)
 
     if (result.rows.length === 0) {
@@ -1179,7 +1179,39 @@ app.get('/api/getLatestConvention', async (req, res) => {
 
     res.json(result.rows);
   } catch (err) {
-    console.error(`Error getting rooms:`, err);
+    console.error(`Error getting conventions:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
+app.get('/api/getActiveConventions', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT
+        c.id AS convention_id,
+        CONCAT(c.year, ' - ', l.city_state) AS location,
+        (
+          SELECT COUNT(DISTINCT i.email)
+          FROM instructors i
+          LEFT JOIN class_instructors ci ON i.id = ci.instructor_id
+          LEFT JOIN classes cl ON cl.id = ci.class_id
+          LEFT JOIN schedule s ON s.class_id = cl.id
+          WHERE s.convention = c.id
+            AND i.email IS NOT NULL
+        ) AS email_count
+      FROM conventions c
+      LEFT JOIN locations l ON l.id = c.location_id
+      WHERE c.closed <> TRUE
+      ORDER BY c.year ASC;
+    `)
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error getting conventions:`, err);
     res.status(500).json({ error: 'Database query failed' });
   }
 });
@@ -1248,7 +1280,7 @@ app.patch('/api/update/:table/:id', requireLogin, async (req, res) => {
       const classTitle = classRows[0]
       toDisplay = `Updated schedule for '${classTitle.title}'`
     }
-
+    
     await client.query(
       `
       INSERT INTO audit_log

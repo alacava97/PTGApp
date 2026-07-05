@@ -15,6 +15,7 @@
 .row-subtitle {
 	font-size: 16px;
 	padding-right: 100px;
+	white-space: normal;
 }
 
 .row, .static-row {

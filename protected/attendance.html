@@ -14,7 +14,10 @@
 	<title>Attendance</title>
 </head>
 <body>
-	<div id="navbar"></div>
+	<header>
+		<h1>Attendance</h1>
+		<div id="navbar"></div>
+	</header>
 	<div class="main-content" id="main">
 	</div>
 </body>
@@ -46,10 +49,6 @@
 		const main = document.getElementById('main');
 
 		main.innerHTML = '';
-
-		const h1 = document.createElement('h1');
-		h1.textContent = "Attendance";
-		main.appendChild(h1);
 
 		days.forEach(day => {
 			const dayEl = document.createElement('h2');

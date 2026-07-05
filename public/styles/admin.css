@@ -1,0 +1,12 @@
+.email-grid {
+	display: grid;
+	grid-template-columns: repeat(5, 1fr);
+	width: 100%;
+    justify-content: space-around;
+    margin: 0 20px;
+    gap: 20px;
+ }
+
+ input, select {
+ 	max-height: fit-content;
+ }

@@ -2,7 +2,6 @@
 	list-style-type: none;
 	margin: 0;
 	padding: 0 5%;
-	background-color: #333;
 	width: 100%;
 	min-width: 800px;
 	box-sizing: border-box;
@@ -14,25 +13,27 @@
 	margin-left: auto;
 	display: flex;
 	flex-direction: row;
+	gap: 20px;
 }
 
-.nav-link {
-	color: white;
+.nav-ul > li {
+	color: black;
 	text-align: center;
 	padding: 10px 16px;
 	text-decoration: none;
-	display: block;
+	font-size: 18px;
+	font-weight: 600;
 }
 
 .nav-ul a:hover,
 .nav-dd:hover .dropbtn {
-	background-color: #111;
+	color: #405B79;
 	cursor: pointer;
 	text-decoration: none;
 }
 
 .active, .active:hover {
-	background-color: #04AA6D;
+	color: #405B79;
 	font-weight: 900;
 }
 
@@ -44,11 +45,11 @@
 .nav-dd .dropbtn {
 	border: none;
 	outline: none;
-	color: white;
-	padding: 10px 16px;
+	color: inherit;
 	background-color: inherit;
 	font-family: inherit;
 	font-size: inherit;
+	font-weight: inherit;
 	margin: 0;
 }
 
@@ -56,10 +57,11 @@
 	display: none;
 	flex-direction: column;
 	position: absolute;
-	background-color: #333;
 	min-width: 145px;
 	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
-	z-index: 1;
+	z-index: 2;
+	background-color: #fff;
+	gap: 5px;
 }
 
 .nav-dd:hover .nav-dd-content {

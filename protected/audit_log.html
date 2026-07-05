@@ -14,19 +14,21 @@
 	<title>Audit Log</title>
 </head>
 <body>
-	<div id="navbar"></div>
-	<header class="clearfix">
+	
+	<header>
 		<h1>Audit Log</h1>
-		<div class="right" id="date-range">
-			<label>start
-				<input id="start-date" type="date">
-			</label>
-			<div class="vertical-seperator"></div>
-			<label>end
-				<input id="end-date" type="date">
-			</label>
-		</div>
+		<div id="navbar"></div>
 	</header>
+	<div id="date-range" class="option-bar">
+		<b>Filters:</b>
+		<label>start
+			<input id="start-date" type="date">
+		</label>
+		<div>|</div>
+		<label>end
+			<input id="end-date" type="date">
+		</label>
+	</div>
 	<section id="list-no-hover"></section>
 </body>
 <script src="public/js/script.js"></script>

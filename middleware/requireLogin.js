@@ -1,6 +1,6 @@
 function requireLogin(req, res, next) {
   if (!req.session.user) {
-    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/admin')) {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/admin/api')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
@@ -30,7 +30,7 @@ function requireAdmin(req, res, next) {
 }
 
 function denyAccess(req, res) {
-  if (req.originalUrl.startsWith('/admin')) {
+  if (req.originalUrl.startsWith('/admin/api')) {
     return res.status(403).json({ error: 'Access denied' });
   }
 

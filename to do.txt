@@ -18,9 +18,6 @@
 -list of instructor/av needs in chronological order for Bruce
 -add other team members to dropdown on prop info page
 
--admin panel
-	-Email scheduling
-
 -Mobile layout nav
 
 -Change team, class, and isntructor pages to use dropdowns instead of link to info page

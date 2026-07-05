@@ -8,7 +8,7 @@ const { requireLogin, requireAdmin } = require(`../middleware/requireLogin`);
 router.use(requireLogin);
 router.use(requireAdmin);
 
-router.get(`/getUsers`, async (req, res) => {
+router.get(`/api/getUsers`, async (req, res) => {
   const query = `
   	SELECT
 	  	id,
@@ -36,7 +36,7 @@ router.get(`/getUsers`, async (req, res) => {
   }
 });
 
-router.get(`/getInstitute`, async (req, res) => {
+router.get(`/api/getInstitute`, async (req, res) => {
   const query = `
   	SELECT
 	  	id,
@@ -63,7 +63,7 @@ router.get(`/getInstitute`, async (req, res) => {
   }
 });
 
-router.delete(`/deleteUser/:id`, async (req, res) => {
+router.delete(`/api/deleteUser/:id`, async (req, res) => {
 	const { id } = req.params;
 	const userId = req.user.id;
 	const client = await pool.connect();
@@ -103,6 +103,22 @@ router.delete(`/deleteUser/:id`, async (req, res) => {
 	} finally {
 		client.release();
 	}
+});
+
+router.get(`/api/getEmailingRules`, async (req, res) => {
+  const query = `
+		SELECT emailing.*, conventions.review_email_status AS status
+		FROM emailing
+		LEFT JOIN conventions ON conventions.id = emailing.convention_id
+		`;
+
+  try {
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching data:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 

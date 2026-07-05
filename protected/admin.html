@@ -9,6 +9,7 @@
 	<link rel="stylesheet" href="public/styles/dd-row.css">
 	<link rel="stylesheet" href="public/styles/row.css">
 	<link rel="stylesheet" href="public/styles/sort-list.css">
+	<link rel="stylesheet" href="public/styles/admin.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Admin Portal</title>
 </head>
@@ -19,9 +20,9 @@
 	}
 </style>
 <body>
-	<div id="navbar"></div>
 	<header class="clearfix">
 		<h1>Admin Tools</h1>
+		<div id="navbar"></div>
 	</header>
 	<div id="list"></div>
 </body>
@@ -33,29 +34,35 @@
 	}
 
 	document.addEventListener('DOMContentLoaded', async () => {
-		const res = await fetch('/auth/session', { credentials: 'include' });
-		const user = await res.json();
-		if (!user.special_permission) {
-			window.location.replace('/public/oops.html');
-		}
+		try {
+			const res = await fetch('/auth/session', { credentials: 'include' });
 
-		const { instTeam, users } = await DataAPI.load();
-		renderInstTeam(instTeam);
-		renderUserList(users);
+			const user = await res.json();
+			if (!user.special_permission) {
+				window.location.replace('/public/oops.html');
+			}
+
+			const { instTeam, users, activeCons, emails } = await DataAPI.load();
+			renderInstTeam(instTeam);
+			renderUserList(users);
+			renderEmailFunctions(activeCons, emails);
+		} catch (err) {
+			console.error(err);
+		}
 	});
 
 	const DataAPI = {
 		load: async () => {
-			const [ instTeam, users ] = await Promise.all([
-				fetchJSON(`/admin/getInstitute`),
-				fetchJSON(`/admin/getUsers`)
+			const [ instTeam, users, activeCons, emails ] = await Promise.all([
+				fetchJSON(`/admin/api/getInstitute`),
+				fetchJSON(`/admin/api/getUsers`),
+				fetchJSON(`/api/getActiveConventions`),
+				fetchJSON(`/admin/api/getEmailingRules`),
 			]);
 
-			return { instTeam, users };
+			return { instTeam, users, activeCons, emails };
 		}
 	}
-
-
 
 	function renderInstTeam(data) {
 		const teamRow = new Row();
@@ -249,7 +256,7 @@
 				deleteButton.textContent = '×';
 				deleteButton.addEventListener('click',async  () => {
 					if(window.confirm(`Are you sure you want to delete ${u.name} from the database?`)) {
-						await fetch(`/admin/deleteUser/${u.id}`, {
+						await fetch(`/admin/api/deleteUser/${u.id}`, {
 							method: 'DELETE',
 							headers: { 'content-type': 'application/json' }
 						})
@@ -272,6 +279,197 @@
 
 		userRow.dd.appendChild(table);
 		DOM.main.appendChild(userRow.row);
+	}
+
+	function renderEmailFunctions(activeCons, emails) {
+		const emailRow = new Row();
+		emailRow.addTitle('Emailing');
+		emailRow.addDDMenu();
+		
+		const emailGrid = document.createElement('div');
+		emailGrid.classList.add('email-grid');
+
+		const headers = ['Email', 'Convention', 'Date-Time', 'Arm', 'Status'];
+		headers.forEach(h => {
+			const div = document.createElement('div');
+			div.textContent = h;
+			div.style.fontWeight = 'bold';
+			emailGrid.appendChild(div);
+		});
+
+		emailRow.dd.appendChild(emailGrid);
+
+		const reviewEmails = emails.find(e => e.id == 1);
+		renderReviewEmailing(emailGrid, activeCons, reviewEmails);
+
+		const year = document.createElement('select');
+		activeCons.forEach(c => {
+			const option = document.createElement('option');
+			option.value = c.convention_id;
+			option.textContent = c.location;
+			year.appendChild(option);
+		});
+
+		DOM.main.appendChild(emailRow.row);
+	}
+
+	async function renderReviewEmailing(emailGrid, activeCons, reviewEmails) {
+		
+		//create grid els
+		//title - col 1
+		const title = document.createElement('div');
+		title.textContent = "Reviews";
+
+		//convention select - col 2
+		const year = document.createElement('select');
+		activeCons.forEach(c => {
+			const option = document.createElement('option');
+			option.value = c.convention_id;
+			option.textContent = c.location;
+			if (reviewEmails.convention_id == c.convention_id) {
+				option.selected = true;
+			}
+			year.appendChild(option);
+		});
+
+		//date/time schedule - col 3
+		const date = document.createElement('input');
+		date.type = 'datetime-local';
+		if (reviewEmails.scheduled) {
+			const d = new Date(reviewEmails.scheduled);
+			date.value = d.toISOString().slice(0, 16);
+		};
+
+		if (reviewEmails.status == 'sent') {
+			date.disabled = true;
+		}
+
+		//checkbox to activate scheduled email - col 4
+		const checkLabel = document.createElement('label');
+		const check = document.createElement('input');
+		check.type = 'checkbox';
+		check.checked = reviewEmails.armed;
+		checkLabel.appendChild(check);
+		if (reviewEmails.status == 'sent') {
+			check.disabled = true;
+			check.checked = false;
+			blurb.innerHTML = `This email has already been sent for this convention. To prevent duplicate emails, the option to activate this email has been disabled. Please pick a different convention.`
+		}
+
+		//status - col 4
+		const status = document.createElement('div');
+		status.innerHTML = `${reviewEmails.status}`
+
+		//info blurb - full row
+		const blurb = document.createElement('div');
+		blurb.classList.add('blurb');
+		blurb.style.gridColumn = 'span 5';
+
+		//separator
+		const sep = document.createElement('div');
+		sep.classList.add('separator');
+		sep.style.gridColumn = 'span 5';
+
+		//add event listeners
+		year.addEventListener('change', async (e) => {
+		    check.checked = false;
+		    blurb.innerHTML = '';
+
+		    try {
+		        const res = await fetch(`/api/update/emailing/${reviewEmails.id}`, {
+		            method: 'PATCH',
+		            headers: {
+		                'content-type': 'application/json'
+		            },
+		            body: JSON.stringify({
+		                convention_id: e.target.value,
+		                armed: false
+		            })
+		        });
+
+		        if (!res.ok) {
+		            throw new Error('There was a problem.');
+		        }
+
+		        const { emails } = await DataAPI.load();
+		        const updated = emails.find(email => email.id == reviewEmails.id);
+
+		        status.innerHTML = updated.status;
+
+		        if (updated.status == 'sent') {
+		        	check.disabled = true;
+		        	blurb.innerHTML = `This email has already been sent for this convention. To prevent duplicate emails, the option to activate this email has been disabled. Please pick a different convention.`
+		        } else {
+		        	check.disabled = false;
+		        }
+
+		    } catch (error) {
+		        console.error('Error:', error);
+		    }
+		});
+
+		date.addEventListener('change', async (e) => {
+			check.checked = false;
+			blurb.innerHTML = ``;
+
+			await fetch(`/api/update/emailing/${reviewEmails.id}`, {
+				method: 'PATCH',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ scheduled: e.target.value, armed: false })
+			})
+			.then(res => {
+				if(!res.ok) {
+					throw new Error('There was a problem.')
+				}
+				return res.json();
+			})
+			.catch(error => console.error('Error:', error));
+		});
+
+		check.addEventListener('change', async (e) => {
+			await fetch(`/api/update/emailing/${reviewEmails.id}`, {
+				method: 'PATCH',
+				headers: { 'content-type': 'application/json' },
+				body: JSON.stringify({ armed: e.target.checked })
+			})
+			.then(res => {
+				if(!res.ok) {
+					throw new Error('There was a problem.')
+				}
+
+				if (e.target.checked) {
+					blurb.innerHTML = populateReviewBlurb(activeCons, date, year);
+				} else {
+					blurb.innerHTML = ``;
+				}
+				return res.json();
+			})
+			.catch(error => console.error('Error:', error));
+		});
+
+		//populate blurb
+		if (reviewEmails.armed) {
+			blurb.innerHTML = populateReviewBlurb(activeCons, date, year)
+		}
+
+		//append els to grid
+		emailGrid.append(title, year, date, checkLabel, status, blurb, sep);
+	}
+
+	function populateReviewBlurb(activeCons, date, year) {
+		const emailCount = activeCons.find(c => c.convention_id == year.value).email_count;
+		const scheduledDate = new Intl.DateTimeFormat('en-US', {
+			weekday: 'long',
+			year: 'numeric',
+			month: 'long',
+			day: 'numeric',
+			hour: 'numeric',
+			minute: '2-digit',
+			hour12: true,
+			timeZoneName: 'short'
+		}).format(new Date(date.value));
+
+		return `On ${scheduledDate}, emails will be sent to ${emailCount} instructors with instructions on how to view class reviews for their classes.`
 	}
 
 	function attachInlineEdit(el, entry, key) {

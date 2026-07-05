@@ -926,6 +926,9 @@
 			const option = document.createElement('option');
 			option.innerHTML = `${c.year} - ${c.city_state}`;
 			option.value = c.id;
+			if (c.id == ScheduleState.activeConvention.id) {
+				option.selected = true;
+			}
 			yearDd.appendChild(option);
 		});
 
