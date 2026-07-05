@@ -13,8 +13,7 @@
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
 	-Send instructors class review page
-		-Button in instructor record
-		-Button to send all
+		-Link in instructor record
 
 -list of instructor/av needs in chronological order for Bruce
 -add other team members to dropdown on prop info page
