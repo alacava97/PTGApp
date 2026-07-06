@@ -23,30 +23,35 @@
 	display: flex;
 	flex-direction: row;
 	position: relative;
-	padding: 7px 5%;
-	border: #CCCCCC solid 1px;
+	padding: 10px 5%;
 	overflow: hidden;
 	align-items: center;
 	justify-content: space-between;
 	gap: 0 20px;
 	flex-wrap: wrap;
-	background-color: #EEEEEE;
+	background-color: #fff;
+    color: #111;
+    box-sizing: border-box;
+    box-shadow: 0 8px 6px -6px rgba(0, 0, 0, 0.2);
+    margin: 10px 0;
+    border: 2px solid transparent;
+    width: 100%;
 }
 
 .row:hover {
-	background-color: #E0E0E0;
-	border: #BBBBBB solid 1px;
+	background-color: #f1f1f1;
+	border: 2px inset gray;
 	cursor: pointer;
 }
 
 #list > *:nth-child(odd),
 #list-no-hover > *:nth-child(odd) {
-	background-color: color-mix(in srgb, #EEEEEE 90%, #01ab6d);
+	background-color: color-mix(in srgb, #fff 90%, #405B79);
 }
 
 #list > *:nth-child(even),
 #list-no-hover > *:nth-child(even) {
-	background-color: #EEEEEE;
+	background-color: #fff;
 }
 
 #list > *:hover {
@@ -54,11 +59,11 @@
 }
 
 #list > *:nth-child(odd):hover {
-	background-color: color-mix(in srgb, color-mix(in srgb, #EEEEEE 90%, #01ab6d) 90%, black);
+	background-color: color-mix(in srgb, color-mix(in srgb, #fff 90%, #405B79) 90%, black);
 }
 
 #list > *:nth-child(even):hover {
-	background-color: color-mix(in srgb, #EEEEEE 90%, black);
+	background-color: color-mix(in srgb, #fff 90%, black);
 }
 
 .row-arrow {

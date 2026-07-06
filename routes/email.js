@@ -1,7 +1,7 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
-const pool = require('./db/pool');
+const pool = require('../db/pool');
 
 require('dotenv').config();
 

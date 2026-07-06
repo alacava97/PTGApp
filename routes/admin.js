@@ -63,6 +63,28 @@ router.get(`/api/getInstitute`, async (req, res) => {
   }
 });
 
+router.get(`/api/getEmails`, async (req, res) => {
+	const query = `
+		SELECT
+			e.id,
+			e.to,
+			e.copy_id,
+			CONCAT(c.year, ' - ', l.city_state) AS convention,
+			e.send_at,
+			e.status
+			FROM emailing e
+			LEFT JOIN conventions c ON c.id = e.convention_id
+			LEFT JOIN locations l ON l.id = c.location_id;
+	`;
+	try {
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching pending emails:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 router.delete(`/api/deleteUser/:id`, async (req, res) => {
 	const { id } = req.params;
 	const userId = req.user.id;
@@ -105,20 +127,51 @@ router.delete(`/api/deleteUser/:id`, async (req, res) => {
 	}
 });
 
-router.get(`/api/getEmailingRules`, async (req, res) => {
-  const query = `
-		SELECT emailing.*, conventions.review_email_status AS status
-		FROM emailing
-		LEFT JOIN conventions ON conventions.id = emailing.convention_id
-		`;
+router.delete('/api/cancelSend/:id', async (req, res) => {
+	const { id } = req.params;
+	const userId = req.user.id;
 
-  try {
-    const result = await pool.query(query);
-    res.json(result.rows);
-  } catch (err) {
-    console.error(`Error fetching data:`, err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+	const client = await pool.connect();
+
+	try {
+		await client.query('BEGIN');
+
+		const { rows } = await client.query(
+			`SELECT * FROM emailing WHERE id = $1 FOR UPDATE`,
+			[id]
+		);
+
+		if (rows.length === 0) {
+			await client.query('ROLLBACK');
+			return res.status(404).json({ error: 'Entry not found' });
+		}
+
+		const record = rows[0];
+
+		if (record.status !== 'pending') {
+			await client.query('ROLLBACK');
+			return res.status(409).json({
+				error: 'EMAIL_ALREADY_SENT',
+				message: 'Sent emails cannot be deleted.'
+			});
+		}
+
+		await client.query(
+			`DELETE FROM emailing WHERE id = $1`,
+			[id]
+		);
+
+		await client.query('COMMIT');
+
+		res.json({ message: 'Entry deleted', record });
+
+	} catch (err) {
+		await client.query('ROLLBACK');
+		console.error('Error deleting entry:', err);
+		res.status(500).json({ error: 'Internal server error' });
+	} finally {
+		client.release();
+	}
 });
 
 module.exports = router;

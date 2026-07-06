@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="/public/styles/nav-styles.css">
+	<link rel="stylesheet" href="/public/styles/themes.css">
+	<link rel="stylesheet" href="/public/styles/styles.css">
+	<link rel="stylesheet" href="/public/styles/dd-row.css">
+	<link rel="stylesheet" href="/public/styles/row.css">
+	<link rel="stylesheet" href="/public/styles/sort-list.css">
+	<link rel="stylesheet" href="/public/styles/admin.css">
+	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+	<title>Admin Portal</title>
+</head>
+<body>
+	<header>
+		<h1>Emailing</h1>
+		<div id="navbar"></div>
+	</header>
+	<div class="option-bar">
+			<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by recipient, copy, convention, status, etc.">
+			<div id="new-btn" class="new-btn">new</div>
+		</div>
+
+	<div id="main-content" class="main-content">
+		<form id="new-email-form" class="static-row">
+			<label for="convention">Convention
+				<select id="convention" name="convention_id"></select>
+			</label>
+			
+
+			<label for="copy">Copy
+				<select id="copy" name="copy_id"></select>
+			</label>
+			
+
+			<label for="to">To
+				<select id="to" name="to">
+					<option value="" selected disabled>Select a Group</option>
+					<option>All instructors</option>
+					<option>Only instructors teaching at this convention</option>
+				</select>
+			</label>
+			
+
+			<label for="sendAt">Send At
+				<input type="datetime-local" id="sendAt" name="send_at">
+			</label>
+			
+
+			<button type="submit">Schedule Send</button>
+		</form>
+	</div>
+</body>
+<script src="/public/js/script.js"></script>
+<script src="/public/js/UI.js"></script>
+<script>
+	const DOM = {
+		main: document.getElementById('main-content'),
+		newEmailForm: document.getElementById('new-email-form'),
+		conSelect: document.getElementById('convention'),
+		newBtn: document.getElementById('new-btn')
+	}
+
+	document.addEventListener('DOMContentLoaded', async () => {
+		try {
+			const res = await fetch('/auth/session', { credentials: 'include' });
+			const user = await res.json();
+			if (!user.special_permission) {
+				window.location.replace('/public/oops.html');
+			}
+
+			const { emails, conventions } = await DataAPI.load();
+
+			conventions.forEach(c => {
+				const option = document.createElement('option');
+				option.value = c.id;
+				option.innerHTML = `${c.year} - ${c.city_state}`
+				DOM.conSelect.appendChild(option);
+			});
+
+			DOM.newEmailForm.style.display = 'none';
+			DOM.newBtn.addEventListener('click', (e) => {
+				e.stopPropagation();
+				DOM.newEmailForm.style.display = 
+					DOM.newEmailForm.style.display === 'flex' ? 'none' : 'flex';
+			});
+
+			DOM.newEmailForm.addEventListener('click', (e) => {
+				e.stopPropagation();
+			})
+
+			document.addEventListener('click', (e) => {
+				if (e.target != DOM.newEmailForm) {
+					DOM.newEmailForm.style.display = 'none';
+				}
+			});
+
+
+			renderEmails(emails);
+		} catch (err) {
+			console.error(err);
+		}
+	});
+
+	const DataAPI = {
+		load: async () => {
+			const [ emails, conventions ] = await Promise.all([
+				fetchJSON(`/admin/api/getEmails`),
+				fetchJSON(`/api/public/getConventions`)
+			]);
+
+			return { emails, conventions };
+		}
+	}
+
+	function renderEmails(data) {
+		const table = document.createElement('table');
+
+		//render headers
+
+		const headers = ['ID', 'To', 'Copy', 'Convention', 'Send At', 'Status', 'Cancel'];
+		const headerRow = document.createElement('tr');
+		headers.forEach(h => {
+			const th = document.createElement('th');
+			th.textContent = h;
+			headerRow.appendChild(th);
+		});
+		table.appendChild(headerRow);
+
+		//render data
+
+		data.forEach(e => {
+			const tr = document.createElement('tr');
+
+			Object.keys(e).forEach(key => {
+				const td = document.createElement('td');
+				if (key == 'send_at') {
+					const options = {
+						weekday: 'long',
+						year: 'numeric',
+						month: 'long',
+						day: 'numeric',
+						hour12: true,
+						hour: 'numeric',
+						minute: 'numeric'
+					}
+					td.textContent = new Intl.DateTimeFormat("en-us", options).format(new Date(e[key]))
+				} else {
+					td.textContent = e[key];
+					if (key == 'status' && e[key] == 'sent') {
+						td.style.backgroundColor = 'rgb(4,170,10,0.2)'
+					} else if (key == 'status' && e[key] == 'pending') {
+						td.style.backgroundColor = 'rgb(33,150,243,0.2)'
+					}
+				}
+			
+				tr.appendChild(td);
+			});
+
+			const td = document.createElement('td');
+
+			if (e.status == 'pending') {
+				const deleteButton = document.createElement('button');
+				deleteButton.classList.add('delete-x');
+				deleteButton.textContent = '×';
+				deleteButton.addEventListener('click',async  () => {
+					if (confirm(`Cancel email to ${e.to}?`)) {
+						await fetch(`/admin/api/cancelSend/${e.id}`, {
+							method: 'DELETE',
+							headers: { 'content-type': 'application/json' },
+						})
+						.then(res => {
+							if(!res.ok) {
+								throw new Error('There was a problem.')
+							}
+							tr.remove();
+							return res.json();
+						})
+						.catch(error => console.error('Error:', error));
+					}
+				});
+				td.appendChild(deleteButton);
+			}
+			
+			tr.appendChild(td);
+
+			table.appendChild(tr);
+		});
+
+		DOM.main.appendChild(table)
+	}
+</script>
+</html>

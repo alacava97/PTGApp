@@ -2,7 +2,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     const navbar = document.getElementById('navbar');
     if (navbar) {
-        fetch('navbar.html')
+        fetch('/navbar.html')
             .then(response => response.text())
             .then(html => {
                 navbar.innerHTML = html;

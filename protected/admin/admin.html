@@ -3,13 +3,13 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<link rel="stylesheet" href="public/styles/nav-styles.css">
-	<link rel="stylesheet" href="public/styles/themes.css">
-	<link rel="stylesheet" href="public/styles/styles.css">
-	<link rel="stylesheet" href="public/styles/dd-row.css">
-	<link rel="stylesheet" href="public/styles/row.css">
-	<link rel="stylesheet" href="public/styles/sort-list.css">
-	<link rel="stylesheet" href="public/styles/admin.css">
+	<link rel="stylesheet" href="/public/styles/nav-styles.css">
+	<link rel="stylesheet" href="/public/styles/themes.css">
+	<link rel="stylesheet" href="/public/styles/styles.css">
+	<link rel="stylesheet" href="/public/styles/dd-row.css">
+	<link rel="stylesheet" href="/public/styles/row.css">
+	<link rel="stylesheet" href="/public/styles/sort-list.css">
+	<link rel="stylesheet" href="/public/styles/admin.css">
 	<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Admin Portal</title>
 </head>
@@ -20,14 +20,14 @@
 	}
 </style>
 <body>
-	<header class="clearfix">
+	<header>
 		<h1>Admin Tools</h1>
 		<div id="navbar"></div>
 	</header>
 	<div id="list"></div>
 </body>
-<script src="public/js/script.js"></script>
-<script src="public/js/UI.js"></script>
+<script src="/public/js/script.js"></script>
+<script src="/public/js/UI.js"></script>
 <script>
 	const DOM = {
 		main: document.getElementById('list')
@@ -66,6 +66,7 @@
 
 	function renderInstTeam(data) {
 		const teamRow = new Row();
+		teamRow.static();
 		teamRow.addTitle('Institute Team Members');
 		teamRow.addDDMenu();
 

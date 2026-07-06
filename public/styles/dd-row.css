@@ -12,8 +12,12 @@ table {
 	border-collapse: collapse;
 }
 
+td {
+	height: 45px;
+}
+
 table > tr:first-child {
-    background-color: #04AA6D;
+    background-color: #405B79;
     color: white;
 }
 

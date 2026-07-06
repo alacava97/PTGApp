@@ -32,8 +32,8 @@
 			-Do not allow more than one of each type of copy per convention to protect against duplicates.
 			-Only admin have permission to schedule emails
 			-Copys are hardcoded in the backend to prevent tampering
-	-There should be a way to view sent/pending emails
 
-	-Should emailing be a separate page? Menu dd for admin with "Manage Team" and "Emailing"
+	-Define copies
+	-Backend function for groups, display list?
 
 -Fix buggy click/drag on location page
