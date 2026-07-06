@@ -424,6 +424,7 @@ body > h3 {
 
 
 .seperator, .separator {
+	display: block;
 	width: 80%;
 	background-color: #d8d8d8;
 	height: 1px;

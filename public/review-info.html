@@ -134,7 +134,11 @@
 					const sep = document.createElement('div');
 					sep.classList.add('seperator');
 					row.row.appendChild(sep);
-					row.addSubtitle(response.q9);
+
+					const openR = document.createElement('span');
+					openR.textContent = response.q9
+					openR.classList.add('row-subtitle');
+					row.row.appendChild(openR);
 				}
 			});
 

@@ -121,5 +121,4 @@ router.get(`/api/getEmailingRules`, async (req, res) => {
   }
 });
 
-
 module.exports = router;

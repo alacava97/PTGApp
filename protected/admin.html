@@ -335,8 +335,8 @@
 		//date/time schedule - col 3
 		const date = document.createElement('input');
 		date.type = 'datetime-local';
-		if (reviewEmails.scheduled) {
-			const d = new Date(reviewEmails.scheduled);
+		if (reviewEmails.send_at) {
+			const d = new Date(reviewEmails.send_at);
 			date.value = d.toISOString().slice(0, 16);
 		};
 
@@ -415,7 +415,7 @@
 			await fetch(`/api/update/emailing/${reviewEmails.id}`, {
 				method: 'PATCH',
 				headers: { 'content-type': 'application/json' },
-				body: JSON.stringify({ scheduled: e.target.value, armed: false })
+				body: JSON.stringify({ send_at: e.target.value, armed: false })
 			})
 			.then(res => {
 				if(!res.ok) {

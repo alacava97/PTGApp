@@ -12,8 +12,6 @@
 		-mark "email sent" in db
 		-page to link in email that marks email received "click here to accept your acceptance"
 		-Automatic deadline reminders 1 week before and day of
-	-Send instructors class review page
-		-Link in instructor record
 
 -list of instructor/av needs in chronological order for Bruce
 -add other team members to dropdown on prop info page
@@ -21,3 +19,21 @@
 -Mobile layout nav
 
 -Change team, class, and isntructor pages to use dropdowns instead of link to info page
+
+-Make login redirect send you back to the page you were on
+
+
+-Class review page distro workflow
+	-Admin schedules a new email
+		-Selects email copy, convention, send_at
+	-Submit creates a record in email queue
+	-Backend function scans queue and sends, marking sent
+		-Protections:
+			-Do not allow more than one of each type of copy per convention to protect against duplicates.
+			-Only admin have permission to schedule emails
+			-Copys are hardcoded in the backend to prevent tampering
+	-There should be a way to view sent/pending emails
+
+	-Should emailing be a separate page? Menu dd for admin with "Manage Team" and "Emailing"
+
+-Fix buggy click/drag on location page

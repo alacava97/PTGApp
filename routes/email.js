@@ -1,9 +1,13 @@
 const express = require('express');
 const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
+const pool = require('./db/pool');
+
 require('dotenv').config();
 
 const router = express.Router();
+
+const { requireLogin, requireAdmin } = require(`../middleware/requireLogin`);
 
 const resetLimiter = rateLimit({
   	windowMs: 15 * 60 * 1000,
@@ -22,31 +26,6 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.EMAIL_PASS,
 	},
 });
-
-
-// router.post("/send-email", async (req, res) => {
-//   	try {
-//     	const { to, subject, message } = req.body;
-
-//     	const info = await transporter.sendMail({
-// 	      	from: `"PTG Institute Team" <${process.env.EMAIL_USER}>`,
-// 	      	to,
-// 	      	subject,
-// 	      	html: `<p>${message}</p>`,
-//     	});
-
-// 	    res.json({
-// 	      	success: true,
-// 	      	messageId: info.messageId,
-// 	    });
-//   	} catch (error) {
-//    		console.error(error);
-//     	res.status(500).json({
-//       		success: false,
-//       		error: error.message,
-//     	});
-//   	}
-// });
 
 router.post('/class-prop-confirmation', async (req, res) => {
 	const { name, email, formData, convention } = req.body;
@@ -97,6 +76,5 @@ router.post('/class-prop-confirmation', async (req, res) => {
 		return res.status(500).json({ error: 'Failed to send email' });
 	}
 });
-
 
 module.exports = router;
