@@ -1,10 +1,27 @@
 .email-grid {
 	display: grid;
 	grid-template-columns: repeat(5, 1fr);
-	width: 100%;
     justify-content: space-around;
+    align-items: end;
+    gap: 10px;
+
+	position: relative;
     margin: 0 20px;
-    gap: 20px;
+	padding: 10px 5%;
+	overflow: hidden;
+
+	background-color: #fff;
+    color: #111;
+    box-sizing: border-box;
+    box-shadow: 0 8px 6px -6px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(0,0,0,0.2);
+    width: 100%;
+    
+ }
+
+ .email-grid > span:hover {
+ 	cursor: pointer;
+ 	text-decoration: underline;
  }
 
  input, select {

@@ -33,14 +33,13 @@
     color: #111;
     box-sizing: border-box;
     box-shadow: 0 8px 6px -6px rgba(0, 0, 0, 0.2);
-    margin: 10px 0;
-    border: 2px solid transparent;
+    border: 1px solid rgba(0,0,0,0.2);
     width: 100%;
 }
 
 .row:hover {
 	background-color: #f1f1f1;
-	border: 2px inset gray;
+	border: 1px inset gray;
 	cursor: pointer;
 }
 

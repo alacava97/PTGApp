@@ -77,4 +77,8 @@ router.post('/class-prop-confirmation', async (req, res) => {
 	}
 });
 
+const copies = {
+	1: `Hello, thank you for joining us at the ${'year'} PTG convention. Here you'll find unique links to see reviews for your class as they come in.`
+}
+
 module.exports = router;

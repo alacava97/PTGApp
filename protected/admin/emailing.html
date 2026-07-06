@@ -24,18 +24,21 @@
 		</div>
 
 	<div id="main-content" class="main-content">
-		<form id="new-email-form" class="static-row">
-			<label for="convention">Convention
+		<form id="new-email-form" class="email-grid">
+			<label for="convention">Convention<br>
 				<select id="convention" name="convention_id"></select>
 			</label>
 			
 
-			<label for="copy">Copy
-				<select id="copy" name="copy_id"></select>
+			<label for="copy">Copy<br>
+				<select id="copy" name="copy_id">
+					<option value="" selected disabled>Select a Copy</option>
+					<option value="1">Class Reviews</option>
+				</select>
 			</label>
 			
 
-			<label for="to">To
+			<label for="to">To<br>
 				<select id="to" name="to">
 					<option value="" selected disabled>Select a Group</option>
 					<option>All instructors</option>
@@ -44,12 +47,15 @@
 			</label>
 			
 
-			<label for="sendAt">Send At
+			<label for="sendAt">Send At<br>
 				<input type="datetime-local" id="sendAt" name="send_at">
 			</label>
 			
 
 			<button type="submit">Schedule Send</button>
+			<div></div>
+			<span>View selected copy <i class="fa fa-caret-down"></i></span>
+			<span>View selected group <i class="fa fa-caret-down"></i></span>
 		</form>
 	</div>
 </body>
@@ -84,7 +90,7 @@
 			DOM.newBtn.addEventListener('click', (e) => {
 				e.stopPropagation();
 				DOM.newEmailForm.style.display = 
-					DOM.newEmailForm.style.display === 'flex' ? 'none' : 'flex';
+					DOM.newEmailForm.style.display === 'grid' ? 'none' : 'grid';
 			});
 
 			DOM.newEmailForm.addEventListener('click', (e) => {
