@@ -229,7 +229,7 @@
 		props.appendChild(classPropLink);
 
 		const qrCode = document.createElement('div');
-		generateQRCode(`/public/class-proposal-form.html?year=${record.year}`, qrCode);
+		generateQRCode(`myptginstitute.com/public/class-proposal-form.html?id=${record.id}`, qrCode);
 		props.appendChild(qrCode);
 
 		entry.dd.appendChild(props);

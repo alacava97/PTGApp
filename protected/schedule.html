@@ -876,9 +876,8 @@
 					(a.room_id - b.room_id) ||
 					(a.start_period - b.start_period)
 				);
-
 				const toPrint = await Promise.all(
-					selectedEvents.map(createLabel)
+					selectedEvents.map(event => createLabel(event, ScheduleState.activeConvention.id))
 				);
 
 				await downloadElementAsPDF(toPrint, 'class-signs');

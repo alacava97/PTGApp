@@ -398,7 +398,8 @@ async function downloadElementAsPDF(element, title, d = {}) {
 	URL.revokeObjectURL(url);
 }
 
-async function createLabel(data) {
+async function createLabel(data, conId) {
+	console.log(data);
 	const label = document.createElement('div');
 	label.id = "paper"
 	label.classList.add('letter-size');
@@ -442,7 +443,7 @@ async function createLabel(data) {
 	}
 	room.textContent = data.room;
 
-	await generateQRCode(`myptginstitute.com/public/class-review.html?id=${data.public_token}`, qrCodeDiv);
+	await generateQRCode(`myptginstitute.com/public/class-review.html?id=${data.public_token}&convention_id=${conId}`, qrCodeDiv);
 
 	return label;
 }
