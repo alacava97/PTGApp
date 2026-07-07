@@ -1,6 +1,6 @@
 function requireLogin(req, res, next) {
   if (!req.session.user) {
-    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/admin/api')) {
+    if (!req.originalUrl.startsWith('/api/public') || req.originalUrl.startsWith('/admin/api')) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
