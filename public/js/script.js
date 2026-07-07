@@ -443,7 +443,7 @@ async function createLabel(data, conId) {
 	}
 	room.textContent = data.room;
 
-	await generateQRCode(`myptginstitute.com/public/class-review.html?id=${data.public_token}&convention_id=${conId}`, qrCodeDiv);
+	await generateQRCode(`myptginstitute.com/public/class-review.html?token=${data.public_token}&convention_id=${conId}`, qrCodeDiv);
 
 	return label;
 }
