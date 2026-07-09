@@ -85,6 +85,34 @@ router.get(`/api/getEmails`, async (req, res) => {
   }
 });
 
+router.get(`/api/getEmailAddressesByConvention/:conId`, async (req, res) => {
+	const conId = req.params.conId;
+
+	try {
+		result = await pool.query(`
+			SELECT DISTINCT
+				i.id,
+				i.email,
+				i.name
+			FROM
+				instructors i
+			LEFT JOIN class_instructors ci ON i.id = ci.instructor_id
+			LEFT JOIN classes c ON c.id = ci.class_id
+			LEFT JOIN schedule s ON s.class_id = c.id
+			WHERE
+				s.convention = $1 AND
+        i.email IS NOT NULL
+      ORDER BY i.name
+		`, [conId]);
+
+		res.json(result.rows);
+
+	} catch (err) {
+		console.error(`Error fetching email addresses:`, err);
+		res.status(500).json({ error: 'Internal server error' });
+	}
+});
+
 router.delete(`/api/deleteUser/:id`, async (req, res) => {
 	const { id } = req.params;
 	const userId = req.user.id;

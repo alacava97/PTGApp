@@ -77,8 +77,57 @@ router.post('/class-prop-confirmation', async (req, res) => {
 	}
 });
 
-const copies = {
-	1: `Hello, thank you for joining us at the ${'year'} PTG convention. Here you'll find unique links to see reviews for your class as they come in.`
+router.use(requireAdmin);
+
+function createCopy(copyId, toFill) {
+	let data = toFill
+
+	if(!data) {
+		data = {year: '{current year}'}
+	}
+
+	const copies = {
+		1: `Hello, thank you for joining us at the ${data.year} PTG convention. Here you'll find unique links to see reviews for your class as they come in.`
+	}
+
+	let copy = {};
+
+	if (!copyId) {
+		Object.keys(copies).forEach(c => {
+			copy[c] = copies[c];
+		});
+	} else {
+		copy = copies[copyId];
+	}
+
+	return { copy }
 }
+
+router.get('/getMailInfo/', async (req, res) => {
+  try {
+    const result = await pool.query(`
+			SELECT DISTINCT
+				i.id,
+				i.email,
+				i.name
+			FROM
+				instructors i
+    	WHERE i.email IS NOT NULL
+			ORDER BY i.name
+    `);
+
+    const mailInfo = {
+      emails: result.rows,
+      copies: createCopy()
+    };
+
+    res.json(mailInfo);
+  } catch (err) {
+    console.error('Error fetching emails:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 
 module.exports = router;

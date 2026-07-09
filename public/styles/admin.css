@@ -17,13 +17,35 @@
     border: 1px solid rgba(0,0,0,0.2);
     width: 100%;
     
- }
+}
 
- .email-grid > span:hover {
+.col5 {
+    display: block;
+    grid-column: span 5;
+    text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.col5 > div {
+    display: none;
+    padding: 15px;
+    background-color: #eee;
+    text-align: left;
+    margin: 5px 0;
+}
+
+.col5:hover {
  	cursor: pointer;
- 	text-decoration: underline;
- }
+}
 
- input, select {
+input, select {
  	max-height: fit-content;
- }
+}
+
+.pending-email {
+    background-color: rgb(33,150,243,0.2);
+}
+
+.sent-email {
+    background-color: rgb(4,170,10,0.2)
+}

@@ -41,8 +41,8 @@
 			<label for="to">To<br>
 				<select id="to" name="to">
 					<option value="" selected disabled>Select a Group</option>
-					<option>All instructors</option>
-					<option>Only instructors teaching at this convention</option>
+					<option value="1">All instructors</option>
+					<option value="2">Only instructors teaching at this convention</option>
 				</select>
 			</label>
 			
@@ -53,80 +53,124 @@
 			
 
 			<button type="submit">Schedule Send</button>
-			<div></div>
-			<span>View selected copy <i class="fa fa-caret-down"></i></span>
-			<span>View selected group <i class="fa fa-caret-down"></i></span>
+			<div class="col5">View selected copy <i class="fa fa-caret-down"></i><div id="view-copy"></div></div>
+			<div class="col5">View selected group <i class="fa fa-caret-down"></i><div id="view-group"></div></div>
 		</form>
 	</div>
 </body>
 <script src="/public/js/script.js"></script>
 <script src="/public/js/UI.js"></script>
+<script src="/admin/js/auth.js"></script>
+<script src="/admin/js/emailing.js"></script>
+<script src="/admin/js/api.js"></script>
+<script src="/admin/js/renderEmails.js"></script>
 <script>
 	const DOM = {
 		main: document.getElementById('main-content'),
 		newEmailForm: document.getElementById('new-email-form'),
 		conSelect: document.getElementById('convention'),
+		copySelect: document.getElementById('copy'),
+		groupSelect: document.getElementById('to'),
 		newBtn: document.getElementById('new-btn')
 	}
 
-	document.addEventListener('DOMContentLoaded', async () => {
-		try {
-			const res = await fetch('/auth/session', { credentials: 'include' });
-			const user = await res.json();
-			if (!user.special_permission) {
-				window.location.replace('/public/oops.html');
+	function renderNewEmailForm(conventions, copies, groups) {
+		conventions.forEach(c => {
+			const option = document.createElement('option');
+			option.value = c.id;
+			option.innerHTML = `${c.year} - ${c.city_state}`
+			DOM.conSelect.appendChild(option);
+		});
+
+		DOM.newEmailForm.style.display = 'none';
+		DOM.newBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			DOM.newEmailForm.style.display = 
+				DOM.newEmailForm.style.display === 'grid' ? 'none' : 'grid';
+		});
+
+		DOM.newEmailForm.addEventListener('click', (e) => {
+			e.stopPropagation();
+		})
+
+		document.addEventListener('click', (e) => {
+			if (e.target != DOM.newEmailForm) {
+				DOM.newEmailForm.style.display = 'none';
 			}
+		});
 
-			const { emails, conventions } = await DataAPI.load();
+		const viewCopy = document.getElementById('view-copy');
+		const viewCopyContainer = viewCopy.parentElement;
+		viewCopyContainer.addEventListener('click', () => {
+			if (viewCopy.style.display === 'block') {
+				viewCopy.style.display = 'none';
+			} else {
+				renderCopy(viewCopy, copies);
+			}
+		});
 
-			conventions.forEach(c => {
-				const option = document.createElement('option');
-				option.value = c.id;
-				option.innerHTML = `${c.year} - ${c.city_state}`
-				DOM.conSelect.appendChild(option);
-			});
+		DOM.copySelect.addEventListener('change', () => {
+			if (viewCopy.style.display === 'block') {
+				renderCopy(viewCopy, copies);
+			}
+		});
 
-			DOM.newEmailForm.style.display = 'none';
-			DOM.newBtn.addEventListener('click', (e) => {
-				e.stopPropagation();
-				DOM.newEmailForm.style.display = 
-					DOM.newEmailForm.style.display === 'grid' ? 'none' : 'grid';
-			});
+		const viewGroup = document.getElementById('view-group');
+		const viewGroupContainer = viewGroup.parentElement;
+		viewGroupContainer.addEventListener('click', async () => {
+			if (viewGroup.style.display === 'block') {
+				viewGroup.style.display = 'none';
+			} else {
+				viewGroup.style.display = 'block';
+				await renderEmailGroup(viewGroup, groups)
+			}
+		});
 
-			DOM.newEmailForm.addEventListener('click', (e) => {
-				e.stopPropagation();
-			})
+		DOM.groupSelect.addEventListener('change', async () => {
+			if (viewGroup.style.display === 'block') {
+				await renderEmailGroup(viewGroup, groups)
+			}
+		});
 
-			document.addEventListener('click', (e) => {
-				if (e.target != DOM.newEmailForm) {
-					DOM.newEmailForm.style.display = 'none';
-				}
-			});
+		DOM.conSelect.addEventListener('change', async () => {
+			if (viewGroup.style.display === 'block') {
+				await renderEmailGroup(viewGroup, groups)
+			}
+		})
+	}
 
-
-			renderEmails(emails);
-		} catch (err) {
-			console.error(err);
-		}
-	});
-
-	const DataAPI = {
-		load: async () => {
-			const [ emails, conventions ] = await Promise.all([
-				fetchJSON(`/admin/api/getEmails`),
-				fetchJSON(`/api/public/getConventions`)
-			]);
-
-			return { emails, conventions };
+	function renderCopy(viewCopy, copies) {
+		viewCopy.style.display = 'block';
+		
+		const selectedCopy = copies[DOM.copySelect.value];
+		if(selectedCopy){
+			viewCopy.textContent = selectedCopy;
+		} else {
+			viewCopy.textContent = 'No copy selected'
 		}
 	}
 
-	function renderEmails(data) {
+	async function renderEmailGroup(viewGroup, groups) {
+		viewGroup.innerHTML = '';
+		if(!DOM.groupSelect.value) {
+			viewGroup.innerHTML = 'No group selected';
+		} else if (DOM.groupSelect.value == 1) {
+			viewGroup.appendChild(renderGroupTable(groups));
+		} else if (DOM.groupSelect.value == 2) {
+			const selectedConvention = DOM.conSelect.value
+			if (!selectedConvention) {
+				viewGroup.textContent = 'No convention selected';
+			} else {
+				const addresses = await fetchInstructorsByConvention(selectedConvention);
+				viewGroup.appendChild(renderGroupTable(addresses));
+			}
+		}
+	}
+
+	function renderGroupTable(data) {
 		const table = document.createElement('table');
 
-		//render headers
-
-		const headers = ['ID', 'To', 'Copy', 'Convention', 'Send At', 'Status', 'Cancel'];
+		const headers = ['Instructor ID', 'Email Address', 'Name'];
 		const headerRow = document.createElement('tr');
 		headers.forEach(h => {
 			const th = document.createElement('th');
@@ -135,67 +179,17 @@
 		});
 		table.appendChild(headerRow);
 
-		//render data
-
 		data.forEach(e => {
 			const tr = document.createElement('tr');
-
 			Object.keys(e).forEach(key => {
 				const td = document.createElement('td');
-				if (key == 'send_at') {
-					const options = {
-						weekday: 'long',
-						year: 'numeric',
-						month: 'long',
-						day: 'numeric',
-						hour12: true,
-						hour: 'numeric',
-						minute: 'numeric'
-					}
-					td.textContent = new Intl.DateTimeFormat("en-us", options).format(new Date(e[key]))
-				} else {
-					td.textContent = e[key];
-					if (key == 'status' && e[key] == 'sent') {
-						td.style.backgroundColor = 'rgb(4,170,10,0.2)'
-					} else if (key == 'status' && e[key] == 'pending') {
-						td.style.backgroundColor = 'rgb(33,150,243,0.2)'
-					}
-				}
-			
+				td.textContent = e[key];
 				tr.appendChild(td);
 			});
-
-			const td = document.createElement('td');
-
-			if (e.status == 'pending') {
-				const deleteButton = document.createElement('button');
-				deleteButton.classList.add('delete-x');
-				deleteButton.textContent = '×';
-				deleteButton.addEventListener('click',async  () => {
-					if (confirm(`Cancel email to ${e.to}?`)) {
-						await fetch(`/admin/api/cancelSend/${e.id}`, {
-							method: 'DELETE',
-							headers: { 'content-type': 'application/json' },
-						})
-						.then(res => {
-							if(!res.ok) {
-								throw new Error('There was a problem.')
-							}
-							tr.remove();
-							return res.json();
-						})
-						.catch(error => console.error('Error:', error));
-					}
-				});
-				td.appendChild(deleteButton);
-			}
-			
-			tr.appendChild(td);
-
 			table.appendChild(tr);
 		});
 
-		DOM.main.appendChild(table)
+		return table;
 	}
 </script>
 </html>
