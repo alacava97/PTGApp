@@ -22,12 +22,10 @@
 		<div>
 			<h2>Class Types</h2>
 			<ul id="class-type-list" class="transparent type-ul"></ul>
-			<button id="add-type" class="add-btn">+ Add Type</button>
 		</div>
 		<div>
 			<h2>Sponsors</h2>
 			<ul id="sponsor-list" class="transparent type-ul"></ul>
-			<button id="add-sponsor" class="add-btn">+ Add Sponsor</button>
 		</div>
 	</div>
 </body>
@@ -37,10 +35,14 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		const { types, sponsors } = await DataAPI.load();
 		const typeList = document.getElementById('class-type-list');
-		typeList.appendChild(setupSortList(types, 'type', 'types', document.getElementById('add-type')).list);
+		const typeListObj = setupSortList(types, 'type', 'types', document.getElementById('add-type'))
+		typeList.appendChild(typeListObj.list);
+		typeList.appendChild(typeListObj.addBtn);
 
 		const sponsorList = document.getElementById('sponsor-list');
-		sponsorList.appendChild(setupSortList(sponsors, 'sponsor_name', 'sponsors', document.getElementById('add-sponsor')).list);
+		const sponsorListObj = setupSortList(sponsors, 'sponsor_name', 'sponsors', document.getElementById('add-sponsor'))
+		sponsorList.appendChild(sponsorListObj.list);
+		sponsorList.appendChild(sponsorListObj.addBtn);
 	});
 
 	const DataAPI = {
