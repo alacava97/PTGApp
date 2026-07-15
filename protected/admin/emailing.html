@@ -33,7 +33,6 @@
 			<label for="copy">Copy<br>
 				<select id="copy" name="copy_id">
 					<option value="" selected disabled>Select a Copy</option>
-					<option value="1">Class Reviews</option>
 				</select>
 			</label>
 			
@@ -60,11 +59,6 @@
 </body>
 <script src="/public/js/script.js"></script>
 <script src="/public/js/UI.js"></script>
-<script src="/admin/js/auth.js"></script>
-<script src="/admin/js/emailing.js"></script>
-<script src="/admin/js/api.js"></script>
-<script src="/admin/js/renderEmails.js"></script>
-<script src="/admin/js/renderNewEmailForm.js"></script>
 <script>
 	const DOM = {
 		main: document.getElementById('main-content'),
@@ -73,6 +67,288 @@
 		copySelect: document.getElementById('copy'),
 		groupSelect: document.getElementById('to'),
 		newBtn: document.getElementById('new-btn')
+	}
+
+	const copyObj = {
+		1: 'Class Reviews'
+	};
+
+	document.addEventListener('DOMContentLoaded', init);
+
+	async function init() {
+	    await requireAdmin();
+
+	    const { emails, conventions, mailInfo } = await DataAPI.load();
+
+	    renderNewEmailForm(conventions, mailInfo.copies.copy, mailInfo.emails);
+	    renderEmails(emails);
+	}
+
+	//-----Auth-----//
+	async function requireAdmin() {
+		const res = await fetch('/auth/session', {
+			credentials: 'include'
+		});
+
+		const user = await res.json();
+		
+		if (!user.special_permission) {
+			window.location.replace('/public/oops.html');
+		}
+	}
+
+	//-----Data-----//
+
+	const DataAPI = {
+		load: async () => {
+			const [ emails, conventions, mailInfo ] = await Promise.all([
+				fetchJSON(`/admin/api/getEmails`),
+				fetchJSON(`/api/public/getConventions`),
+				fetchJSON(`/api/email/getMailInfo`)
+			]);
+
+			return { emails, conventions, mailInfo };
+		}
+	}
+
+	async function cancelEmail(id, tr) {
+		await fetch(`/admin/api/cancelSend/${id}`, {
+			method: 'DELETE',
+			headers: { 'content-type': 'application/json' },
+		})
+		.then(res => {
+			if(!res.ok) {
+				throw new Error('There was a problem.')
+			}
+			tr.remove();
+			return res.json();
+		})
+		.catch(error => console.error('Error:', error));
+	}
+
+	async function fetchInstructorsByConvention(id) {
+		const res = await fetch(`/admin/api/getEmailAddressesByConvention/${id}`);
+
+		if (!res.ok) {
+			throw new Error('Error fetching instructors by convention id');
+		}
+
+		return await res.json();
+	}
+
+	//-----Render-----//
+	function renderEmails(data) {
+		const table = document.createElement('table');
+
+		table.appendChild(renderHeaders());
+		data.forEach(e => {
+			table.appendChild(renderEmailRows(e))
+		});
+
+		DOM.main.appendChild(table)
+	}
+
+	function renderHeaders() {
+		const headers = ['ID', 'To', 'Copy', 'Bulk ID', 'Convention', 'Send At', 'Status', 'Cancel'];
+		const headerRow = document.createElement('tr');
+		headers.forEach(h => {
+			const th = document.createElement('th');
+			th.textContent = h;
+			headerRow.appendChild(th);
+		});
+		
+		return headerRow;
+	}
+
+	function renderEmailRows(e) {
+		const tr = document.createElement('tr');
+
+		Object.keys(e).forEach(key => {
+			const td = document.createElement('td');
+			if (key == 'send_at') {
+				const options = {
+					weekday: 'long',
+					year: 'numeric',
+					month: 'long',
+					day: 'numeric',
+					hour12: true,
+					hour: 'numeric',
+					minute: 'numeric'
+				}
+				td.textContent = new Intl.DateTimeFormat("en-us", options).format(new Date(e[key]))
+			} else if (key == 'copy_id') {
+				td.textContent = copyObj[e[key]];
+			} else {
+				td.textContent = e[key];
+				if (key == 'status' && e[key] == 'sent') {
+					td.classList.add('sent-email');
+				} else if (key == 'status' && e[key] == 'pending') {
+					td.classList.add('pending-email')
+				}
+			}
+		
+			tr.appendChild(td);
+		});
+
+		const td = document.createElement('td');
+
+		if (e.status == 'pending') {
+			td.appendChild(renderDeleteButton(e, tr));
+		}
+		
+		tr.appendChild(td);
+
+		return tr;
+	}
+
+	function renderDeleteButton(e) {
+		const deleteButton = document.createElement('button');
+		deleteButton.classList.add('delete-x');
+		deleteButton.textContent = '×';
+		deleteButton.addEventListener('click',async  () => {
+			if (confirm(`Cancel email to ${e.to}?`)) {
+				await cancelEmail(e.id)
+			}
+		});
+		
+		return deleteButton;
+	}
+
+	//-----Forms-----//
+	function renderNewEmailForm(conventions, copies, groups) {
+		//render convention select
+		conventions.forEach(c => {
+			const option = document.createElement('option');
+			option.value = c.id;
+			option.innerHTML = `${c.year} - ${c.city_state}`
+			DOM.conSelect.appendChild(option);
+		});
+
+		//render copy select
+		Object.keys(copyObj).forEach(key => {
+			const option = document.createElement('option');
+			option.value = key;
+			option.textContent = copyObj[key];
+			DOM.copySelect.appendChild(option);
+		});
+
+		//initialize 'new' button
+		DOM.newEmailForm.style.display = 'none';
+		DOM.newBtn.addEventListener('click', (e) => {
+			e.stopPropagation();
+			DOM.newEmailForm.style.display = 
+				DOM.newEmailForm.style.display === 'grid' ? 'none' : 'grid';
+		});
+
+		DOM.newEmailForm.addEventListener('click', (e) => {
+			e.stopPropagation();
+		})
+
+		document.addEventListener('click', (e) => {
+			if (e.target != DOM.newEmailForm) {
+				DOM.newEmailForm.style.display = 'none';
+			}
+		});
+
+		//initialize 'view copy' dropdown
+		const viewCopy = document.getElementById('view-copy');
+		const viewCopyContainer = viewCopy.parentElement;
+		viewCopyContainer.addEventListener('click', () => {
+			if (viewCopy.style.display === 'block') {
+				viewCopy.style.display = 'none';
+			} else {
+				renderCopy(viewCopy, copies);
+			}
+		});
+
+		DOM.copySelect.addEventListener('change', () => {
+			if (viewCopy.style.display === 'block') {
+				renderCopy(viewCopy, copies);
+			}
+		});
+
+		//initialize 'view group' dropdown
+		const viewGroup = document.getElementById('view-group');
+		const viewGroupContainer = viewGroup.parentElement;
+		viewGroupContainer.addEventListener('click', async () => {
+			if (viewGroup.style.display === 'block') {
+				viewGroup.style.display = 'none';
+			} else {
+				viewGroup.style.display = 'block';
+				await renderEmailGroup(viewGroup, groups)
+			}
+		});
+
+		DOM.groupSelect.addEventListener('change', async () => {
+			if (viewGroup.style.display === 'block') {
+				await renderEmailGroup(viewGroup, groups)
+			}
+		});
+
+		DOM.conSelect.addEventListener('change', async () => {
+			if (viewGroup.style.display === 'block') {
+				await renderEmailGroup(viewGroup, groups)
+			}
+		})
+	}
+
+	function renderCopy(viewCopy, copies) {
+		viewCopy.style.display = 'block';
+		
+		const selectedCopy = copies[DOM.copySelect.value];
+		if(selectedCopy){
+			viewCopy.textContent = selectedCopy;
+		} else {
+			viewCopy.textContent = 'No copy selected'
+		}
+	}
+
+	async function renderEmailGroup(viewGroup, groups) {
+		viewGroup.innerHTML = '';
+		if(!DOM.groupSelect.value) {
+			viewGroup.innerHTML = 'No group selected';
+		} else if (DOM.groupSelect.value == 1) {
+			const { table, count } = renderGroupTable(groups)
+			viewGroup.append(count, table);
+		} else if (DOM.groupSelect.value == 2) {
+			const selectedConvention = DOM.conSelect.value
+			if (!selectedConvention) {
+				viewGroup.textContent = 'No convention selected';
+			} else {
+				const addresses = await fetchInstructorsByConvention(selectedConvention);
+				const { table, count } = renderGroupTable(addresses);
+				viewGroup.append(count, table);
+			}
+		}
+	}
+
+	function renderGroupTable(data) {
+		const table = document.createElement('table');
+
+		const headers = ['Instructor ID', 'Email Address', 'Name'];
+		const headerRow = document.createElement('tr');
+		headers.forEach(h => {
+			const th = document.createElement('th');
+			th.textContent = h;
+			headerRow.appendChild(th);
+		});
+		table.appendChild(headerRow);
+
+		data.forEach(e => {
+			const tr = document.createElement('tr');
+			Object.keys(e).forEach(key => {
+				const td = document.createElement('td');
+				td.textContent = e[key];
+				tr.appendChild(td);
+			});
+			table.appendChild(tr);
+		});
+
+		const count = document.createElement('div');
+		count.textContent = `Displaying ${data.length} records.`;
+		count.classList.add('group-count');
+
+		return { table, count };
 	}
 </script>
 </html>

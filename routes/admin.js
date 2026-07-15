@@ -69,12 +69,14 @@ router.get(`/api/getEmails`, async (req, res) => {
 			e.id,
 			e.to,
 			e.copy_id,
+			b.id AS bulk_id,
 			CONCAT(c.year, ' - ', l.city_state) AS convention,
 			e.send_at,
 			e.status
 			FROM emailing e
 			LEFT JOIN conventions c ON c.id = e.convention_id
-			LEFT JOIN locations l ON l.id = c.location_id;
+			LEFT JOIN locations l ON l.id = c.location_id
+			LEFT JOIN bulk_emails b ON e.id = b.email_id;
 	`;
 	try {
     const result = await pool.query(query);
@@ -111,6 +113,47 @@ router.get(`/api/getEmailAddressesByConvention/:conId`, async (req, res) => {
 		console.error(`Error fetching email addresses:`, err);
 		res.status(500).json({ error: 'Internal server error' });
 	}
+});
+
+router.post(`/api/scheduleBulkSend`, async (req, res) => {
+	const formData = req.body.formData;
+	const emailGroup = req.body.addresses;
+
+	if (!data || Object.keys(data).length == 0) {
+		return res.status(400).json({ error: 'No valid fields provided.' });
+	}
+
+	const client = await pool.connect();
+
+	try {
+		await client.query('BEGIN');
+		
+		const { rows } = await client.query(`
+			INSERT INTO emailing (convention_id, send_at, copy_id, to)
+			values ${constructValues(formData, emailGroup)};
+		`)
+
+		await client.query('COMMIT');
+
+		return res.json({
+			message: 'Emails successfully scheduled',
+			id: record.id,
+			record
+		});
+	} catch (err) {
+    await client.query('ROLLBACK');
+
+    if (err.code === '23505') {
+      const errCol = err.constraint?.split('_')?.[1] || 'Field';
+      return res.status(400).json({ error: `${errCol} already exists.` });
+    }
+
+    console.error('Error inserting record:', err);
+    return res.status(500).json({ error: 'Internal server error' });
+
+  } finally {
+    client.release();
+  }
 });
 
 router.delete(`/api/deleteUser/:id`, async (req, res) => {
@@ -201,5 +244,20 @@ router.delete('/api/cancelSend/:id', async (req, res) => {
 		client.release();
 	}
 });
+
+function constructValues(formData, emailGroup) {
+	let values = [];
+	emailGroup.forEach(address => {
+		let valueRow = [address];
+		Object.values(formData.forEach(key => {
+			valueRow.push(formData[key])
+		}));
+
+		valueRow = `(${valueRow.join(', ')})`;
+		values.push(valueRow);
+	});
+
+	return values.join(', ');
+}
 
 module.exports = router;

@@ -36,4 +36,6 @@
 	-Define copies
 	-Backend function for groups, display list?
 
+	-to do here: create test group, write form submit function, test
+
 -Fix buggy click/drag on location page

@@ -49,3 +49,9 @@ input, select {
 .sent-email {
     background-color: rgb(4,170,10,0.2)
 }
+
+.group-count {
+    text-align: center;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
