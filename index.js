@@ -1184,6 +1184,27 @@ app.get('/api/getLatestConvention', async (req, res) => {
   }
 });
 
+app.get('/api/getOpenConvention', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT 
+        id, location_id, year
+      FROM conventions
+      WHERE
+        year = (SELECT MAX(year) FROM conventions WHERE conventions.closed <> TRUE)
+    `)
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Entry not found' });
+    }
+
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error getting conventions:`, err);
+    res.status(500).json({ error: 'Database query failed' });
+  }
+});
+
 app.get('/api/getActiveConventions', async (req, res) => {
   try {
     const result = await pool.query(`

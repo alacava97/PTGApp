@@ -224,12 +224,12 @@
 		props.appendChild(closeDateLabel);
 
 		const classPropLink = document.createElement('a');
-		classPropLink.href = `/public/class-proposal-form.html?id=${record.id}`;
+		classPropLink.href = createClassPropLink(record.id);
 		classPropLink.innerHTML = `&#x1F517 Class Proposal Form ${record.year}`;
 		props.appendChild(classPropLink);
 
 		const qrCode = document.createElement('div');
-		generateQRCode(`myptginstitute.com/public/class-proposal-form.html?id=${record.id}`, qrCode);
+		generateQRCode(createClassPropLink(record.id), qrCode);
 		props.appendChild(qrCode);
 
 		entry.dd.appendChild(props);

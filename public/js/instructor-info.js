@@ -23,7 +23,7 @@ async function fetchClassForInstructors(instructorId) {
 }
 
 async function latestConvention() {
-	const res = await fetch(`/api/getLatestConvention`);
+	const res = await fetch(`/api/getOpenConvention`);
 	if(!res.ok) throw new Error('Network error');
 	return res.json();
 }
@@ -364,7 +364,7 @@ function setupLinks(instructorRecord, conId) {
 	row.addTitle("This instructor's unique class proposal link is:");
 
 	const classProp = document.createElement('a');
-	classProp.href = `https://myptginstitute.com/public/class-proposal-form.html?token=${instructorRecord.public_token}&id=${conId[0].id}`;
+	classProp.href = createClassPropLink(conId[0].id, instructorRecord.public_token);
 	classProp.textContent = classProp.href;
 	row.row.appendChild(classProp);
 	links.appendChild(row.row);

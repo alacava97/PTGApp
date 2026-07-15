@@ -19,11 +19,13 @@
 		<div id="navbar"></div>
 	</header>
 	<div class="option-bar">
-			<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by recipient, copy, convention, status, etc.">
-			<div id="new-btn" class="new-btn">new</div>
-		</div>
+		<input id="searchbar" class="searchbar" type="text" name="searchbar" placeholder="Search by recipient, copy, convention, status, etc.">
+		<div id="new-btn" class="new-btn">new</div>
+	</div>
+
 
 	<div id="main-content" class="main-content">
+		<div id="count"></div>
 		<form id="new-email-form" class="email-grid">
 			<label for="convention">Convention<br>
 				<select id="convention" name="convention_id"></select>
@@ -31,23 +33,24 @@
 			
 
 			<label for="copy">Copy<br>
-				<select id="copy" name="copy_id">
+				<select id="copy" name="copy_id" required>
 					<option value="" selected disabled>Select a Copy</option>
 				</select>
 			</label>
 			
 
-			<label for="to">To<br>
-				<select id="to" name="to">
+			<label for="address">To<br>
+				<select id="address" name="address" required>
 					<option value="" selected disabled>Select a Group</option>
 					<option value="1">All instructors</option>
 					<option value="2">Only instructors teaching at this convention</option>
+					<option value="3">Test</option>
 				</select>
 			</label>
 			
 
 			<label for="sendAt">Send At<br>
-				<input type="datetime-local" id="sendAt" name="send_at">
+				<input type="datetime-local" id="sendAt" name="send_at" required>
 			</label>
 			
 
@@ -65,8 +68,9 @@
 		newEmailForm: document.getElementById('new-email-form'),
 		conSelect: document.getElementById('convention'),
 		copySelect: document.getElementById('copy'),
-		groupSelect: document.getElementById('to'),
-		newBtn: document.getElementById('new-btn')
+		groupSelect: document.getElementById('address'),
+		newBtn: document.getElementById('new-btn'),
+		count: document.getElementById('count')
 	}
 
 	const copyObj = {
@@ -81,7 +85,12 @@
 	    const { emails, conventions, mailInfo } = await DataAPI.load();
 
 	    renderNewEmailForm(conventions, mailInfo.copies.copy, mailInfo.emails);
-	    renderEmails(emails);
+	    renderBulk(emails.bulk);
+	    displayRecords(emails.emails);
+
+	    searchBar(emails.emails);
+	    DOM.count.innerHTML = `Found ${emails.emails.length} records.`
+
 	}
 
 	//-----Auth-----//
@@ -108,6 +117,16 @@
 			]);
 
 			return { emails, conventions, mailInfo };
+		},
+
+		group: async (conId) => {
+			const group = await fetchJSON(`/admin/api/getEmailAddressesByConvention/${conId}`);
+			return group;
+		},
+
+		emails: async() => {
+			const emails = await fetchJSON(`/admin/api/getEmails`);
+			return emails;
 		}
 	}
 
@@ -126,30 +145,54 @@
 		.catch(error => console.error('Error:', error));
 	}
 
-	async function fetchInstructorsByConvention(id) {
-		const res = await fetch(`/admin/api/getEmailAddressesByConvention/${id}`);
-
-		if (!res.ok) {
-			throw new Error('Error fetching instructors by convention id');
-		}
-
-		return await res.json();
+	async function cancelBulk(id, tr) {
+		await fetch(`/admin/api/cancelBulkSend/${id}`, {
+			method: 'DELETE',
+			headers: { 'content-type': 'application/json' },
+		})
+		.then(async res => {
+			if(!res.ok) {
+				throw new Error('There was a problem.')
+			}
+			tr.remove();
+			const emails = await DataAPI.emails();
+			displayRecords(emails.emails);
+			return res.json();
+		})
+		.catch(error => console.error('Error:', error));
 	}
 
 	//-----Render-----//
-	function renderEmails(data) {
+	function displayRecords(data) {
+		let tableContainer
+
+		if(document.getElementById('email-table-container')) {
+			tableContainer = document.getElementById('email-table-container');
+			tableContainer.innerHTML = '';
+		} else {
+			tableContainer = document.createElement('div');
+			tableContainer.classList.add('table-container');
+			tableContainer.id = 'email-table-container';
+		}
+
+		const title = document.createElement('h3');
+		title.textContent = 'Scheduled Individual Emails';
+		tableContainer.appendChild(title);
+			
 		const table = document.createElement('table');
 
-		table.appendChild(renderHeaders());
+		const headers = ['ID', 'Address', 'Copy', 'Bulk ID', 'Send At', 'Status', 'Cancel'];
+
+		table.appendChild(renderHeaders(headers));
 		data.forEach(e => {
 			table.appendChild(renderEmailRows(e))
 		});
 
-		DOM.main.appendChild(table)
+		tableContainer.appendChild(table);
+		DOM.main.appendChild(tableContainer);
 	}
 
-	function renderHeaders() {
-		const headers = ['ID', 'To', 'Copy', 'Bulk ID', 'Convention', 'Send At', 'Status', 'Cancel'];
+	function renderHeaders(headers) {
 		const headerRow = document.createElement('tr');
 		headers.forEach(h => {
 			const th = document.createElement('th');
@@ -165,7 +208,7 @@
 
 		Object.keys(e).forEach(key => {
 			const td = document.createElement('td');
-			if (key == 'send_at') {
+			if (key == 'send_at' || key == 'created_at') {
 				const options = {
 					weekday: 'long',
 					year: 'numeric',
@@ -180,10 +223,12 @@
 				td.textContent = copyObj[e[key]];
 			} else {
 				td.textContent = e[key];
-				if (key == 'status' && e[key] == 'sent') {
-					td.classList.add('sent-email');
-				} else if (key == 'status' && e[key] == 'pending') {
-					td.classList.add('pending-email')
+				if (key == 'status' || key == 'job_status') {
+					if (e[key] == 'sent' || e[key] == 'completed') {
+						td.classList.add('sent-email');
+					} else if (e[key] == 'pending') {
+						td.classList.add('pending-email')
+					}
 				}
 			}
 		
@@ -193,7 +238,9 @@
 		const td = document.createElement('td');
 
 		if (e.status == 'pending') {
-			td.appendChild(renderDeleteButton(e, tr));
+			td.appendChild(renderDeleteButton(e, tr, 'single'));
+		} else if (e.job_status == 'pending') {
+			td.appendChild(renderDeleteButton(e, tr, 'bulk'))
 		}
 		
 		tr.appendChild(td);
@@ -201,17 +248,53 @@
 		return tr;
 	}
 
-	function renderDeleteButton(e) {
+	function renderDeleteButton(e, tr, q) {
 		const deleteButton = document.createElement('button');
 		deleteButton.classList.add('delete-x');
 		deleteButton.textContent = '×';
 		deleteButton.addEventListener('click',async  () => {
-			if (confirm(`Cancel email to ${e.to}?`)) {
-				await cancelEmail(e.id)
+			if (q == 'single') {
+				if (confirm(`Cancel email to ${e.address}?`)) {
+					await cancelEmail(e.id, tr)
+				}
+			} else if (q == 'bulk') {
+				if (confirm('Cancel bulk send?')) {
+					await cancelBulk(e.id, tr)
+				}
 			}
 		});
 		
 		return deleteButton;
+	}
+
+	function renderBulk(data) {
+		let tableContainer
+
+		if(document.getElementById('bulk-table-container')) {
+			tableContainer = document.getElementById('bulk-table-container');
+			tableContainer.innerHTML = '';
+		} else {
+			tableContainer = document.createElement('div');
+			tableContainer.classList.add('table-container');
+			tableContainer.id = 'bulk-table-container';
+		}
+
+
+		const title = document.createElement('h3');
+		title.textContent = 'Scheduled Bulk Emails';
+		tableContainer.appendChild(title);
+
+		const table = document.createElement('table');
+
+		const headers = ['Bulk ID', 'Convention', 'Copy', 'Created At', 'Send At', 'Job Status', 'Cancel'];
+
+		table.appendChild(renderHeaders(headers));
+		data.forEach(e => {
+			table.appendChild(renderEmailRows(e))
+		});
+
+		tableContainer.appendChild(table);
+		DOM.main.appendChild(tableContainer);
 	}
 
 	//-----Forms-----//
@@ -289,7 +372,58 @@
 			if (viewGroup.style.display === 'block') {
 				await renderEmailGroup(viewGroup, groups)
 			}
-		})
+		});
+
+		//handle submit
+		DOM.newEmailForm.addEventListener('submit', emailFormSubmit)
+	}
+
+	async function emailFormSubmit(e) {
+		e.preventDefault();
+		const formData = Object.fromEntries(new FormData(e.target));
+		let group;
+
+		if(formData.convention_id && formData.address == 2) {
+			group = await DataAPI.group(formData.convention_id);
+		} else if (formData.address == 1) {
+			group = await fetchJSON('/api/email/getMailInfo');
+		} else if (formData.address == 3) {
+			group = ['alacava97@gmail.com', 'lacavapiano@gmail.com'];
+		}
+
+		if (!checkDuplicateEmail(await fetchJSON('/admin/api/getEmails'), formData)) {
+
+			try {
+				const data = { formData, group };
+
+				const response = await fetch('/admin/api/scheduleBulkSend', {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/json',
+					},
+					body: JSON.stringify(data)
+				});
+
+				if (!response.ok) {
+					throw new Error(`There was a problem scheduling emails: ${response.status}`);
+				}
+
+				const res = await response.json();
+
+				return res;
+			} catch (error) {
+				console.error('Error scheduling emails:', error);
+			} finally {
+				DOM.newEmailForm.reset();
+				DOM.newEmailForm.style.display = 'none';
+				const emails = await fetchJSON('/admin/api/getEmails');
+
+				await renderBulk(emails.bulk);
+				await displayRecords(emails.emails);
+			}
+		} else {
+			alert('This copy has already been sent to this group. Duplicate emails are not permitted');
+		}
 	}
 
 	function renderCopy(viewCopy, copies) {
@@ -315,7 +449,7 @@
 			if (!selectedConvention) {
 				viewGroup.textContent = 'No convention selected';
 			} else {
-				const addresses = await fetchInstructorsByConvention(selectedConvention);
+				const addresses = await DataAPI.group(selectedConvention);
 				const { table, count } = renderGroupTable(addresses);
 				viewGroup.append(count, table);
 			}
@@ -349,6 +483,17 @@
 		count.classList.add('group-count');
 
 		return { table, count };
+	}
+
+	//HELPERS
+
+	function checkDuplicateEmail(emails, formData) {
+		const duplicate = emails.conflicts.find(b => b.copy_id == formData.copy_id && b.convention_id == formData.convention_id);
+		if (duplicate) {
+			return true
+		} else {
+			return false
+		}
 	}
 </script>
 </html>

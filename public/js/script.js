@@ -506,3 +506,10 @@ async function populateYearDropdown(dd) {
 	});
 }
 
+function createClassPropLink(conId, token) {
+	let url = `https://myptginstitute.com/public/class-proposal-form.html?id=${conId}`;
+	if(token) {
+		url += `&token=${token}`;
+	}
+	return url;
+}

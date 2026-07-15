@@ -64,23 +64,41 @@ router.get(`/api/getInstitute`, async (req, res) => {
 });
 
 router.get(`/api/getEmails`, async (req, res) => {
-	const query = `
-		SELECT
-			e.id,
-			e.to,
-			e.copy_id,
-			b.id AS bulk_id,
-			CONCAT(c.year, ' - ', l.city_state) AS convention,
-			e.send_at,
-			e.status
-			FROM emailing e
-			LEFT JOIN conventions c ON c.id = e.convention_id
-			LEFT JOIN locations l ON l.id = c.location_id
-			LEFT JOIN bulk_emails b ON e.id = b.email_id;
-	`;
 	try {
-    const result = await pool.query(query);
-    res.json(result.rows);
+    const emails = await pool.query(`
+	    SELECT
+				e.id,
+				e.address,
+				b.copy_id,
+				b.id AS bulk_id,
+				b.send_at,
+				e.status
+				FROM emailing e
+				LEFT JOIN bulk_emails b ON e.bulk_id = b.id;
+    `);
+
+    const bulks = await pool.query(`
+    	SELECT
+    		b.id,
+    		CONCAT(c.year, ' - ', l.city_state) AS convention,
+    		b.copy_id,
+    		to_char (b.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS created_at,
+    		b.send_at,
+    		b.job_status
+    	FROM bulk_emails b
+    	LEFT JOIN conventions c ON c.id = b.convention_id
+    	LEFT JOIN locations l ON l.id = c.location_id;
+    `);
+
+    const conflicts = await pool.query(`
+    	SELECT
+    		b.id,
+    		b.convention_id,
+    		b.copy_id
+    	FROM bulk_emails b;
+    `);
+
+    res.json({ emails: emails.rows, bulk: bulks.rows, conflicts: conflicts.rows });
   } catch (err) {
     console.error(`Error fetching pending emails:`, err);
     res.status(500).json({ error: 'Internal server error' });
@@ -117,9 +135,9 @@ router.get(`/api/getEmailAddressesByConvention/:conId`, async (req, res) => {
 
 router.post(`/api/scheduleBulkSend`, async (req, res) => {
 	const formData = req.body.formData;
-	const emailGroup = req.body.addresses;
+	const emailGroup = req.body.group;
 
-	if (!data || Object.keys(data).length == 0) {
+	if (!formData || Object.keys(formData).length == 0) {
 		return res.status(400).json({ error: 'No valid fields provided.' });
 	}
 
@@ -127,17 +145,30 @@ router.post(`/api/scheduleBulkSend`, async (req, res) => {
 
 	try {
 		await client.query('BEGIN');
-		
+
 		const { rows } = await client.query(`
-			INSERT INTO emailing (convention_id, send_at, copy_id, to)
-			values ${constructValues(formData, emailGroup)};
-		`)
+			INSERT INTO bulk_emails (copy_id, send_at, convention_id)
+			VALUES ($1, $2, $3)
+			RETURNING *;
+		`, [formData.copy_id, formData.send_at, formData.convention_id]);
+
+		const record = rows[0];
+
+		formData.bulk_id = record.id;
+
+		const { values, params } = constructValues(formData, emailGroup);
+
+		await client.query(`
+			INSERT INTO emailing (address, bulk_id)
+			VALUES ${values};
+		`, params);
 
 		await client.query('COMMIT');
 
 		return res.json({
+			ok: true,
+			status: 200,
 			message: 'Emails successfully scheduled',
-			id: record.id,
 			record
 		});
 	} catch (err) {
@@ -245,19 +276,78 @@ router.delete('/api/cancelSend/:id', async (req, res) => {
 	}
 });
 
+router.delete('/api/cancelBulkSend/:id', async (req, res) => {
+	const { id } = req.params;
+	const userId = req.user.id;
+
+	const client = await pool.connect();
+
+	try {
+		await client.query('BEGIN');
+
+		const { rows } = await client.query(
+			`SELECT * FROM bulk_emails WHERE id = $1 FOR UPDATE`,
+			[id]
+		);
+
+		if (rows.length === 0) {
+			await client.query('ROLLBACK');
+			return res.status(404).json({ error: 'Entry not found' });
+		}
+
+		const record = rows[0];
+
+		if (record.job_status !== 'pending') {
+			await client.query('ROLLBACK');
+			return res.status(409).json({
+				error: 'JOB_ALREADY_COMPLETED',
+				message: 'Completed jobs cannot be canceled.'
+			});
+		}
+
+		await client.query(
+			`DELETE FROM bulk_emails WHERE id = $1`,
+			[id]
+		);
+
+		await client.query('COMMIT');
+
+		res.json({ message: 'Entry deleted', record });
+
+	} catch (err) {
+		await client.query('ROLLBACK');
+		console.error('Error deleting entry:', err);
+		res.status(500).json({ error: 'Internal server error' });
+	} finally {
+		client.release();
+	}
+});
+
 function constructValues(formData, emailGroup) {
-	let values = [];
-	emailGroup.forEach(address => {
-		let valueRow = [address];
-		Object.values(formData.forEach(key => {
-			valueRow.push(formData[key])
-		}));
+    const group = typeof emailGroup[0] === 'string'
+        ? emailGroup
+        : emailGroup.map(a => a.email);
 
-		valueRow = `(${valueRow.join(', ')})`;
-		values.push(valueRow);
-	});
+    const values = [];
+    const params = [];
 
-	return values.join(', ');
+    group.forEach((address, i) => {
+        const offset = i * 2;
+
+        values.push(
+            `($${offset + 1}, $${offset + 2})`
+        );
+
+        params.push(
+            address,
+            formData.bulk_id
+        );
+    });
+
+    return {
+        values: values.join(", "),
+        params
+    };
 }
 
 module.exports = router;

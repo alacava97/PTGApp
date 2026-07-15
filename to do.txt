@@ -22,20 +22,4 @@
 
 -Make login redirect send you back to the page you were on
 
-
--Class review page distro workflow
-	-Admin schedules a new email
-		-Selects email copy, convention, send_at
-	-Submit creates a record in email queue
-	-Backend function scans queue and sends, marking sent
-		-Protections:
-			-Do not allow more than one of each type of copy per convention to protect against duplicates.
-			-Only admin have permission to schedule emails
-			-Copys are hardcoded in the backend to prevent tampering
-
-	-Define copies
-	-Backend function for groups, display list?
-
-	-to do here: create test group, write form submit function, test
-
 -Fix buggy click/drag on location page
