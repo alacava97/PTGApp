@@ -159,7 +159,7 @@ router.post(`/api/scheduleBulkSend`, async (req, res) => {
 		const { values, params } = constructValues(formData, emailGroup);
 
 		await client.query(`
-			INSERT INTO emailing (address, bulk_id)
+			INSERT INTO emailing (address, bulk_id, instructor_id)
 			VALUES ${values};
 		`, params);
 
@@ -324,23 +324,20 @@ router.delete('/api/cancelBulkSend/:id', async (req, res) => {
 });
 
 function constructValues(formData, emailGroup) {
-    const group = typeof emailGroup[0] === 'string'
-        ? emailGroup
-        : emailGroup.map(a => a.email);
-
     const values = [];
     const params = [];
 
-    group.forEach((address, i) => {
-        const offset = i * 2;
+    emailGroup.forEach((address, i) => {
+        const offset = i * 3;
 
         values.push(
-            `($${offset + 1}, $${offset + 2})`
+            `($${offset + 1}, $${offset + 2}, $${offset + 3})`
         );
 
         params.push(
-            address,
-            formData.bulk_id
+            address.email,
+            formData.bulk_id,
+            address.id
         );
     });
 
@@ -349,5 +346,59 @@ function constructValues(formData, emailGroup) {
         params
     };
 }
+
+async function checkScheduledEmails() {
+	const client = await pool.connect();
+
+	const { rows } = await client.query(`
+		SELECT e.*, b.*
+		FROM emailing e
+		LEFT JOIN bulk_emails b ON e.bulk_id = b.id
+		WHERE e.status = 'pending'
+			AND send_at <= NOW()
+		ORDER BY send_at;
+	`);
+
+	const copies = await reviewCopies(client, rows);
+}
+
+async function reviewCopies(client, emailRows) {
+	const classes = await client.query(`
+		SELECT DISTINCT
+			c.public_token,
+			c.title,
+			ci.instructor_id,
+			i.fname,
+			s.year
+		FROM
+			classes c
+		LEFT JOIN class_instructors ci ON ci.class_id = c.id
+		LEFT JOIN schedule s ON s.class_id = c.id
+		LEFT JOIN instructors i ON i.id = ci.instructor_id
+		LEFT JOIN conventions con ON con.id = s.convention
+		WHERE con.id = (SELECT MIN(id) FROM conventions WHERE conventions.closed <> true)
+	`)
+
+	const copies = [];
+
+	for (const email of emailRows) {
+		const classesPerInstructor = classes.rows.filter(c => c.instructor_id === email.instructor_id);
+		const reviewLinks = [];
+
+		classesPerInstructor.forEach(c => {
+			reviewLinks.push(`<a href="myptginstitute.com/public/review-info.html?id=${c.public_token}">${c.title}</a>`)
+		});
+
+		const copy = `<div>Hello ${classesPerInstructor[0].fname}, thank you for joining us at the ${classesPerInstructor[0].year} PTG convention. Here you'll find unique links to see reviews for your class as they come in.<br>${reviewLinks.join('<br>')}</div>`
+
+		console.log(copy);
+		//send emails
+		//mark sent in db
+	}
+
+	return copies;
+}
+
+//setInterval(checkScheduledEmails, 60000);
 
 module.exports = router;

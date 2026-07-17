@@ -16,7 +16,7 @@
 <body>
 	<header class="clearfix">
 		<h1>Class Proposal</h1>
-		<div id="back-btn" class="back-btn"><a href="/class-proposals.html">&#9664; Class Proposals</a></div>
+		<div id="back-btn" class="back-btn"><a id="bb" href="/class-proposals.html">&#9664; Class Proposals</a></div>
 	</header>
 	<main class="prop-main">
 		<h2>Class Details</h2>
@@ -43,6 +43,10 @@
 
 	async function initPropPage() {
 		const proposalId = getId();
+		const year = new URLSearchParams(window.location.search).get('year');
+		const backBtn = document.getElementById('bb');
+
+		backBtn.href = `/class-proposals.html?year=${year}`;
 
 		await loadProposalData(proposalId);
 	}
@@ -51,10 +55,10 @@
 	   Data Fetching
 	----------------------------- */
 
-	async function fetchProposals(proposalId) {
-		const res = await fetch(`/api/readEntry/class_proposals/${proposalId}`);
-		if (!res.ok) throw new Error('Network error');
-		return res.json();
+	const DataAPI = {
+		load: async (id) => {
+			return fetchJSON(`/api/proposals/ProposalById/${id}`)
+		}
 	}
 
 	/* -----------------------------
@@ -63,9 +67,8 @@
 
 	async function loadProposalData(proposalId) {
 		try {
-			const [proposalData] = await Promise.all([
-				fetchProposals(proposalId)
-			]);
+			const data = await DataAPI.load(proposalId)
+			const proposalData = data[0]
 
 			setupClassInfo(proposalData);
 			setupInstructorInfo(proposalData);

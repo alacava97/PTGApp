@@ -24,22 +24,16 @@
 <script src="public/js/script.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
-		const data = await fetchData();
-		console.log(data)
+		const year = new URLSearchParams(window.location.search).get('year');
+
+		const data = await DataAPI.load(year);
 		loadSchedule(data);
 	});
 
-	async function fetchData() {
-		let data = await read('schedule');
-		data = data.filter(row => row.year == new Date().getFullYear());
-		data.sort((a, b) => {
-			return (
-				a.day_index - b.day_index ||
-				a.start_period - b.start_period ||
-				a.room_position - b.room_position
-				)
-		});
-		return data;
+	const DataAPI = {
+		load: async (year) => {
+			return fetchJSON(`/api/attendance/getScheduleForAttendance/${year}`)
+		}
 	}
 
 	function loadSchedule(data) {
@@ -64,12 +58,13 @@
 				container.classList.add('event-container');
 
 				const filteredData = data.filter(row => row.day == day && row.start_period <= period && period < Number(row.start_period) + row.length);
+
 				filteredData.forEach(row => {
 					const schedEl = document.createElement('div');
 					schedEl.classList.add('event');
 
 					const schedInfo = document.createElement('div');
-					schedInfo.innerHTML = `<b>${row.title}</b><br>${row.instructor_name}<br>${row.room}`;
+					schedInfo.innerHTML = `<b>${row.class_title}</b><br>${Array.isArray(row.instructors) ? row.instructors.join(', ') : row.instructors}<br>${row.room}`;
 					schedEl.appendChild(schedInfo);
 
 					const attendanceForm = createAttendanceForm(row);
@@ -102,6 +97,10 @@
 			e.preventDefault();
 			const data = parseForm(form);
 			data.id = row.schedule_id;
+
+			if (data.attendance == null) {
+				data.attendance = 0;
+			}
 
 			handleFormSubmission(e, form, `/api/update/schedule/${row.schedule_id}`, method = 'PATCH', () => {
 				form.style.display = "none";

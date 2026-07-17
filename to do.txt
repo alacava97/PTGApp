@@ -14,7 +14,6 @@
 		-Automatic deadline reminders 1 week before and day of
 
 -list of instructor/av needs in chronological order for Bruce
--add other team members to dropdown on prop info page
 
 -Mobile layout nav
 
@@ -23,3 +22,6 @@
 -Make login redirect send you back to the page you were on
 
 -Fix buggy click/drag on location page
+
+-Send emails when "send at" is passed
+-Make admin nav visible if user is admin

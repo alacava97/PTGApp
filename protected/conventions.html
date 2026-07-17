@@ -228,11 +228,31 @@
 		classPropLink.innerHTML = `&#x1F517 Class Proposal Form ${record.year}`;
 		props.appendChild(classPropLink);
 
+		const reviewProposalsLink = document.createElement('a');
+		reviewProposalsLink.href = `/class-proposals.html?year=${record.year}`;
+		reviewProposalsLink.innerHTML = `&#x1F517 Review ${record.year} Class Proposals`;
+		props.appendChild(reviewProposalsLink)
+
 		const qrCode = document.createElement('div');
 		generateQRCode(createClassPropLink(record.id), qrCode);
 		props.appendChild(qrCode);
 
 		entry.dd.appendChild(props);
+
+		const attendance = document.createElement('div');
+		attendance.classList.add('props');
+		
+		const attTitle = document.createElement('div');
+		attTitle.textContent = 'Attendance';
+		attTitle.style.fontWeight = 'bold';
+		attendance.appendChild(attTitle);
+
+		const attendanceLink = document.createElement('a');
+		attendanceLink.href = `/attendance.html?year=${record.year}`;
+		attendanceLink.innerHTML = `&#x1F517 ${record.year} Attendance`;
+		attendance.appendChild(attendanceLink);
+
+		entry.dd.appendChild(attendance);
 
 		conStatusButton.addEventListener('click', async (e) => {
 			e.preventDefault();

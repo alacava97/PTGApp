@@ -388,7 +388,7 @@
 		} else if (formData.address == 1) {
 			group = await fetchJSON('/api/email/getMailInfo');
 		} else if (formData.address == 3) {
-			group = ['alacava97@gmail.com', 'lacavapiano@gmail.com'];
+			group = [{ email: 'alacava97@gmail.com', id: 69420 }];
 		}
 
 		if (!checkDuplicateEmail(await fetchJSON('/admin/api/getEmails'), formData)) {

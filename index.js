@@ -16,6 +16,8 @@ const { createRecord } = require('./services/crud');
 const { createPublicToken } = require('./services/token.js');
 const emailRoutes = require('./routes/email');
 const adminRoutes = require('./routes/admin');
+const attendanceRoutes = require('./routes/attendance');
+const proposalRoutes = require('./routes/proposals');
 
 const app = express();
 
@@ -50,6 +52,8 @@ app.use(
 app.use('/auth', authRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/admin', adminRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/proposals', proposalRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/api/public/getReviews/:token', async (req, res) => {
@@ -416,11 +420,11 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
       data.name = (data.fname + ' ' + data.lname).trim();
       record = await createRecord({ table, data, returning: ['*'] }, client);
       toDisplay = `Created new instructor: '${record.name}'`;
-    } else {
+    } else if (table === 'classes') {
+      data.public_token = createPublicToken();
       record = await createRecord({ table, data, returning: ['*'] }, client);
-  
-      if (table === 'classes' &&
-        Array.isArray(instructorIds) &&
+
+      if (Array.isArray(instructorIds) &&
         instructorIds.length > 0
       ) {
         toDisplay = `Created new class: '${record.title}'`;
@@ -429,7 +433,9 @@ app.post('/api/create/:table', requireLogin, async (req, res) => {
             'INSERT INTO class_instructors (class_id, instructor_id) VALUES ($1, $2)',
             [record.id, instId]
           );
-        }
+        };
+      } else {
+        record = await createRecord({ table, data, returning: ['*'] }, client);
       }
     }
 

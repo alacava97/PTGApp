@@ -16,7 +16,7 @@
 <body>
 	
 	<header>
-		<h1>Class Proposals</h1>
+		<h1 id="h1-title">Class Proposals</h1>
 		<div id="navbar"></div>
 	</header>
 	<div class="option-bar">
@@ -58,10 +58,10 @@
 		Fetch Data
 	----------------------------- */
 
-	async function fetchProposals() {
-		const res = await fetch(`/api/read/class_proposals`);
-		if (!res.ok) throw new Error('Network error');
-		return res.json();
+	const DataAPI = {
+		load: async (year) => {
+			return fetchJSON(`/api/proposals/proposalsByYear/${year}`);
+		}
 	}
 
 	/* -----------------------------
@@ -70,16 +70,17 @@
 
 	async function loadProposals() {
 		try {
-			const [proposals] = await Promise.all([
-				fetchProposals()
-			]);
+			const year = new URLSearchParams(window.location.search).get('year');
+			document.getElementById('h1-title').innerHTML = `Class Proposals ${year}`
 
-			displayRecords(proposals)
+			const proposals = await DataAPI.load(year);
+
+			displayRecords(proposals, year)
 			searchBar(proposals);
 			const checks = document.querySelectorAll('input[type="checkbox"]');
 			checks.forEach(check => {
 				check.addEventListener('change', () => {
-					displayRecords(proposals);
+					displayRecords(proposals, year);
 				});
 			});
 		} catch (err) {
@@ -87,7 +88,7 @@
 		}
 	}
 
-	function displayRecords(data) {
+	function displayRecords(data, year) {
 		const propList = document.getElementById('list');
 		propList.innerHTML = '';
 		const checkedNodes = document.querySelectorAll('input[type="checkbox"]:checked');
@@ -95,16 +96,22 @@
 			return check.value;
 		});
 
-		const filteredData = data.filter(row => {
-			return checkedValues.includes(row.approved);
-		});
+		let filteredData = [];
+
+		if (checkedValues == 0) {
+			filteredData = data;
+		} else {
+			filteredData = data.filter(row => {
+				return checkedValues.includes(row.approved);
+			});
+		}
 
 		filteredData.forEach(entry => {
 			const row = new Row();
 			row.addSubtitle(`<b>Title:</b> ${entry.title || 'No Title'} <b>- ${entry.approved || 'pending review'}</b>`);
 			row.addSubtitle(`<b>Instructor:</b> ${entry.name || 'No Instructor'}`);
 			row.addSubtitle(`<b>Type:</b> ${entry.type || 'No type'}`);
-			row.addArrow(`/prop-info.html?id=${entry.id}`);
+			row.addArrow(`/prop-info.html?id=${entry.id}&year=${year}`);
 			propList.appendChild(row.row);
 		});
 		const count = document.getElementById('count');
