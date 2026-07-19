@@ -43,6 +43,10 @@
 	cursor: pointer;
 }
 
+.row:has(> .row-delete-button):hover .row-delete-button {
+	visibility: visible;
+}
+
 #list > *:nth-child(odd),
 #list-no-hover > *:nth-child(odd) {
 	background-color: color-mix(in srgb, #fff 90%, #405B79);
@@ -87,4 +91,20 @@
 	justify-content: space-around;
 	align-items: flex-start;
 	flex-wrap: wrap;
+}
+
+.row-delete-button {
+  	border: none;
+  	background: transparent;
+  	color: #888;
+  	font-size: 2rem;
+  	line-height: 1;
+  	cursor: pointer;
+  	visibility: hidden;
+  	width: 25px;
+  	padding-right: 5%;
+}
+
+.row-delete-button:hover {
+	color: #333;
 }

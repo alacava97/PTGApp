@@ -18,6 +18,7 @@ const emailRoutes = require('./routes/email');
 const adminRoutes = require('./routes/admin');
 const attendanceRoutes = require('./routes/attendance');
 const proposalRoutes = require('./routes/proposals');
+const classRoutes = require('./routes/classes');
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use('/auth', authRoutes);
 app.use('/api/email', emailRoutes);
 app.use('/admin', adminRoutes);
 app.use('/api/attendance', attendanceRoutes);
+app.use('/api/classes', classRoutes);
 app.use('/api/proposals', proposalRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 

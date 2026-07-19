@@ -471,11 +471,6 @@ main > h3 {
 	justify-items: center;
 }
 
-.chart iframe {
-	width: 90vw;
-	height: 70vh;
-}
-
 .subtitle {
 	font-weight: 400;
 	font-size: 18px;

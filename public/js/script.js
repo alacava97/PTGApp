@@ -339,8 +339,11 @@ async function linkInstructorToClass({ instructor_id, class_id }) {
 			const errData = await res.json();
 			throw new Error(errData.error || 'Failed to link instructor to class');
 		}
+
+		return res.json();
 	} catch (err) {
 		console.error(err);
+		throw err;
 	}
 }
 
@@ -357,11 +360,11 @@ async function deleteClassInstructorLink(classId, instructorId) {
       throw new Error(errorData.error || 'Failed to delete link');
     }
 
-    console.log('Link deleted successfully');
+    return res.json();
 
   } catch (err) {
     console.error(err);
-    console.log('Error deleting link: ' + err.message);
+    throw err;
   }
 }
 

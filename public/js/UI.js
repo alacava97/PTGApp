@@ -59,9 +59,9 @@ class Row {
 	}
 
 	addDeleteButton() {
-		this.deleteButton = document.createElement('div');
-		this.deleteButton.classList.add('delete-btn', 'arrow');
-		this.deleteButton.innerHTML = `&times;`;
+		this.deleteButton = document.createElement('button');
+		this.deleteButton.classList.add('row-delete-button');
+		this.deleteButton.innerHTML = `×`;
 		this.row.appendChild(this.deleteButton);
 	}
 

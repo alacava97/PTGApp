@@ -193,3 +193,62 @@ function setupSortList(data, displayKey, table, addBtnId) {
 	
 	return { list, addBtn };
 }
+
+class List {
+	constructor() {
+		this.listContainer = document.createElement('div');
+	}
+
+	addTitle(title) {
+		this.listTitle = document.createElement('h3');
+		this.listTitle.textContent = title;
+		this.listContainer.appendChild(this.listTitle);
+	}
+
+	renderList(data, displayKey, deleteFunction) {
+		this.list = document.createElement('ul');
+		this.list.classList.add('sort-list');
+
+		data.forEach(entry => {
+			const li = new ListItem(entry, displayKey);
+			li.li.dataset.entry = entry;
+			if (deleteFunction) {
+				li.attachDeleteButton(deleteFunction);
+			}
+			this.list.appendChild(li.li);
+		});
+
+		this.listContainer.appendChild(this.list);
+	}
+
+	createAddButton(addFunction) {
+		this.addBtn = document.createElement('button');
+		this.addBtn.textContent = `+ Add Item`;
+		this.addBtn.classList.add('add-btn');
+
+		this.addBtn.addEventListener('click', addFunction)
+
+		this.listContainer.appendChild(this.addBtn);
+
+		return this.addBtn;
+	}
+}
+
+class ListItem {
+	constructor(entry, displayKey) {
+		this.li = document.createElement('li');
+
+		const span = document.createElement('span');
+		span.textContent = entry[displayKey];
+		this.li.appendChild(span);
+	}
+
+	attachDeleteButton(deleteFunction) {
+		this.del = document.createElement('button');
+	    this.del.textContent = '×';
+	    this.del.classList.add('sort-list-delete');
+	    this.li.appendChild(this.del);
+
+	    this.del.addEventListener('click', () => deleteFunction(this.entry));
+	}
+}

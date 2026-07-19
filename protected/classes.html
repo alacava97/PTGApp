@@ -8,7 +8,8 @@
 	<link rel="stylesheet" href="public/styles/themes.css">
 	<link rel="stylesheet" href="public/styles/modals.css">
 	<link rel="stylesheet" href="public/styles/nav-styles.css">
-	<link rel="stylesheet" href="public/styles/row.css">	
+	<link rel="stylesheet" href="public/styles/row.css">
+	<link rel="stylesheet" href="public/styles/sort-list.css">	
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 	<title>Classes</title>
 </head>
@@ -28,10 +29,11 @@
 <script src="public/js/script.js"></script>
 <script src="public/js/modals.js"></script>
 <script src="public/js/UI.js"></script>
+<script src="public/js/sort-list.js"></script>
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		//populate table with class records
-		const classes = await read('classes');
+		const classes = await DataAPI.load();
 		displayRecords(classes);
 
 		//initialize searchbar
@@ -86,25 +88,29 @@
 		populateDropdown(typeDD, 'types', 'type');
 	});
 
+	const DataAPI = {
+		load: async () => {
+			return fetchJSON(`/api/classes/getClassList`);
+		}
+	}
+
 	function displayRecords(records) {
+		console.log(records);
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
-		Object.entries(records)
-			.sort(([, a], [, b]) =>
-				a.title.localeCompare(b.title, undefined, {sensitivity: 'base'})
-			)
-			.forEach(record => {
+		Object.entries(records).forEach(record => {
 			record = record[1]
 			const entry = new Row();
 
 			const name = `${record.title}`
-			const subtitle = `${record.instructor_name}`;
+			const subtitle = record.instructors.map(i => i = i.name).join(', ');
 
 			entry.addTitle(name);
 			entry.addSubtitle(subtitle);
 			
-			entry.addArrow(`/class-info.html?id=${record.id}`);
+			entry.addDDMenu();
+			renderDDInfo(record).forEach(el => entry.dd.appendChild(el))
 
 			list.appendChild(entry.row);
 		});
@@ -112,5 +118,40 @@
 		const num = records.length;
 		count.innerHTML = `Found ${num} records.`;
 	};
+
+	function renderDDInfo(record) {
+		const instructors = renderInstructorList(record);
+		return [instructors];
+	}
+
+	function renderInstructorList(data) {
+		const instructorList = new List();
+		instructorList.addTitle('Instructors');
+		instructorList.renderList(
+			data.instructors,
+			'name',
+			instructor => deleteInstructorFromClass(data.id, data.title, instructor)
+		);
+
+		instructorList.createAddButton(addInstructorToClass);
+		
+		return instructorList.listContainer;
+	}
+
+	async function addInstructorToClass() {
+		//create an li with a searchable dropdown to select instructors
+	}
+
+	async function deleteInstructorFromClass(classId, classTitle, instructor) {
+		if(!confirm(`Remove this ${instructor.name} from ${classTitle}?`)) return;
+
+		try {
+			const result = await deleteClassInstructorLink(classId, instructor.id);
+
+			console.log(result);
+		} catch (err) {
+			console.error(err)
+		}
+	}
 </script>
 </html>
