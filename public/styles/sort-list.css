@@ -76,3 +76,11 @@
 .sort-list li:hover .sort-list-delete {
   visibility: visible;
 }
+
+.new-item {
+  flex-wrap: wrap;
+}
+
+.drop-down-select {
+  flex-basis: 100%;
+}

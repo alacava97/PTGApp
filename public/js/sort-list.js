@@ -195,8 +195,10 @@ function setupSortList(data, displayKey, table, addBtnId) {
 }
 
 class List {
-	constructor() {
+	constructor(record, deleteFunction) {
+		this.deleteFunction = deleteFunction;
 		this.listContainer = document.createElement('div');
+		this.record = record;
 	}
 
 	addTitle(title) {
@@ -205,15 +207,15 @@ class List {
 		this.listContainer.appendChild(this.listTitle);
 	}
 
-	renderList(data, displayKey, deleteFunction) {
+	renderList(data, displayKey) {
 		this.list = document.createElement('ul');
 		this.list.classList.add('sort-list');
 
 		data.forEach(entry => {
 			const li = new ListItem(entry, displayKey);
 			li.li.dataset.entry = entry;
-			if (deleteFunction) {
-				li.attachDeleteButton(deleteFunction);
+			if (this.deleteFunction) {
+				li.attachDeleteButton(this.deleteFunction, entry, this.record);
 			}
 			this.list.appendChild(li.li);
 		});
@@ -221,16 +223,90 @@ class List {
 		this.listContainer.appendChild(this.list);
 	}
 
-	createAddButton(addFunction) {
+	renderListItem(data, displayKey) {
+		const li = new ListItem(data, displayKey);
+		li.attachDeleteButton(this.deleteFunction, data, this.record)
+		this.list.appendChild(li.li);
+	}
+
+	createAddButton(addFunction, options, displayKey, serachable = false) {
 		this.addBtn = document.createElement('button');
 		this.addBtn.textContent = `+ Add Item`;
 		this.addBtn.classList.add('add-btn');
 
-		this.addBtn.addEventListener('click', addFunction)
+		this.addBtn.addEventListener('click', () => {
+			const li = document.createElement('li');
+		    li.classList.add('new-item');
+		    const input = document.createElement('input');
+		    input.type = 'text';
+		    input.placeholder = `New item...`;
+		    li.appendChild(input);
+
+		    this.list.appendChild(li);
+		    input.focus();
+
+		    let finalized = false;
+
+		    if(options && searchable == true) {
+		    	const results = document.createElement('ul');
+				results.classList.add('drop-down-select');
+
+				input.addEventListener('input', () => {
+					const searchTerm = input.value.toLowerCase();
+					results.innerHTML = '';
+
+					if (input.value == '') {
+						return
+					}
+
+					options
+						.filter(o => o[displayKey].toLowerCase().includes(searchTerm))
+						.forEach(o => {
+							const searchableLi = document.createElement('li');
+							searchableLi.textContent = o[displayKey];
+							searchableLi.classList.add('dd-options');
+							searchableLi.addEventListener('click', () => {
+								input.value = o[displayKey];
+								input.setAttribute('row-id', o.id);
+								results.innerHTML = '';
+							});
+							results.appendChild(searchableLi);
+						});
+				});
+
+				li.appendChild(results);
+
+			    const finalizeAdd = async () => {
+		    		if (finalized == true) return;
+		    		finalized = true;
+			      	input.blur();
+			      	const value = input.value.trim();
+			      	if (!value) return li.remove();
+			      	try {
+			      		const data = await addFunction(input.getAttribute('row-id'), this.record.id);
+			        	li.remove();
+			        	this.renderListItem(options.find(o => o.id == input.getAttribute('row-id')), displayKey);
+			      	} catch (err) {
+			        	console.error(`Add item failed:`, err);
+			        	li.remove();
+			      	}
+			    };
+
+			    input.addEventListener('keydown', e => {
+			      	if (e.key === 'Enter') finalizeAdd();
+			      	if (e.key === 'Escape') li?.remove();
+			    });
+			    input?.addEventListener('blur', (e) => {
+			    	if (e.target.getAttribute('row-id')) {
+			    		finalizeAdd();
+			    	} else {
+			    		e.target.focus();
+			    	}
+			    });
+		    }
+		});
 
 		this.listContainer.appendChild(this.addBtn);
-
-		return this.addBtn;
 	}
 }
 
@@ -243,12 +319,15 @@ class ListItem {
 		this.li.appendChild(span);
 	}
 
-	attachDeleteButton(deleteFunction) {
+	attachDeleteButton(deleteFunction, instructor, record) {
 		this.del = document.createElement('button');
 	    this.del.textContent = '×';
 	    this.del.classList.add('sort-list-delete');
 	    this.li.appendChild(this.del);
 
-	    this.del.addEventListener('click', () => deleteFunction(this.entry));
+	    this.del.addEventListener('click', () => {
+	    	deleteFunction(instructor, record);
+	    	this.li.remove();
+	    });
 	}
 }

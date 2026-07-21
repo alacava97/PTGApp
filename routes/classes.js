@@ -16,6 +16,7 @@ router.get('/getClassList', requireLogin, async (req, res) => {
       	classes.level,
       	classes.length,
       	classes.special_equipment,
+    		classes.description,
       	types.type AS type,
       	sponsors.sponsor_name AS sponsor,
       	COALESCE(
@@ -46,5 +47,23 @@ router.get('/getClassList', requireLogin, async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+router.get('/getInstructorList', requireLogin, async(req, res) => {
+	try {
+    const result = await pool.query(`
+    SELECT 
+   		id,
+    	name
+    FROM
+    	instructors
+    ORDER BY
+    	name ASC
+  `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(`Error fetching data from ${table}:`, err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+})
 
 module.exports = router;

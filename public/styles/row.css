@@ -93,6 +93,10 @@
 	flex-wrap: wrap;
 }
 
+.row-dd > div {
+	flex-basis: 30%;
+}
+
 .row-delete-button {
   	border: none;
   	background: transparent;

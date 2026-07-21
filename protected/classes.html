@@ -33,11 +33,11 @@
 <script>
 	document.addEventListener('DOMContentLoaded', async () => {
 		//populate table with class records
-		const classes = await DataAPI.load();
-		displayRecords(classes);
+		const data = await DataAPI.load();
+		displayRecords(data);
 
 		//initialize searchbar
-		searchBar(classes);
+		searchBar(data.classList);
 
 		const newClass = new Modal('newModal');
 		newClass.content(`<h2>New Class</h2>
@@ -90,12 +90,17 @@
 
 	const DataAPI = {
 		load: async () => {
-			return fetchJSON(`/api/classes/getClassList`);
+			const [ classList, instructorList ] = await Promise.all([
+				fetchJSON(`/api/classes/getClassList`),
+				fetchJSON(`/api/classes/getInstructorList`)
+			]);
+
+			return { classList, instructorList };
 		}
 	}
 
-	function displayRecords(records) {
-		console.log(records);
+	function displayRecords(data) {
+		const records = data.classList;
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
@@ -110,7 +115,7 @@
 			entry.addSubtitle(subtitle);
 			
 			entry.addDDMenu();
-			renderDDInfo(record).forEach(el => entry.dd.appendChild(el))
+			renderDDInfo(record, data.instructorList).forEach(el => entry.dd.appendChild(el))
 
 			list.appendChild(entry.row);
 		});
@@ -119,34 +124,72 @@
 		count.innerHTML = `Found ${num} records.`;
 	};
 
-	function renderDDInfo(record) {
-		const instructors = renderInstructorList(record);
-		return [instructors];
+	function renderDDInfo(record, allInstructors) {
+		console.log(record);
+		const instructors = renderInstructorList(record, allInstructors);
+		const description = renderClassDescription(record.description);
+		const details = renderClassDetails({ length: record.length, type: record.type, level: record.level });
+		return [instructors, description, details];
 	}
 
-	function renderInstructorList(data) {
-		const instructorList = new List();
+	function renderInstructorList(record, allInstructors) {
+		const instructorList = new List(record, deleteInstructorFromClass);
 		instructorList.addTitle('Instructors');
 		instructorList.renderList(
-			data.instructors,
+			record.instructors,
 			'name',
-			instructor => deleteInstructorFromClass(data.id, data.title, instructor)
+			deleteInstructorFromClass
 		);
 
-		instructorList.createAddButton(addInstructorToClass);
+		instructorList.createAddButton(addInstructorToClass, allInstructors, 'name', searchable = true);
 		
 		return instructorList.listContainer;
 	}
 
-	async function addInstructorToClass() {
-		//create an li with a searchable dropdown to select instructors
+	function renderClassDescription(description) {
+		const descriptionContainer = document.createElement('div');
+
+		const title = document.createElement('h3');
+		title.textContent = 'Description';
+
+		const descriptionEl = document.createElement('p');
+		descriptionEl.textContent = description;
+
+		descriptionContainer.append(title, descriptionEl);
+
+		return descriptionContainer
 	}
 
-	async function deleteInstructorFromClass(classId, classTitle, instructor) {
-		if(!confirm(`Remove this ${instructor.name} from ${classTitle}?`)) return;
+	function renderClassDetails(record) {
+		const detailContainer = document.createElement('div');
+
+		const title = document.createElement('h3');
+		title.textContent = 'Details';
+		detailContainer.appendChild(title);
+
+		Object.keys(record).forEach(key => {
+			const div = document.createElement('div');
+			div.textContent = `${key}: ${record[key]}`;
+			detailContainer.appendChild(div);
+		});
+
+		return detailContainer
+	}
+
+	async function addInstructorToClass(instructorId, classId) {
+		try {
+			const result = await linkInstructorToClass({ instructor_id: instructorId, class_id: classId });
+			console.log(result);
+		} catch (err) {
+			console.error(err);
+		}
+	}
+
+	async function deleteInstructorFromClass(instructor, record) {
+		if(!confirm(`Remove this ${instructor.name} from ${record.title}?`)) return;
 
 		try {
-			const result = await deleteClassInstructorLink(classId, instructor.id);
+			const result = await deleteClassInstructorLink(record.id, instructor.id);
 
 			console.log(result);
 		} catch (err) {
