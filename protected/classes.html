@@ -101,6 +101,7 @@
 
 	function displayRecords(data) {
 		const records = data.classList;
+		console.log(records);
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
@@ -113,9 +114,10 @@
 
 			entry.addTitle(name);
 			entry.addSubtitle(subtitle);
+			entry.addArrow(`/class-info.html?id=${record.id}`);
 			
-			entry.addDDMenu();
-			renderDDInfo(record, data.instructorList).forEach(el => entry.dd.appendChild(el))
+			//entry.addDDMenu();
+			//renderDDInfo(record, data.instructorList).forEach(el => entry.dd.appendChild(el))
 
 			list.appendChild(entry.row);
 		});
@@ -125,11 +127,24 @@
 	};
 
 	function renderDDInfo(record, allInstructors) {
-		console.log(record);
 		const instructors = renderInstructorList(record, allInstructors);
 		const description = renderClassDescription(record.description);
-		const details = renderClassDetails({ length: record.length, type: record.type, level: record.level });
-		return [instructors, description, details];
+		const details = renderClassDetails({ 
+			length: record.length,
+			type: record.type,
+			level: record.level
+		});
+		const setup = renderClassSetup({
+			conflicts: record.conflicts,
+			preferences: record.preferences,
+			requirements: record.requirements,
+			prep_time: record.prep_time,
+			seating: record.seating || 'either',
+			extra_tables: record.extra_tables,
+			aV_needs: record.extra_tables,
+			special_equipment: record.special_equipment
+		})
+		return [instructors, description, details, setup];
 	}
 
 	function renderInstructorList(record, allInstructors) {
@@ -153,7 +168,7 @@
 		title.textContent = 'Description';
 
 		const descriptionEl = document.createElement('p');
-		descriptionEl.textContent = description;
+		descriptionEl.innerHTML = description || `<i>No description</i>`;
 
 		descriptionContainer.append(title, descriptionEl);
 
@@ -169,11 +184,41 @@
 
 		Object.keys(record).forEach(key => {
 			const div = document.createElement('div');
-			div.textContent = `${key}: ${record[key]}`;
+			if (key == 'length') {
+				div.innerHTML = `Length: ${
+					record.length ?
+					`${record.length} ${
+						record.length === 1 ?
+						'period' :
+						'periods'}` :
+					'No length'}`;
+			} else if (key == 'type') {
+				div.innerHTML = `Type: ${record.type}`
+			} else if (key == 'level') {
+				div.innerHTML = `Level: ${record.level}`
+			} else {
+				div.textContent = `${key}: ${record[key]}`;
+			}
 			detailContainer.appendChild(div);
 		});
 
 		return detailContainer
+	}
+
+	function renderClassSetup(record) {
+		setupConatiner = document.createElement('div');
+
+		const title = document.createElement('h3');
+		title.textContent = 'Class Setup';
+		setupConatiner.appendChild(title);
+
+		Object.keys(record).forEach(key => {
+			const div = document.createElement('div');
+			div.innerHTML = `${key.slice(0).toUppercase()}${key.slice(1)}: ${record[key]}`;
+			setupContainer.appendChild(div);
+		});
+
+		return setupContainer
 	}
 
 	async function addInstructorToClass(instructorId, classId) {
