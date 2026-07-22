@@ -34,7 +34,7 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		//populate table with class records
 		const data = await DataAPI.load();
-		displayRecords(data);
+		displayRecords(data.classList);
 
 		//initialize searchbar
 		searchBar(data.classList);
@@ -78,6 +78,7 @@
 			const updated = await read('classes');
 			displayRecords(updated);
 		}
+
 		newClass.formSubmit(classSuccess, 'classes', type = 'create');
 
 		//populate modal dropdowns
@@ -99,9 +100,7 @@
 		}
 	}
 
-	function displayRecords(data) {
-		const records = data.classList;
-		console.log(records);
+	function displayRecords(records) {
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 

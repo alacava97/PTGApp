@@ -181,11 +181,28 @@ function searchBar(records) {
 		if (terms.length === 0) {
 			filtered = records;
 		} else {
-			filtered = records.filter(entry => 
-				terms.some(term => 
-					Object.values(entry).some(value =>
-						typeof value === 'string' && value.toLowerCase().includes(term)
-					)
+			filtered = records.filter(entry =>
+				terms.some(term =>
+					Object.values(entry).some(value => {
+						// Normal string
+						if (typeof value === 'string') {
+							return value.toLowerCase().includes(term);
+						}
+
+						// Array of objects
+						if (Array.isArray(value)) {
+							return value.some(item =>
+								item &&
+								typeof item === 'object' &&
+								Object.values(item).some(v =>
+									typeof v === 'string' &&
+									v.toLowerCase().includes(term)
+								)
+							);
+						}
+
+						return false;
+					})
 				)
 			);
 		}
