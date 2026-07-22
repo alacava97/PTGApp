@@ -115,7 +115,6 @@ router.post('/register', async (req, res) => {
 router.post('/request-password-reset', resetLimiter, async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(email);
 
     if (!email) {
       return res.status(400).json({ error: 'Email is required.' });
@@ -127,6 +126,8 @@ router.post('/request-password-reset', resetLimiter, async (req, res) => {
     );
 
     const user = result.rows[0];
+
+    console.log(user);
 
     const genericResponse = {
       message: 'If an account with that email exists, a password reset link has been sent.'
