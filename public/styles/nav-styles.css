@@ -3,10 +3,10 @@
 	margin: 0;
 	padding: 0 5%;
 	width: 100%;
-	min-width: 800px;
 	box-sizing: border-box;
 	display: flex;
 	flex-direction: row;
+	flex-wrap: wrap;
 }
 
 .nav-right {
@@ -23,6 +23,11 @@
 	text-decoration: none;
 	font-size: 18px;
 	font-weight: 600;
+}
+
+.nav-ul > li > a {
+	display: block;
+	width: max-content;
 }
 
 .nav-ul a:hover,
@@ -51,6 +56,7 @@
 	font-size: inherit;
 	font-weight: inherit;
 	margin: 0;
+	width: max-content;
 }
 
 .nav-dd-content {

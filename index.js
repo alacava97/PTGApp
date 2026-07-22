@@ -351,6 +351,42 @@ app.get('/api/public/getPropInfo/:token', async (req, res) => {
   }
 });
 
+app.post('/api/public/submitReview', async (req, res) => {
+  const data = req.body
+  console.log(data);
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+
+    const record = await pool.query(`
+      INSERT INTO reviews (q1, q2, q3, q4, q5, q6, q7, q8, q9, q10, schedule_id, created_at)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *;
+    `,[data.q1, data.q2, data.q3, data.q4, data.q5, data.q6, data.q7, data.q8, data.q9, data.q10, data.schedule_id, data.created_at])
+
+    await client.query('COMMIT');
+
+    return res.json({ 
+      message: `Successfully submitted review`,
+      record
+    });
+  } catch (err) {
+    await client.query('ROLLBACK');
+
+    if (err.code === '23505') {
+      const errCol = err.constraint.split('_')[1];
+      console.error('Insert failed:', err);
+      return res.status(400).json({ error: `${errCol} already exists.` });
+    }
+
+    console.error('Error inserting record:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  } finally {
+    client.release();
+  }
+});
+
 app.use(requireLogin);
 app.use(express.static(path.join(__dirname, 'protected')));
 

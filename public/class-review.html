@@ -226,7 +226,14 @@
 				formData.schedule_id = data.schedule_id;
 				formData.created_at = new Date();
 				formData.convention_id = new URLSearchParams(window.location.search).get('convention_id');
-				const res = await create('reviews', formData);
+				console.log(formData);
+				const res = await fetch(`/api/public/submitReview`, {
+					method: 'POST',
+					headers: {
+						'Content-Type': 'application/json'
+					},
+					body: JSON.stringify(formData)
+				})
 
 				if (!res || res.error) {
 					alert('Failed to submit review. Please try again.');
