@@ -34,10 +34,10 @@
 	document.addEventListener('DOMContentLoaded', async () => {
 		//populate table with class records
 		const data = await DataAPI.load();
-		displayRecords(data.classList);
+		displayRecords(data);
 
 		//initialize searchbar
-		searchBar(data.classList);
+		searchBar(data);
 
 		const newClass = new Modal('newModal');
 		newClass.content(`<h2>New Class</h2>
@@ -100,50 +100,75 @@
 		}
 	}
 
-	function displayRecords(records) {
+	function displayRecords(data) {
 		const list = document.getElementById('list');
 		list.innerHTML = '';
 
-		Object.entries(records).forEach(record => {
-			record = record[1]
+		Object.entries(data.classList).forEach(record => {
 			const entry = new Row();
 
-			const name = `${record.title}`
-			const subtitle = record.instructors.map(i => i = i.name).join(', ');
+			const name = `${record[1].title}`
+			const subtitle = record[1].instructors.map(i => i = i.name).join(', ');
 
 			entry.addTitle(name);
 			entry.addSubtitle(subtitle);
-			entry.addArrow(`/class-info.html?id=${record.id}`);
+			//entry.addArrow(`/class-info.html?id=${record.id}`);
 			
-			//entry.addDDMenu();
-			//renderDDInfo(record, data.instructorList).forEach(el => entry.dd.appendChild(el))
+			entry.addDDMenu();
+			renderDDInfo(record[1], data.instructorList).forEach(el => entry.dd.appendChild(el))
 
 			list.appendChild(entry.row);
 		});
 		const count = document.getElementById('count');
-		const num = records.length;
+		const num = data.classList.length;
 		count.innerHTML = `Found ${num} records.`;
 	};
 
 	function renderDDInfo(record, allInstructors) {
 		const instructors = renderInstructorList(record, allInstructors);
+
 		const description = renderClassDescription(record.description);
+
 		const details = renderClassDetails({ 
 			length: record.length,
 			type: record.type,
 			level: record.level
 		});
+
 		const setup = renderClassSetup({
-			conflicts: record.conflicts,
-			preferences: record.preferences,
-			requirements: record.requirements,
-			prep_time: record.prep_time,
+			conflicts: record.conflicts || '',
+			preferences: record.preferences || '',
+			requirements: record.requirements || '',
+			prep_time: record.prep_time || '',
 			seating: record.seating || 'either',
-			extra_tables: record.extra_tables,
-			aV_needs: record.extra_tables,
-			special_equipment: record.special_equipment
-		})
-		return [instructors, description, details, setup];
+			extra_tables: record.extra_tables || '',
+			aV_needs: record.extra_tables || '',
+			special_equipment: record.special_equipment || ''
+		});
+
+		const pianos = renderClassPianos({
+			piano: record.piano || 0,
+			piano1: {
+				type: record.piano_1_type || '',
+				quality: record.piano_1_quality || '',
+				size: record.piano_1_size || '',
+				supplier: record.piano_1_supplier || '',
+				manufacturer: record.piano_1_manufacturer || '',
+				share: record.piano_1_share || 'false',
+				requirements: record.piano_1_requirements || ''
+			},
+			piano2: {
+				type: record.piano_2_type || '',
+				quality: record.piano_2_quality || '',
+				size: record.piano_2_size || '',
+				supplier: record.piano_2_supplier || '',
+				manufacturer: record.piano_2_manufacturer || '',
+				share: record.piano_2_share || 'false',
+				requirements: record.piano_2_requirements || ''
+			}
+		});
+
+		return [instructors, description, details, setup, pianos];
 	}
 
 	function renderInstructorList(record, allInstructors) {
@@ -163,13 +188,11 @@
 	function renderClassDescription(description) {
 		const descriptionContainer = document.createElement('div');
 
-		const title = document.createElement('h3');
-		title.textContent = 'Description';
+		const descriptionEl = new Row();
+		descriptionEl.addTitle('Class Description');
+		descriptionEl.addSubtitle(description || 'No description');
 
-		const descriptionEl = document.createElement('p');
-		descriptionEl.innerHTML = description || `<i>No description</i>`;
-
-		descriptionContainer.append(title, descriptionEl);
+		descriptionContainer.append(descriptionEl.row);
 
 		return descriptionContainer
 	}
@@ -177,47 +200,102 @@
 	function renderClassDetails(record) {
 		const detailContainer = document.createElement('div');
 
-		const title = document.createElement('h3');
-		title.textContent = 'Details';
-		detailContainer.appendChild(title);
+		const classLength = record.length ?
+			`${record.length} ${record.length === 1 ?
+				'period' :
+				'periods'}` :
+			'No length';
 
-		Object.keys(record).forEach(key => {
-			const div = document.createElement('div');
-			if (key == 'length') {
-				div.innerHTML = `Length: ${
-					record.length ?
-					`${record.length} ${
-						record.length === 1 ?
-						'period' :
-						'periods'}` :
-					'No length'}`;
-			} else if (key == 'type') {
-				div.innerHTML = `Type: ${record.type}`
-			} else if (key == 'level') {
-				div.innerHTML = `Level: ${record.level}`
-			} else {
-				div.textContent = `${key}: ${record[key]}`;
-			}
-			detailContainer.appendChild(div);
-		});
+		const classDetails = new Row();
+		classDetails.addTitle('Details');
+		classDetails.addSubtitle(`Length: ${classLength}`);
+		classDetails.addSeparator();
+		classDetails.addSubtitle(`Type: ${record.type || 'No type'}`);
+		classDetails.addSeparator();
+		classDetails.addSubtitle(`Level: ${record.level?record.level.charAt(0).toUpperCase() + record.level.slice(1):'No level'}`);
+		classDetails.addSeparator();
+
+		detailContainer.appendChild(classDetails.row);
 
 		return detailContainer
 	}
 
 	function renderClassSetup(record) {
-		setupConatiner = document.createElement('div');
+		const setupContainer = document.createElement('div');
 
-		const title = document.createElement('h3');
-		title.textContent = 'Class Setup';
-		setupConatiner.appendChild(title);
+		const classSetup = new Row();
+		classSetup.addTitle('Class Setup');
+		classSetup.addSubtitle(`Conflicts: ${record.conflicts}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Preferences: ${record.preferences}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Requirements: ${record.class_requirements}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Prep Time: ${record.prep_time}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Seating: ${record.seating}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Extra Tables: ${record.extra_tables}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`AV Needs: ${record.av}`);
+		classSetup.addSeparator();
+		classSetup.addSubtitle(`Special Equipment: ${record.special_equipment}`);
 
-		Object.keys(record).forEach(key => {
-			const div = document.createElement('div');
-			div.innerHTML = `${key.slice(0).toUppercase()}${key.slice(1)}: ${record[key]}`;
-			setupContainer.appendChild(div);
-		});
+		setupContainer.appendChild(classSetup.row);
 
 		return setupContainer
+	}
+
+	function renderClassPianos(data) {
+		const pianoContainer = document.createElement('div');
+
+		const row = new Row();
+		row.addTitle('Piano Needs');
+
+		if (data.piano == 0) {
+			row.addSubtitle('No Pianos Needed');
+			pianoContainer.appendChild(row.row);
+		} else if (data.piano >= 1) {
+			const piano1Row = new Row();
+			piano1Row.addTitle('Piano 1');
+			piano1Row.addSubtitle(`Type: ${data.piano1.type}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Quality: ${data.piano1.quality}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Size: ${data.piano1.size}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Supplier: ${data.piano1.supplier}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Manufacturer: ${data.piano1.manufacturer}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Shared: ${data.piano1.share}`);
+			piano1Row.addSeparator();
+			piano1Row.addSubtitle(`Requirements: ${data.piano1.requirements}`);
+
+			pianoContainer.append(row.row, piano1Row.row);
+		}
+
+		if (data.piano >= 2) {
+			const piano2Row = new Row();
+			piano2Row.addTitle('Piano 2');
+			piano2Row.addSubtitle(`Type: ${data.piano2.type}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Quality: ${data.piano2.quality}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Size: ${data.piano2.size}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Supplier: ${data.piano2.supplier}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Manufacturer: ${data.piano2.manufacturer}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Shared: ${data.piano2.share}`);
+			piano2Row.addSeparator();
+			piano2Row.addSubtitle(`Requirements: ${data.piano2.requirements}`);
+
+			pianoContainer.appendChild(piano2Row.row);
+		}
+		
+		return pianoContainer;
 	}
 
 	async function addInstructorToClass(instructorId, classId) {
